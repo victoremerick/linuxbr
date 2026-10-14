@@ -1,0 +1,91 @@
+
+# ==========================================
+# Linux BR - .gitignore
+# ==========================================
+
+# Build e arquivos temporários do live-build
+/build/
+/.cache/
+/tmp/
+/temp/
+
+# Imagens ISO e artefatos gerados
+/dist/
+/output/
+*.iso
+*.img
+*.raw
+*.squashfs
+*.hybrid.iso
+*.iso.zsync
+
+# Discos e máquinas virtuais
+/vm/
+*.qcow2
+*.qcow2.*
+*.vdi
+*.vmdk
+*.vhd
+*.vhdx
+*.vbox
+*.vbox-prev
+*.nvram
+
+# Logs
+*.log
+*.log.*
+/logs/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+*.orig
+*.rej
+
+# Cache Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Cache e arquivos de IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.iml
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+.Trash-*/
+.directory
+
+# Cobertura e resultados de testes
+/coverage/
+htmlcov/
+.coverage
+coverage.xml
+/test-results/
+playwright-report/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.kdbx
+
+# Arquivos locais de configuração
+*.local
+config.local.sh
