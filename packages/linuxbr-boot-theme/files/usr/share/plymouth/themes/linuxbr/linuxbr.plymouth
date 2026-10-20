@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Linux BR
+Description=Pinguim e cores do Linux BR
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/linuxbr
+ScriptFile=/usr/share/plymouth/themes/linuxbr/linuxbr.script

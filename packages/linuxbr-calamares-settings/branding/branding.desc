@@ -1,0 +1,28 @@
+---
+componentName: linuxbr
+welcomeStyleCalamares: true
+welcomeExpandingLogo: false
+windowExpanding: normal
+windowSize: 900px,620px
+windowPlacement: center
+strings:
+  productName: Linux BR
+  shortProductName: Linux BR
+  version: 0.4.0 Alpha
+  shortVersion: 0.4.0
+  versionedName: Linux BR 0.4.0 Alpha
+  shortVersionedName: Linux BR 0.4.0 Alpha
+  bootloaderEntryName: Linux BR
+sidebar: none
+navigation: widget
+images:
+  productLogo: logo.svg
+  productIcon: logo.svg
+  productWelcome: logo.svg
+slideshow: show.qml
+slideshowAPI: 2
+style:
+  SidebarBackground: '#10191f'
+  SidebarText: '#ffffff'
+  SidebarTextCurrent: '#ffffff'
+  SidebarBackgroundCurrent: '#34443e'

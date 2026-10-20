@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Ações do Linux BR
+Exec=linuxbr-action %u
+Icon=linuxbr
+NoDisplay=true
+Terminal=false
+MimeType=x-scheme-handler/linuxbr-action;

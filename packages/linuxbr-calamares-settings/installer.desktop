@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Instalar Linux BR
+Name[pt_BR]=Instalar Linux BR
+GenericName=Instalador do sistema
+Exec=calamares-install-linuxbr
+Comment=Instalar Linux BR 0.4.0 Alpha no computador
+Icon=linuxbr-installer
+Terminal=false
+Categories=Qt;System;
+StartupWMClass=calamares
+StartupNotify=true

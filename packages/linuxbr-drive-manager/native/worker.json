@@ -1,0 +1,1 @@
+{"KDE-KIO-Protocols":{"linuxbr":{"Class":":local","defaultMimetype":"inode/directory","determineMimetypeFromExtension":false,"input":"none","output":"filesystem","listing":["Name","Type","Size","Date","Access"],"reading":true,"writing":false,"makedir":false,"deleting":false,"moving":false,"Icon":"linuxbr-files"}}}

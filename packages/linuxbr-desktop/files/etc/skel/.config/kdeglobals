@@ -1,0 +1,6 @@
+[KDE]
+LookAndFeelPackage=org.linuxbr.desktop
+SingleClick=false
+
+[General]
+BrowserApplication=firefox-esr.desktop

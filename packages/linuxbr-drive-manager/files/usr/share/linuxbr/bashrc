@@ -1,0 +1,4 @@
+# Konsole interactive Bash profile. Keep system/user startup files and scripts intact.
+[[ -f ~/.bashrc ]] && source ~/.bashrc
+[[ $- == *i* ]] || return
+source /usr/share/linuxbr/terminal.bash

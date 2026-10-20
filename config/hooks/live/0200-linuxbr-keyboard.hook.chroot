@@ -1,0 +1,14 @@
+#!/bin/sh
+# Set image defaults before initramfs and rootfs validation. live-config boot
+# arguments remain in place; Calamares may replace these with the user's choice.
+set -eu
+cat > /etc/default/keyboard <<'KEYBOARD'
+XKBMODEL="abnt2"
+XKBLAYOUT="br"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"
+KEYBOARD
+setupcon --save-only
+# Include the configured console keymap in each already-installed kernel.
+update-initramfs -u -k all

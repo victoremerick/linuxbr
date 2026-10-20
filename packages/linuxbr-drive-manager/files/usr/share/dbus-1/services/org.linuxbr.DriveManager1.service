@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.linuxbr.DriveManager1
+Exec=/usr/bin/linuxbr-drive-service
+SystemdService=linuxbr-drive-manager.service

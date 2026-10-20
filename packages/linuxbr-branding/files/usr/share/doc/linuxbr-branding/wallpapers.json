@@ -1,0 +1,82 @@
+[
+  {
+    "id": "LinuxBR-lencois-maranhenses",
+    "name": "Lençóis Maranhenses",
+    "author": "Dlaurini",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Len%C3%A7ois_Maranhenses-13.jpg",
+    "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Len%C3%A7ois_Maranhenses-13.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "original_size": [
+      5900,
+      2608
+    ],
+    "included_size": [
+      5900,
+      2608
+    ],
+    "file": "wallpapers/LinuxBR-lencois-maranhenses/contents/images/5900x2608.jpg",
+    "sha256": "7ad606868b9402f35228ce3674449f7c33465d1229e2cfbc99eac4d05de43d25",
+    "changes": "Original preservado"
+  },
+  {
+    "id": "LinuxBR-fernando-de-noronha",
+    "name": "Fernando de Noronha — Praia do Sancho",
+    "author": "Hansfotos",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Fernando_de_Noronha-Praia_do_Sancho.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Fernando_de_Noronha-Praia_do_Sancho.jpg/3840px-Fernando_de_Noronha-Praia_do_Sancho.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "original_size": [
+      4367,
+      2911
+    ],
+    "included_size": [
+      3840,
+      2560
+    ],
+    "file": "wallpapers/LinuxBR-fernando-de-noronha/contents/images/3840x2560.jpg",
+    "sha256": "6761903871f9f2db3ce9432dc0517f267b106fefad2d515cbcd634358a0e1891",
+    "changes": "Redução de resolução pelo Wikimedia; sem outras alterações locais"
+  },
+  {
+    "id": "LinuxBR-rio-de-janeiro",
+    "name": "Rio de Janeiro — Pão de Açúcar",
+    "author": "Agustin Diaz Gargiulo",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro._Unsplash_7F65HDP0-E0.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Rio_de_Janeiro._Unsplash_7F65HDP0-E0.jpg/3840px-Rio_de_Janeiro._Unsplash_7F65HDP0-E0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "original_size": [
+      6000,
+      4000
+    ],
+    "included_size": [
+      3840,
+      2560
+    ],
+    "file": "wallpapers/LinuxBR-rio-de-janeiro/contents/images/3840x2560.jpg",
+    "sha256": "2d62a0f4d175315e74f1da27e181bc47f5e9ba6ed9526c21c40272c379119df4",
+    "changes": "Redução de resolução pelo Wikimedia; sem outras alterações locais"
+  },
+  {
+    "id": "LinuxBR-serra-dos-orgaos",
+    "name": "Serra dos Órgãos — Dedo de Deus",
+    "author": "Thadeusz Jucá",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dedo_de_Deus_-_Parque_Nacional_Serra_dos_%C3%93rg%C3%A3os_-_Teres%C3%B3polis_-_RJ_-_Brasil.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Dedo_de_Deus_-_Parque_Nacional_Serra_dos_%C3%93rg%C3%A3os_-_Teres%C3%B3polis_-_RJ_-_Brasil.jpg/3840px-Dedo_de_Deus_-_Parque_Nacional_Serra_dos_%C3%93rg%C3%A3os_-_Teres%C3%B3polis_-_RJ_-_Brasil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "original_size": [
+      6000,
+      4000
+    ],
+    "included_size": [
+      3840,
+      2560
+    ],
+    "file": "wallpapers/LinuxBR-serra-dos-orgaos/contents/images/3840x2560.jpg",
+    "sha256": "212e72211228a832de3b49326e9acfab33838b9ebabb628ce27d1c28e53c4898",
+    "changes": "Redução de resolução pelo Wikimedia; sem outras alterações locais"
+  }
+]

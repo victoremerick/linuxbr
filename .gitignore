@@ -89,3 +89,7 @@ playwright-report/
 # Arquivos locais de configuração
 *.local
 config.local.sh
+/build/
+/dist/
+/vm/
+*.log

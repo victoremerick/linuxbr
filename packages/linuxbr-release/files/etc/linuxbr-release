@@ -1,0 +1,4 @@
+NAME="Linux BR"
+VERSION="0.4.0 Alpha"
+VERSION_ID="0.4.0"
+BASE="Debian 13 (trixie)"

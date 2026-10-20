@@ -1,0 +1,14 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-serra-dos-orgaos",
+    "Name": "Serra dos Órgãos — Dedo de Deus",
+    "Name[pt_BR]": "Serra dos Órgãos — Dedo de Deus",
+    "Authors": [
+      {
+        "Name": "Thadeusz Jucá"
+      }
+    ],
+    "License": "CC BY-SA 4.0",
+    "Website": "https://commons.wikimedia.org/wiki/File:Dedo_de_Deus_-_Parque_Nacional_Serra_dos_%C3%93rg%C3%A3os_-_Teres%C3%B3polis_-_RJ_-_Brasil.jpg"
+  }
+}

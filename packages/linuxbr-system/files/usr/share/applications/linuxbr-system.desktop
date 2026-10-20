@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Central do Sistema Linux BR
+Comment=Dispositivos, armazenamento, rede e administração
+Exec=linuxbr-system
+Icon=linuxbr
+Categories=System;Settings;
+Terminal=false
+StartupNotify=true

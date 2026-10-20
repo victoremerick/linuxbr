@@ -1,0 +1,4 @@
+[General]
+Name=Linux BR
+LogoPath=/usr/share/linuxbr/identity/symbol-color.svg
+UseOSReleaseVersion=true

@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-light",
+    "Name": "Linux BR — Claro",
+    "Authors": [
+      {
+        "Name": "Projeto Linux BR"
+      }
+    ]
+  }
+}

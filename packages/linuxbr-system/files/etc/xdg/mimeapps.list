@@ -1,0 +1,12 @@
+[Default Applications]
+x-scheme-handler/linuxbr-action=linuxbr-action.desktop;
+application/vnd.debian.binary-package=linuxbr-install-package.desktop;
+application/x-deb=linuxbr-install-package.desktop;
+application/vnd.flatpak=linuxbr-install-package.desktop;
+application/vnd.flatpak.ref=linuxbr-install-package.desktop;
+application/x-rpm=linuxbr-install-package.desktop;
+application/x-msi=linuxbr-install-package.desktop;
+application/x-ms-dos-executable=linuxbr-install-package.desktop;
+application/vnd.microsoft.portable-executable=linuxbr-install-package.desktop;
+application/vnd.appimage=linuxbr-install-package.desktop;
+application/x-iso9660-appimage=linuxbr-install-package.desktop;

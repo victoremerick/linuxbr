@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Padrões de sessão Linux BR
+Exec=linuxbr-session-defaults
+OnlyShowIn=KDE;
+NoDisplay=true

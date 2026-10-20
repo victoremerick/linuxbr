@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Linux BR Drive Manager
+Name[pt_BR]=Unidades e rede
+Comment=Gerencie discos, pendrives, letras de unidades e compartilhamentos
+Exec=linuxbr-drive-manager
+Icon=linuxbr-files
+Terminal=false
+Categories=System;FileTools;Qt;
+Keywords=disco;pendrive;armazenamento;rede;SMB;unidades;
+StartupNotify=true

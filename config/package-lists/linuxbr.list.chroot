@@ -1,15 +1,15 @@
 task-kde-desktop
 calamares
-calamares-settings-debian
 live-boot
 live-config
 network-manager
 network-manager-openvpn
 plasma-nm
 partitionmanager
-partitionmanager
 udisks2
 kio-extras
+kde-zeroconf
+avahi-daemon
 samba
 smbclient
 cifs-utils
@@ -19,6 +19,26 @@ libreoffice-writer
 libreoffice-calc
 fonts-noto
 fonts-noto-color-emoji
+# Explicit payload packages: do not auto-select download-only b43 installers.
+# firmware-linux includes AMD/NVIDIA graphics and miscellaneous firmware.
 firmware-linux
 firmware-iwlwifi
 firmware-realtek
+firmware-atheros
+firmware-ath9k-htc
+firmware-brcm80211
+firmware-mediatek
+firmware-intel-graphics
+firmware-intel-sound
+firmware-sof-signed
+sddm-theme-breeze
+
+# Desktop Linux BR: atualizacoes graficas e traducao dos aplicativos.
+plasma-discover
+plasma-discover-backend-flatpak
+firefox-esr-l10n-pt-br
+libreoffice-l10n-pt-br
+
+# Explicit image defaults and cached Brazilian console keymap.
+keyboard-configuration
+console-setup

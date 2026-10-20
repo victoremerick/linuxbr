@@ -1,0 +1,14 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.linuxbr.quicksettings",
+    "Name": "Configurações rápidas Linux BR",
+    "Description": "Wi-Fi, Bluetooth, volume e brilho diretamente no painel",
+    "Icon": "configure",
+    "Version": "1.2",
+    "License": "GPL-3.0-or-later",
+    "Authors": [{"Name": "Linux BR"}],
+    "Category": "System Information"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

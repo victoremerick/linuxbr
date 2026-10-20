@@ -1,0 +1,37 @@
+title-text: "Linux BR"
+title-color: "#ffffff"
+desktop-image: "background.png"
+desktop-image-scale-method: "padding"
+desktop-color: "#10191f"
+terminal-font: "Unifont Regular 16"
++ boot_menu {
+    left = 5%
+    top = 30%
+    width = 58%
+    height = 48%
+    item_font = "Unifont Regular 16"
+    item_color = "#ffffff"
+    selected_item_color = "#E4DF91"
+    item_height = 32
+    item_padding = 6
+    item_spacing = 4
+}
++ label {
+    left = 5%
+    top = 84%
+    width = 90%
+    height = 24
+    id = "__timeout__"
+    text = "Inicializando em %d segundos"
+    color = "#E4DF91"
+    font = "Unifont Regular 16"
+}
++ label {
+    left = 5%
+    top = 92%
+    width = 90%
+    height = 24
+    text = "Setas: selecionar | Enter: iniciar | e: editar | c: console"
+    color = "#ffffff"
+    font = "Unifont Regular 16"
+}

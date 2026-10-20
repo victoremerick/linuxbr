@@ -1,0 +1,19 @@
+/* Linux BR: solid reading surfaces, restrained geometry. */
+@define-color theme_selected_bg_color #6054a3;
+@define-color theme_selected_fg_color #ffffff;
+window, dialog { background-color: #f3f4f6; color: #1e252c; }
+headerbar, .titlebar, toolbar { background-image: none; background-color: #e8ebef; box-shadow: none; border-radius: 0; }
+headerbar { min-height: 32px; }
+button { background-image: none; border-radius: 2px; box-shadow: none; }
+entry, spinbutton, combobox, frame { border-radius: 2px; }
+.view, textview, treeview { background-color: #ffffff; color: #1e252c; }
+.sidebar { background-color: #f3f4f6; }
+progressbar progress { background-image: none; background-color: #6054a3; border-radius: 1px; }
+progressbar trough { background-image: none; border-radius: 1px; }
+selection, *:selected { background-color: #6054a3; color: #ffffff; }
+
+/* Solid primary and outlined secondary actions. */
+button { background-image: none; background-color: #f3f4f6; color: #1e252c; border: 1px solid #8b949e; border-radius: 0; box-shadow: none; }
+button.suggested-action { background-color: @theme_selected_bg_color; color: @theme_selected_fg_color; border-color: transparent; }
+button:focus { outline: 2px solid @theme_selected_bg_color; outline-offset: 2px; }
+button:disabled { opacity: 0.5; }

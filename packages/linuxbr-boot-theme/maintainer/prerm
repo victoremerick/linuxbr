@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+if [ "$1" = remove ] && [ "$(plymouth-set-default-theme)" = linuxbr ]; then
+    previous=$(cat /var/lib/linuxbr-boot-theme/previous-theme 2>/dev/null || true)
+    if [ -n "$previous" ] && [ "$previous" != linuxbr ] && [ -f "/usr/share/plymouth/themes/$previous/$previous.plymouth" ]; then
+        plymouth-set-default-theme "$previous"
+    else
+        plymouth-set-default-theme --reset
+    fi
+fi

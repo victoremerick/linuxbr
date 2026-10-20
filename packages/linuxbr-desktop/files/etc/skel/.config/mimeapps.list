@@ -1,0 +1,16 @@
+[Default Applications]
+inode/directory=org.kde.dolphin.desktop;
+x-scheme-handler/http=firefox-esr.desktop;
+x-scheme-handler/https=firefox-esr.desktop;
+text/html=firefox-esr.desktop;
+application/pdf=org.kde.okular.desktop;
+application/vnd.debian.binary-package=linuxbr-install-package.desktop;
+application/x-deb=linuxbr-install-package.desktop;
+application/vnd.flatpak=linuxbr-install-package.desktop;
+application/vnd.flatpak.ref=linuxbr-install-package.desktop;
+application/x-rpm=linuxbr-install-package.desktop;
+application/x-msi=linuxbr-install-package.desktop;
+application/x-ms-dos-executable=linuxbr-install-package.desktop;
+application/vnd.microsoft.portable-executable=linuxbr-install-package.desktop;
+application/vnd.appimage=linuxbr-install-package.desktop;
+application/x-iso9660-appimage=linuxbr-install-package.desktop;

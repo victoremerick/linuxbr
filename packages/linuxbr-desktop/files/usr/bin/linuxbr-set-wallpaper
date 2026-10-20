@@ -1,0 +1,10 @@
+#!/bin/sh
+# Apply the distribution default once, respecting subsequent user choices.
+set -eu
+state="${XDG_STATE_HOME:-$HOME/.local/state}/linuxbr"
+[ ! -e "$state/wallpaper-initialized" ] || exit 0
+command -v plasma-apply-wallpaperimage >/dev/null 2>&1 || exit 0
+if plasma-apply-wallpaperimage /usr/share/wallpapers/LinuxBR-graphite/contents/images/3840x2160.png; then
+    mkdir -p "$state"
+    touch "$state/wallpaper-initialized"
+fi

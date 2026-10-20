@@ -1,0 +1,4 @@
+FROM docker.io/library/debian:trixie
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends live-build debootstrap ca-certificates xorriso squashfs-tools dosfstools git python3 python3-yaml python3-pil librsvg2-bin cmake build-essential dpkg-dev qt6-base-dev libkf6kio-dev libkf6bookmarks-dev && rm -rf /var/lib/apt/lists/*
+RUN sed -i 's/Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/debian.sources && apt-get update && apt-get build-dep -y dolphin && apt-get install -y --no-install-recommends devscripts && rm -rf /var/lib/apt/lists/*

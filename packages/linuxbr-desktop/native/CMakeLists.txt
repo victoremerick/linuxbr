@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(LinuxBRCleanStyle LANGUAGES CXX)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+add_library(linuxbrclean MODULE style.cpp)
+target_link_libraries(linuxbrclean PRIVATE Qt6::Widgets)

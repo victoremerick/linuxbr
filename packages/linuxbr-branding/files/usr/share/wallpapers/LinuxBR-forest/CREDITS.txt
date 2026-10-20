@@ -1,0 +1,3 @@
+Arte vetorial derivada do SVG fornecido pelo usuário para a identidade Linux BR.
+Renderização direta em 3840×2160; sem ampliação e sem fotografia externa.
+Fonte editável: contents/images/3840x2160.svg.

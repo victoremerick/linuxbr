@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-graphite",
+    "Name": "Linux BR — Grafite",
+    "Authors": [
+      {
+        "Name": "Projeto Linux BR"
+      }
+    ]
+  }
+}

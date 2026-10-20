@@ -1,0 +1,14 @@
+{
+  "KPackageStructure": "Plasma/LookAndFeel",
+  "KPlugin": {
+    "Id": "org.linuxbr.desktop",
+    "Name": "Linux BR Clean",
+    "Description": "Janelas claras, controles planos, bordas discretas e vidro nos menus e painel",
+    "Authors": [
+      {
+        "Name": "Projeto Linux BR"
+      }
+    ]
+  },
+  "X-Plasma-APIVersion": "2"
+}

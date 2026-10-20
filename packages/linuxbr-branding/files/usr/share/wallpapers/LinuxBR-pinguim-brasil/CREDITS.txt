@@ -1,0 +1,12 @@
+Imagem gerada com a ferramenta integrada image_gen para o projeto Linux BR em 14/10/2026.
+Tema: pinguim Linux com camisa de futebol brasileira, sem texto.
+Resolução entregue pelo gerador: 1672 × 941 pixels. Não é 4K nativo.
+Não é uma fotografia de um local real; o cenário é uma interpretação artística.
+A licença CC dos wallpapers fotográficos não é atribuída a esta imagem gerada.
+
+Versão adicional: 3840 × 2160 pixels, ampliada localmente com ImageMagick
+(filtro Lanczos e recorte central mínimo para 16:9), por solicitação do usuário.
+Esta versão é 4K ampliada, não 4K nativo. O original 1672 × 941 foi preservado.
+
+As duas resoluções foram espelhadas horizontalmente com ImageMagick (-flop),
+por solicitação do usuário. Dimensões e pixels preservados, apenas invertendo as colunas.

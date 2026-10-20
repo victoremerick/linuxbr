@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+"""Apply the distribution window theme to an existing user's KDE session."""
+import argparse
+import configparser
+import datetime
+import os
+from pathlib import Path
+import shutil
+import subprocess
+
+parser = argparse.ArgumentParser(description='Aplicar Linux BR Clean com backup das preferências existentes.')
+parser.add_argument('--dry-run', action='store_true', help='mostrar alterações sem aplicar')
+args = parser.parse_args()
+config = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home()/'.config')))
+state = Path(os.environ.get('XDG_STATE_HOME', str(Path.home()/'.local/state')))
+files = ['kdeglobals', 'breezerc', 'kwinrc', 'gtk-3.0/settings.ini', 'gtk-4.0/settings.ini']
+# Do not reset panels, desktop layout, shortcuts, wallpaper or application data.
+commands = []
+for name in files:
+    source = Path('/etc/xdg')/name
+    if not source.is_file():
+        raise SystemExit('Configuração do tema ausente: '+str(source))
+    values = configparser.ConfigParser(interpolation=None)
+    values.optionxform = str
+    values.read(source)
+    for group in values.sections():
+        for key, value in values[group].items():
+            groups = []
+            for part in group.split(']['):
+                groups.extend(['--group', part])
+            commands.append(['kwriteconfig6', '--file', str(config/name), *groups, '--key', key, value])
+if args.dry_run:
+    import shlex
+    for command in commands:
+        print(shlex.join(command))
+    raise SystemExit(0)
+if os.geteuid() == 0:
+    raise SystemExit('Execute como seu usuário da sessão gráfica, sem sudo.')
+if not shutil.which('kwriteconfig6'):
+    raise SystemExit('kwriteconfig6 não encontrado. Instale o pacote linuxbr-desktop completo.')
+backup = state/'linuxbr/theme-backups'/datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+backup.mkdir(parents=True, mode=0o700)
+for name in files:
+    target = config/name
+    if target.exists():
+        destination = backup/name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(target, destination)
+    else:
+        with (backup/'previously-absent.txt').open('a') as output:
+            output.write(name+'\n')
+    target.parent.mkdir(parents=True, exist_ok=True)
+for command in commands:
+    subprocess.run(command, check=True)
+# Ask KWin to reload its decoration without restarting the compositor.
+if shutil.which('dbus-send'):
+    subprocess.run(['dbus-send', '--session', '--type=signal', '/KWin', 'org.kde.KWin.reloadConfig'], check=False, stderr=subprocess.DEVNULL)
+print('Tema Linux BR Clean aplicado. Saia e entre na sessão para atualizar todos os aplicativos.')
+print('Backup das preferências anteriores: '+str(backup))

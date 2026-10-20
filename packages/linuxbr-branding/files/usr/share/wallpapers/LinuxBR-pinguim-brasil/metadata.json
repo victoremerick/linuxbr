@@ -1,0 +1,12 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-pinguim-brasil",
+    "Name": "Pinguim — Brasil",
+    "Name[pt_BR]": "Pinguim — Brasil",
+    "Authors": [
+      {
+        "Name": "Imagem gerada por IA para o projeto Linux BR"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Gerenciador de Tarefas Linux BR
+Comment=Processos, CPU e memória
+Exec=linuxbr-system --page "Gerenciador de tarefas"
+Icon=utilities-system-monitor
+Categories=System;Monitor;
+Terminal=false

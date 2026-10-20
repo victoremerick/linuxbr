@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+"""Apply the requested session defaults without replacing panels or applets."""
+import os
+from pathlib import Path
+import subprocess
+import time
+import dbus
+
+if os.geteuid()==0:raise SystemExit('Execute na sessão do usuário, sem sudo.')
+def write(file,group,key,value):
+    subprocess.run(['kwriteconfig6','--file',file,'--group',group,'--key',key,value],check=True)
+# DefaultProfile is locked by /etc/xdg/konsolerc; do not attempt a user write.
+state=Path(os.environ.get('XDG_STATE_HOME',str(Path.home()/'.local/state')))/'linuxbr'
+state.mkdir(parents=True,exist_ok=True)
+if not (state/'solid-buttons-v1').exists():
+    write('kdeglobals','KDE','widgetStyle','LinuxBRClean')
+    (state/'solid-buttons-v1').touch()
+if not (state/'window-controls-v1').exists():
+    config=Path(os.environ.get('XDG_CONFIG_HOME',str(Path.home()/'.config')))/'kwinrc'
+    if config.exists():
+        import shutil
+        shutil.copy2(config,state/'kwinrc-before-window-controls-v1')
+    scheme=subprocess.check_output(['kreadconfig6','--file','kdeglobals','--group','General','--key','ColorScheme'],text=True).strip()
+    variant='Dark' if 'Dark' in scheme else 'Light'
+    for group,key,value in [('org.kde.kdecoration2','ButtonsOnLeft','M'),('org.kde.kdecoration2','ButtonsOnRight','IAX'),('org.kde.kdecoration2','library','org.kde.kwin.aurorae'),('org.kde.kdecoration2','theme','__aurorae__svg__LinuxBRClean-'+variant),('MouseBindings','CommandActiveTitlebar3','Operations menu'),('MouseBindings','CommandInactiveTitlebar3','Operations menu')]:write('kwinrc',group,key,value)
+    subprocess.run(['dbus-send','--session','--type=signal','/KWin','org.kde.KWin.reloadConfig'],check=False)
+    (state/'window-controls-v1').touch()
+for attempt in range(20):
+    try:
+        bus=dbus.SessionBus();plasma=dbus.Interface(bus.get_object('org.kde.plasmashell','/PlasmaShell'),'org.kde.PlasmaShell')
+        plasma.evaluateScript('var ps=panels(); for(var i=0;i<ps.length;i++){ps[i].floating=false;} ',timeout=5)
+        if not (state/'notification-panel-v2').exists():
+            plasma.evaluateScript('var ps=panels(); if(ps.length){var ws=ps[0].widgets(); var found=false; for(var i=0;i<ws.length;i++){if(ws[i].type==="org.kde.plasma.notifications") found=true;} if(!found) ps[0].addWidget("org.kde.plasma.notifications"); var quick=false; for(var j=0;j<ws.length;j++){if(ws[j].type==="org.linuxbr.quicksettings") quick=true;} if(!quick) ps[0].addWidget("org.linuxbr.quicksettings");}',timeout=5)
+            (state/'notification-panel-v2').touch()
+        break
+    except dbus.DBusException:
+        if attempt==19:raise
+        time.sleep(2)

@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+if [ "$1" = configure ]; then
+    state=/var/lib/linuxbr-boot-theme
+    mkdir -p "$state"
+    if [ ! -f "$state/previous-theme" ]; then
+        plymouth-set-default-theme > "$state/previous-theme"
+        plymouth-set-default-theme linuxbr
+    fi
+    dpkg-trigger --no-await update-initramfs
+    if [ -f /boot/grub/grub.cfg ] && command -v update-grub >/dev/null 2>&1; then
+        update-grub
+    fi
+fi

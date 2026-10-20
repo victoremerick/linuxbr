@@ -1,0 +1,17 @@
+Geração em 14/10/2026 pela ferramenta integrada image_gen (não foi usada a API/CLI).
+
+Prompt inicial:
+Use case: stylized-concept. Create one premium desktop wallpaper, landscape 16:9 at exactly 3840x2160 pixels (4K UHD). Subject: the friendly Linux Tux penguin, recognizable black body white belly yellow beak and feet, wearing a Brazil football jersey: vivid yellow fabric, green collar and sleeve trim, small Brazilian flag patch, no sponsor logos and no lettering. Beautiful polished 3D illustration with tactile soft feathers and realistic fabric, seated with an inviting confident expression, occupying about one third of the frame, enough calm negative space for desktop icons. Background: elegant deep emerald-to-teal atmospheric landscape, subtle tropical silhouettes and soft golden sunlight, sophisticated and uncluttered. Crisp detailed subject, gentle depth of field, excellent desktop readability. No words, no Linux BR text, no typography, no watermark. Full-bleed opaque image. Save a 4K 3840 by 2160 landscape output.
+
+Prompt da segunda passagem (imagem escolhida):
+Resolution correction only. Preserve this exact wallpaper composition, penguin character, Brazilian football jersey, scenery, colors and lighting. Deliver a high-resolution landscape wallpaper file at exactly 3840x2160 pixels, 4K UHD, not a 1672x941 preview. Upscale and refine fine detail while preserving the image. No text or logos added.
+
+Resultado efetivo das duas chamadas: 1672 × 941 pixels; solicitar 4K no prompt não produziu um arquivo 4K.
+
+Pós-processamento autorizado pelo usuário: ampliar e manter o original.
+ImageMagick: magick 1672x941.png -filter Lanczos -resize 3840x2160^ -gravity center -extent 3840x2160 3840x2160.png
+Saída verificada: 3840 × 2160, ampliação local, não 4K nativo.
+Original preservado sem alterações; SHA-256: a7f0fa75252994234923cd2d03c1472e4f4304651b4d4672227c7a7de9ff3f7b
+
+Edição posterior: espelhamento horizontal determinístico com ImageMagick -flop
+nas duas resoluções. O SHA-256 acima refere-se ao original antes do espelhamento.

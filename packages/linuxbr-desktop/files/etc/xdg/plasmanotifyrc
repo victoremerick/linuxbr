@@ -1,0 +1,5 @@
+[Notifications]
+PopupTimeout=5000
+PopupPosition=BottomRight
+LowPriorityHistory=true
+CriticalInDndMode=true

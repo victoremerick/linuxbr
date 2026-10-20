@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Serviço de unidades Linux BR
+Exec=systemctl --user start linuxbr-drive-manager.service
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=1

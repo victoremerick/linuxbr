@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar programa
+Comment=Instalar pacotes no Linux BR
+Exec=linuxbr-install-package %f
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+MimeType=application/vnd.debian.binary-package;application/x-deb;application/vnd.flatpak;application/vnd.flatpak.ref;application/x-rpm;application/x-msi;application/x-ms-dos-executable;application/vnd.microsoft.portable-executable;application/vnd.appimage;application/x-iso9660-appimage;

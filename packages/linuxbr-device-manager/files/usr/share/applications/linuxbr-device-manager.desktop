@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Dispositivos e drivers Linux BR
+Comment=Hardware, firmware e diagnósticos
+Exec=linuxbr-device-manager
+Icon=computer
+Categories=System;Settings;HardwareSettings;
+Terminal=false
+StartupNotify=true

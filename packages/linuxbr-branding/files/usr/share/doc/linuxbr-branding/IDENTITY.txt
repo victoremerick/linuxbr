@@ -1,0 +1,12 @@
+Identidade geométrica Linux BR
+
+Origem: SVG fornecido pelo usuário, preservado em branding/source/reference.svg no repositório.
+Paleta: amarelo #E4DF91, verde #8EDB91, violeta #9690D9; base grafite #18232B.
+Símbolos, assinaturas e ícones: /usr/share/linuxbr/identity/.
+Ícones integrados: /usr/share/icons/hicolor/.
+Wallpapers: /usr/share/wallpapers/LinuxBR-graphite, LinuxBR-light, LinuxBR-forest e LinuxBR-violet.
+Resolução PNG: 3840 × 2160, renderização direta dos SVGs, sem ampliação.
+Assinaturas: tipografia Noto Sans. PNGs não precisam da fonte instalada para exibição.
+Variantes monocromáticas: estrela e contorno vazados, com transparência.
+Os ícones de sistema, arquivos e atualizações são recursos gráficos, não aplicativos novos.
+A licença das fotografias não se aplica à identidade; a licença de distribuição da marca deve ser definida pelo projeto.

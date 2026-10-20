@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Configurações do terminal
+Comment=Alternar letras de unidades e navegação Linux tradicional
+Exec=linuxbr-terminal-settings
+Icon=utilities-terminal
+Terminal=false
+Categories=Settings;

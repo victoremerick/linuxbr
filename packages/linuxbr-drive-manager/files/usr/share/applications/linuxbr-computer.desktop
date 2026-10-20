@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Este computador
+Comment=Discos locais, pendrives e unidades de rede
+Exec=dolphin linuxbr:/
+Icon=computer
+Categories=System;FileManager;
+Terminal=false
+StartupNotify=true

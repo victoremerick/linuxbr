@@ -1,0 +1,14 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-rio-de-janeiro",
+    "Name": "Rio de Janeiro — Pão de Açúcar",
+    "Name[pt_BR]": "Rio de Janeiro — Pão de Açúcar",
+    "Authors": [
+      {
+        "Name": "Agustin Diaz Gargiulo"
+      }
+    ],
+    "License": "CC0",
+    "Website": "https://commons.wikimedia.org/wiki/File:Rio_de_Janeiro._Unsplash_7F65HDP0-E0.jpg"
+  }
+}

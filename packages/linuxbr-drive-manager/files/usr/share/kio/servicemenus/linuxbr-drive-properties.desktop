@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+MimeType=inode/directory;
+X-KDE-Protocol=linuxbr
+X-KDE-RequiredNumberOfUrls=1
+Actions=properties;
+
+[Desktop Action properties]
+Name=Propriedades da unidade Linux BR
+Icon=dialog-information
+Exec=/usr/bin/linuxbr-drive-properties %u

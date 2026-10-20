@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Linux BR Clean
+
+[X-GNOME-Metatheme]
+GtkTheme=LinuxBRDarkBlue
+IconTheme=breeze

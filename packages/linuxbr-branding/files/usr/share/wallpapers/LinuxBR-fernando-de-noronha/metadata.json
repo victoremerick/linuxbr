@@ -1,0 +1,14 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-fernando-de-noronha",
+    "Name": "Fernando de Noronha — Praia do Sancho",
+    "Name[pt_BR]": "Fernando de Noronha — Praia do Sancho",
+    "Authors": [
+      {
+        "Name": "Hansfotos"
+      }
+    ],
+    "License": "CC BY-SA 4.0",
+    "Website": "https://commons.wikimedia.org/wiki/File:Fernando_de_Noronha-Praia_do_Sancho.jpg"
+  }
+}

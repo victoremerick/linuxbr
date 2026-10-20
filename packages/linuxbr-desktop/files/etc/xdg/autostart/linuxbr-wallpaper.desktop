@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Linux BR - Papel de parede inicial
+Exec=/usr/bin/linuxbr-set-wallpaper
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+NoDisplay=true

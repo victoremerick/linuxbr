@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN" "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+ <vendor>Linux BR</vendor>
+ <action id="org.linuxbr.devices.install-firmware">
+  <description>Instalar drivers e firmware ou atualizar índices do sistema</description>
+  <message>Autentique-se para gerenciar os pacotes de hardware do sistema.</message>
+  <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+  <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/linuxbr-device-manager/install-firmware</annotate>
+ </action>
+</policyconfig>

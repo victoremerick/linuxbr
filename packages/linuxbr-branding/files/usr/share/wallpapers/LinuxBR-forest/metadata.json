@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-forest",
+    "Name": "Linux BR — Floresta",
+    "Authors": [
+      {
+        "Name": "Projeto Linux BR"
+      }
+    ]
+  }
+}

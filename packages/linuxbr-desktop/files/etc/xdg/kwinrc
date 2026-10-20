@@ -1,0 +1,17 @@
+[Plugins]
+blurEnabled=true
+
+[org.kde.kdecoration2]
+BorderSize=Tiny
+BorderSizeAuto=false
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__LinuxBRClean-Light
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
+
+[MouseBindings]
+CommandActiveTitlebar3=Operations menu
+CommandInactiveTitlebar3=Operations menu
+
+[Windows]
+TitlebarDoubleClickCommand=Maximize

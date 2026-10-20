@@ -1,0 +1,14 @@
+{
+  "KPlugin": {
+    "Id": "LinuxBR-lencois-maranhenses",
+    "Name": "Lençóis Maranhenses",
+    "Name[pt_BR]": "Lençóis Maranhenses",
+    "Authors": [
+      {
+        "Name": "Dlaurini"
+      }
+    ],
+    "License": "CC BY-SA 4.0",
+    "Website": "https://commons.wikimedia.org/wiki/File:Len%C3%A7ois_Maranhenses-13.jpg"
+  }
+}
