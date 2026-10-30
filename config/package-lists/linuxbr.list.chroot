@@ -15,6 +15,9 @@ smbclient
 cifs-utils
 flatpak
 firefox-esr
+chromium
+chromium-l10n
+chromium-sandbox
 libreoffice-writer
 libreoffice-calc
 fonts-noto
@@ -38,7 +41,48 @@ plasma-discover
 plasma-discover-backend-flatpak
 firefox-esr-l10n-pt-br
 libreoffice-l10n-pt-br
+libreoffice-help-pt-br
+mythes-pt-br
 
 # Explicit image defaults and cached Brazilian console keymap.
 keyboard-configuration
 console-setup
+locales
+hunspell-pt-br
+hyphen-pt-br
+kde-spectacle
+
+# Aplicativos familiares e formatos de uso diario (pacotes oficiais Debian).
+libreoffice-impress
+libreoffice-draw
+kcalc
+kate
+kolourpaint
+gwenview
+okular
+ark
+7zip
+zip
+unzip
+vlc
+skanpage
+filelight
+fonts-crosextra-carlito
+fonts-crosextra-caladea
+fonts-liberation
+# Impressoras e scanners de rede sem instaladores Windows do fabricante.
+ipp-usb
+sane-airscan
+cups-browsed
+# Atualizacoes de firmware com confirmacao no Discover.
+fwupd
+plasma-discover-backend-fwupd
+# Formatos multimidia nos aplicativos GStreamer.
+gstreamer1.0-libav
+gstreamer1.0-plugins-good
+gstreamer1.0-plugins-bad
+gstreamer1.0-plugins-ugly
+# Fotos de celulares e miniaturas de video no gerenciador de arquivos.
+kimageformat6-plugins
+qt6-image-formats-plugins
+ffmpegthumbs

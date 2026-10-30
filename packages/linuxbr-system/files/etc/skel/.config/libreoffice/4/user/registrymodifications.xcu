@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Initial preferences for new accounts only. LibreOffice owns subsequent changes. -->
+<oor:items xmlns:oor="http://openoffice.org/2001/registry">
+  <item oor:path="/org.openoffice.Office.UI.ToolbarMode/Applications/Writer">
+    <prop oor:name="Active" oor:op="fuse"><value>notebookbar.ui</value></prop>
+  </item>
+  <item oor:path="/org.openoffice.Office.UI.ToolbarMode/Applications/Calc">
+    <prop oor:name="Active" oor:op="fuse"><value>notebookbar.ui</value></prop>
+  </item>
+  <item oor:path="/org.openoffice.Office.UI.ToolbarMode/Applications/Impress">
+    <prop oor:name="Active" oor:op="fuse"><value>notebookbar.ui</value></prop>
+  </item>
+  <item oor:path="/org.openoffice.Office.UI.ToolbarMode/Applications/Draw">
+    <prop oor:name="Active" oor:op="fuse"><value>notebookbar.ui</value></prop>
+  </item>
+  <item oor:path="/org.openoffice.Office.Recovery/AutoSave">
+    <prop oor:name="Enabled" oor:op="fuse"><value>true</value></prop>
+    <prop oor:name="TimeIntervall" oor:op="fuse"><value>5</value></prop>
+    <prop oor:name="UserAutoSaveEnabled" oor:op="fuse"><value>false</value></prop>
+  </item>
+  <item oor:path="/org.openoffice.Office.Common/Save/Document">
+    <prop oor:name="CreateBackup" oor:op="fuse"><value>true</value></prop>
+    <prop oor:name="WarnAlienFormat" oor:op="fuse"><value>true</value></prop>
+  </item>
+</oor:items>

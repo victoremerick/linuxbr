@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Name=Programas Windows e jogos
+Comment=Biblioteca de programas Windows, instaladores EXE/MSI, Steam, Proton e Bottles
+Exec=linuxbr-windows %f
+Icon=applications-games
+Terminal=false
+Categories=Game;
+MimeType=application/x-ms-dos-executable;application/vnd.microsoft.portable-executable;application/x-msi;application/x-msdownload;
+Keywords=Windows;Wine;Steam;Proton;Bottles;EXE;MSI;Jogos;Programas;Instalar;Desinstalar;Biblioteca;Atalhos;
+StartupNotify=true
+Actions=Install;Games;
+
+[Desktop Action Install]
+Name=Instalar programa Windows
+Exec=linuxbr-windows --page install
+Icon=system-software-install
+
+[Desktop Action Games]
+Name=Jogos e controles
+Exec=linuxbr-windows --page games
+Icon=applications-games

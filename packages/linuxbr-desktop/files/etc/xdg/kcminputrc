@@ -1,0 +1,9 @@
+[Libinput][Defaults][Touchpad]
+TapToClick=true
+TapAndDrag=true
+TapDragLock=false
+DisableWhileTyping=true
+NaturalScroll=true
+
+[Libinput][Defaults][Pointer]
+NaturalScroll=false

@@ -105,6 +105,22 @@ class BuildEntrypoints(unittest.TestCase):
         self.assertFalse({'firmware-b43-installer', 'firmware-b43legacy-installer'} & packages)
         self.assertTrue({'firmware-linux', 'firmware-brcm80211', 'firmware-iwlwifi', 'firmware-realtek', 'firmware-atheros', 'firmware-mediatek'} <= packages)
 
+    def test_notification_defaults_do_not_replace_plasma_workspace_file(self):
+        desktop = ROOT / 'packages/linuxbr-desktop/files'
+        self.assertFalse((desktop / 'etc/xdg/plasmanotifyrc').exists())
+        self.assertTrue((desktop / 'etc/skel/.config/plasmanotifyrc').is_file())
+        session = (desktop / 'usr/bin/linuxbr-session-defaults').read_text()
+        self.assertIn('if not notification.exists():', session)
+
+    def test_local_packages_do_not_own_the_same_file(self):
+        owners = {}
+        for payload in (ROOT / 'packages').glob('*/files'):
+            for path in payload.rglob('*'):
+                if path.is_file() or path.is_symlink():
+                    relative = path.relative_to(payload)
+                    self.assertNotIn(relative, owners, f'{relative}: {owners.get(relative)} e {payload.parent.name}')
+                    owners[relative] = payload.parent.name
+
     def test_unknown_option(self):
         self.assertEqual(self.run_build('--invalid').returncode, 2)
 

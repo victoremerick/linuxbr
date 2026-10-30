@@ -66,7 +66,11 @@ class Nvidia(unittest.TestCase):
             apt.assert_not_called()
         option=dict(package='nvidia-driver',action='install',prerequisites=['linux-headers-test','linux-headers-amd64','dkms'])
         with patch.dict(os.environ,dict(os.environ)),patch('firmware_admin.os.geteuid',return_value=0),patch('firmware_admin.Path.read_text',return_value='ID=linuxbr\n'),patch('firmware_admin.discover',return_value=([CARD],[])),patch('firmware_admin.nvidia_options',return_value=[option]),patch('firmware_admin.subprocess.call',return_value=0) as apt:
-            self.assertEqual(admin.main(['nvidia-driver']),0)
-            self.assertEqual(apt.call_args.args[0][-3:],option['prerequisites'])
+            with patch('firmware_admin.subprocess.check_output',return_value=''):
+                self.assertEqual(admin.main(['nvidia-driver']),0)
+                self.assertEqual(apt.call_args.args[0][-3:],option['prerequisites'])
+            with patch('firmware_admin.subprocess.check_output',return_value='i386\n'):
+                self.assertEqual(admin.main(['nvidia-driver']),0)
+                self.assertEqual(apt.call_args.args[0][-1],'nvidia-driver-libs:i386')
 
 if __name__=='__main__':unittest.main()

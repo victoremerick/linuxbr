@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Aplicativos web
+Comment=Instale sites como aplicativos e gerencie suas janelas Chromium
+Exec=linuxbr-webapps
+Icon=applications-internet
+Categories=Network;Utility;
+Keywords=webapp;PWA;Chromium;site;WhatsApp;Teams;Canva;
+Terminal=false
+StartupNotify=true

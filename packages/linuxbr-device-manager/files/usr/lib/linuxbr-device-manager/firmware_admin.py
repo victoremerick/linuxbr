@@ -37,6 +37,11 @@ def main(args):
         if not option or not option.get('action'):
             raise ValueError(option['status'] if option else 'Driver não recomendado para este hardware.')
         command += option['prerequisites']
+        # Steam/Wine need the matching 32-bit userspace on multiarch images.
+        architectures=subprocess.check_output(['/usr/bin/dpkg','--print-foreign-architectures'],env=env,text=True).splitlines()
+        if 'i386' in architectures:
+            command.append({'nvidia-driver':'nvidia-driver-libs:i386',
+                            'nvidia-tesla-535-driver':'nvidia-tesla-535-driver-libs:i386'}[args[0]])
     return subprocess.call(command,env=env,cwd='/')
 
 if __name__=='__main__':

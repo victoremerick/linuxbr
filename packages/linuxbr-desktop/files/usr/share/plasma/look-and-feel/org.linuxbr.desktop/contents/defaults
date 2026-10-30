@@ -3,8 +3,8 @@ widgetStyle=LinuxBRClean
 SingleClick=false
 
 [kdeglobals][General]
-ColorScheme=LinuxBRClean
-BrowserApplication=firefox-esr.desktop
+ColorScheme=LinuxBRLightBlue
+BrowserApplication=chromium.desktop
 
 [kdeglobals][Icons]
 Theme=breeze

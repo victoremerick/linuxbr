@@ -18,7 +18,30 @@ def replace(text, old, new):
 
 def patches():
     return {
+      "org.kde.panel/contents/ui/main.qml": [( "    id: root", "    id: root\n    Plasmoid.contextualActions: [\n        PlasmaCore.Action { text: \"Gerenciador de Tarefas\"; icon.name: \"utilities-system-monitor\"; onTriggered: Qt.openUrlExternally(\"linuxbr-action:///tasks\") }\n    ]" )],
+      "org.kde.plasma.taskmanager/contents/ui/main.qml": [( "    id: tasks", "    id: tasks\n    Plasmoid.contextualActions: [\n        PlasmaCore.Action { text: \"Gerenciador de Tarefas\"; icon.name: \"utilities-system-monitor\"; onTriggered: Qt.openUrlExternally(\"linuxbr-action:///tasks\") }\n    ]" )],
+      "org.kde.plasma.taskmanager/contents/ui/ContextMenu.qml": [( "    id: menu", "    id: menu\n    PlasmaExtras.MenuItem {\n        text: \"Gerenciador de Tarefas\"\n        icon: \"utilities-system-monitor\"\n        onClicked: Qt.openUrlExternally(\"linuxbr-action:///tasks\")\n    }\n    PlasmaExtras.MenuItem { separator: true }" )],
       'org.kde.plasma.kickoff/contents/ui/main.qml': [
+        ('''        Component.onCompleted: {
+            favoritesModel.initForClient("org.kde.plasma.kickoff.favorites.instance-" + Plasmoid.id)
+
+            if (!Plasmoid.configuration.favoritesPortedToKAstats) {
+                if (favoritesModel.count < 1) {
+                    favoritesModel.portOldFavorites(Plasmoid.configuration.favorites);
+                }
+                Plasmoid.configuration.favoritesPortedToKAstats = true;
+            }
+        }''', '''        // Wait until the initial layout has written the distribution favorites.
+        Component.onCompleted: Qt.callLater(() => {
+            favoritesModel.initForClient("org.kde.plasma.kickoff.favorites.instance-" + Plasmoid.id)
+
+            if (!Plasmoid.configuration.favoritesPortedToKAstats) {
+                if (favoritesModel.count < 1) {
+                    favoritesModel.portOldFavorites(Plasmoid.configuration.favorites);
+                }
+                Plasmoid.configuration.favoritesPortedToKAstats = true;
+            }
+        })'''),
         ('    Plasmoid.contextualActions: [\n        PlasmaCore.Action {\n            text: i18n("Edit Applications…")', '''    Plasmoid.contextualActions: [
             PlasmaCore.Action { text: "Aplicativos instalados"; onTriggered: Qt.openUrlExternally("linuxbr-action:///apps") },
             PlasmaCore.Action { text: "Energia"; onTriggered: Qt.openUrlExternally("linuxbr-action:///power-settings") },
@@ -94,7 +117,10 @@ def apply(root, restore=False):
                 path.write_text(record['original'])
             records.pop(name,None)
             continue
-        if record and digest==record['patched']:continue
+        # Reapply from the saved upstream source so package upgrades can revise
+        # our patch definitions without accumulating edits or losing restore.
+        if record and digest==record['patched']:
+            text=record['original']
         try:
             changed=text
             for old,new in edits:changed=replace(changed,old,new)

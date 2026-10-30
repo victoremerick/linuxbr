@@ -1,0 +1,1 @@
+Linux BR: payload de teste instalado por um pacote Windows MSI.

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="6ec1c625-5991-4bd0-8a67-e99285bc4cb3" Name="LinuxBR Compatibility Test"
+           Language="1033" Version="1.0.0" Manufacturer="Linux BR"
+           UpgradeCode="f25b30a5-9ab8-4a48-9c2c-4ac999d22c56">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"/>
+    <Media Id="1" Cabinet="payload.cab" EmbedCab="yes"/>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="LocalAppDataFolder">
+        <Directory Id="INSTALLDIR" Name="LinuxBRCompatibilityTest">
+          <Component Id="Payload" Guid="d6bfa93d-85a3-4f5d-b7cf-5887baa13df6">
+            <File Id="PayloadFile" Source="windows-payload.txt" KeyPath="yes"/>
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature Id="Complete" Level="1"><ComponentRef Id="Payload"/></Feature>
+  </Product>
+</Wix>

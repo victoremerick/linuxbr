@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Loja de aplicativos
+Comment=Programas Linux, aplicativos web e programas Windows com Wine
+Exec=linuxbr-store
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+Keywords=loja;instalar;programas;aplicativos;Windows;Wine;web;baixar;
+StartupWMClass=linuxbr-store

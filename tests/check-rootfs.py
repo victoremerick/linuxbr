@@ -47,6 +47,16 @@ sddm_background = sddm_theme.get('General', 'background', fallback='(ausente)')
 require(sddm_background == wallpaper,
         f'fundo SDDM grafite 4K: esperado {wallpaper!r}; encontrado {sddm_background!r}')
 require('LookAndFeelPackage=org.linuxbr.desktop' in read('etc/skel/.config/kdeglobals'), 'tema inicial KDE')
+for path in ('usr/bin/linuxbr-welcome', 'usr/bin/linuxbr-task-manager', 'usr/lib/linuxbr-system/welcome.py',
+             'usr/share/applications/linuxbr-welcome.desktop',
+             'usr/share/applications/linuxbr-task-manager.desktop',
+             'etc/xdg/autostart/linuxbr-welcome.desktop',
+             'usr/share/hunspell/pt_BR.dic'):
+    require((root / path).is_file(), 'experiência brasileira: ' + path)
+require('Meta+I' in read('etc/skel/.config/kglobalshortcutsrc'), 'atalho inicial da Central')
+require('[Module-kded_plasma-welcome]\nautoload=false' in read('etc/skel/.config/kded5rc'), 'primeiros passos sem assistente KDE duplicado')
+if args.mode == 'live':
+    require('LANG=pt_BR.UTF-8' in read('etc/default/locale').replace('"', ''), 'locale brasileiro na imagem')
 require((root / 'usr/share/plasma/look-and-feel/org.linuxbr.desktop/contents/layouts/org.kde.plasma.desktop-layout.js').is_file(), 'layout inicial KDE')
 require((root / 'boot/grub/themes/linuxbr/background.png').is_file(), 'imagem GRUB')
 require('GRUB_THEME="/boot/grub/themes/linuxbr/theme.txt"' in read('etc/default/grub.d/91-linuxbr-theme.cfg'), 'tema GRUB')
@@ -55,6 +65,35 @@ plymouth_config = configparser.ConfigParser(interpolation=None)
 plymouth_config.read_string(read('etc/plymouth/plymouthd.conf'))
 require(plymouth_config.get('Daemon', 'Theme', fallback='') == 'linuxbr', 'tema Plymouth ativo')
 status = read('var/lib/dpkg/status')
+for package in ('chromium','chromium-l10n','chromium-sandbox'):
+    require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
+                for stanza in status.split('\n\n')), 'aplicativos web: '+package)
+for path in ('usr/bin/linuxbr-store', 'usr/lib/linuxbr-system/store.py',
+             'usr/lib/linuxbr-system/store_backend.py', 'usr/share/linuxbr/store/catalog.json',
+             'usr/share/applications/linuxbr-store.desktop',
+             'usr/bin/linuxbr-webapps','usr/bin/linuxbr-webapps-host',
+             'usr/share/linuxbr/webapps/manifest.json','usr/share/linuxbr/webapps/catalog.json',
+             'usr/share/linuxbr/webapps/profiles-worker.js',
+             'etc/chromium/native-messaging-hosts/org.linuxbr.webapps.json',
+             'etc/chromium.d/linuxbr-webapps'):
+    require((root/path).is_file(), 'integração Chromium: '+path)
+require('x-scheme-handler/https=chromium.desktop;' in read('etc/skel/.config/mimeapps.list'), 'navegador inicial Chromium')
+for path in ('etc/skel/.config/kdeglobals','etc/xdg/kdeglobals',
+             'usr/share/plasma/look-and-feel/org.linuxbr.desktop/contents/defaults'):
+    require('BrowserApplication=chromium.desktop' in read(path), 'navegador KDE: '+path)
+extension_link=root/'usr/share/chromium/extensions/linuxbr-webapps'
+require(extension_link.is_symlink() and str(extension_link.readlink())=='/usr/share/linuxbr/webapps', 'extensão carregada junto à integração KDE')
+for package in ('wine','wine64','steam-installer','steam-devices','winetricks','vulkan-tools'):
+    require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
+                for stanza in status.split('\n\n')), 'compatibilidade Windows: '+package)
+for package in ('wine32','libwine','mesa-vulkan-drivers','libvulkan1'):
+    require(any(f'Package: {package}\n' in stanza and 'Architecture: i386\n' in stanza
+                and 'Status: install ok installed' in stanza for stanza in status.split('\n\n')),
+            'compatibilidade 32 bits: '+package)
+for path in ('usr/bin/linuxbr-windows','usr/lib/linuxbr-system/windows_compat.py',
+             'usr/lib/linuxbr-system/windows_runner.py','usr/lib/linuxbr-system/windows_tools.py',
+             'usr/share/applications/linuxbr-windows.desktop'):
+    require((root/path).is_file(),'interface Windows: '+path)
 require(any('Package: dolphin\n' in stanza and 'Status: install ok installed' in stanza
             and any(line.startswith('Version: ') and '+linuxbr' in line for line in stanza.splitlines())
             for stanza in status.split('\n\n')), 'Dolphin com cartoes Linux BR instalado')

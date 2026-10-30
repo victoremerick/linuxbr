@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Opções da sessão
+Comment=Bloquear, trocar usuário, sair, alterar senha ou abrir tarefas
+Exec=linuxbr-session-actions
+TryExec=linuxbr-session-actions
+Icon=system-users
+Terminal=false
+Categories=System;
+Keywords=Ctrl Alt Del;bloquear;sair;senha;usuário;tarefas;
+StartupNotify=false

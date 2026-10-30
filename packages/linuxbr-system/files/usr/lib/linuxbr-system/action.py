@@ -1,16 +1,14 @@
 """Fixed Windows-X style actions from the Start button context menu."""
-import os
-import shlex
 import shutil
 import sys
 from urllib.parse import urlsplit
 from PyQt6.QtCore import QProcess, QUrl
 from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import QApplication,QDialog,QVBoxLayout,QLabel,QLineEdit,QDialogButtonBox,QMessageBox
+from PyQt6.QtWidgets import QApplication,QDialog,QVBoxLayout,QLabel,QMessageBox,QPushButton
 
 
 COMMANDS = {
-    'apps':['linuxbr-system','--page','Programas'],
+    'apps':['plasma-discover','--mode','Installed'],
     'power-settings':['linuxbr-system','--page','Energia e bateria'],
     'logs':['linuxbr-system','--page','Administração'],
     'system':['linuxbr-system','--page','Sistema'],
@@ -20,10 +18,10 @@ COMMANDS = {
     'disks':['linuxbr-system','--page','Armazenamento'],
     'firewall':['linuxbr-system','--page','Firewall'],
     'audio':['linuxbr-system','--page','Áudio'],
-    'tasks':['linuxbr-system','--page','Gerenciador de tarefas'],
+    'tasks':['linuxbr-task-manager'],
     'settings':['linuxbr-system'],
     'terminal':['konsole'],
-    'files':['dolphin'],
+    'files':['dolphin','linuxbr:/'],
     'search':['krunner'],
     'logout':['ksmserver-logout-greeter'],
 }
@@ -39,25 +37,40 @@ def action_from_url(raw):
 
 
 def run_dialog():
-    dialog=QDialog();dialog.setWindowTitle('Executar — Linux BR');dialog.resize(450,150)
-    body=QVBoxLayout(dialog);body.addWidget(QLabel('Digite o nome de um aplicativo, caminho ou comando:'))
-    entry=QLineEdit();entry.setAccessibleName('Abrir');body.addWidget(entry)
-    buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel)
-    buttons.accepted.connect(dialog.accept);buttons.rejected.connect(dialog.reject);body.addWidget(buttons)
-    entry.setFocus()
-    if dialog.exec()!=QDialog.DialogCode.Accepted:return
-    value=entry.text().strip()
-    if os.path.exists(os.path.expanduser(value)):
-        ok=QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.expanduser(value)))
-    else:
-        try:parts=shlex.split(value)
-        except ValueError:parts=[]
-        ok=bool(parts and (shutil.which(parts[0]) or os.path.isfile(parts[0])) and QProcess.startDetached(parts[0],parts[1:])[0])
-    if not ok:QMessageBox.warning(dialog,'Executar','Não foi possível abrir o item informado.')
+    from run_dialog import run_dialog as show
+    show()
+
+
+def quick_access():
+    dialog=QDialog();dialog.setWindowTitle('Acesso rápido — Linux BR');dialog.resize(390,570)
+    body=QVBoxLayout(dialog)
+    heading=QLabel('Ferramentas do sistema');heading.setStyleSheet('font-size:20px; font-weight:600')
+    body.addWidget(heading)
+    choices=[('Programas instalados','apps'),('Opções de energia','power-settings'),
+             ('Sistema','system'),('Dispositivos e drivers','devices'),
+             ('Conexões de rede','network'),('Armazenamento e unidades','disks'),
+             ('Gerenciador de tarefas','tasks'),('Terminal','terminal'),
+             ('Configurações','settings'),('Explorador de arquivos','files'),
+             ('Executar…','run'),('Sair, reiniciar ou desligar…','logout')]
+    def activate(action):
+        if action=='run':
+            dialog.accept();run_dialog();return
+        from run_dialog import start
+        try:start(COMMANDS[action])
+        except ValueError as error:
+            QMessageBox.warning(dialog,'Acesso rápido',str(error));return
+        dialog.accept()
+    for caption,action in choices:
+        button=QPushButton(caption);button.setMinimumHeight(32)
+        button.clicked.connect(lambda checked=False,key=action:activate(key));body.addWidget(button)
+    dialog.exec()
 
 
 def main(argv):
     app=QApplication(argv)
+    if argv[1:]==['--quick-access']:
+        app.setDesktopFileName('linuxbr-quick-access');quick_access();return 0
+    app.setDesktopFileName('linuxbr-run')
     try:action=action_from_url(argv[1]) if len(argv)==2 else 'run' if len(argv)==1 else None
     except ValueError:action=None
     if action=='run':run_dialog();return 0

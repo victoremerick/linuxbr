@@ -118,7 +118,7 @@ def display(path, state=None):
     for root,letter in sorted(mappings,key=lambda x:len(x[0]),reverse=True):
         base=root.rstrip('/')
         if path==root or path.startswith(base+'/'):
-            result=letter+':/'+path[len(base):].lstrip('/')
+            result=letter+':\\'+path[len(base):].lstrip('/').replace('/','\\')
             return ''.join(c if ord(c)>=32 and ord(c)!=127 else '?' for c in result)
     return path
 

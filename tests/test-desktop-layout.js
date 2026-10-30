@@ -24,6 +24,7 @@ function run(existing) {
     const widgets = panels[0].widgets;
     assert.equal(widgets.length, 7);
     assert.equal(widgets[0].config.icon, 'linuxbr');
+    assert.ok(widgets[0].config.favorites.includes('linuxbr-welcome.desktop'));
     assert.equal(widgets[1].config.launchers.length, 4);
     assert.equal(widgets[3].name, 'org.linuxbr.quicksettings');
     assert.equal(widgets[5].name, 'org.kde.plasma.notifications');

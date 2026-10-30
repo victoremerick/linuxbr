@@ -1,5 +1,25 @@
 [General]
 HomeUrl=linuxbr:/
+EditableUrl=false
+ShowFullPath=false
+ShowFullPathInTitlebar=false
 RememberOpenedTabs=false
-ModifiedStartupSettings=true
+OpenExternallyCalledFolderInNewTab=false
 GlobalViewProps=false
+BrowseThroughArchives=true
+ConfirmClosingMultipleTabs=true
+ConfirmClosingTerminalRunningProgram=true
+RenameInline=true
+ShowSelectionToggle=false
+ShowToolTips=true
+AutoExpandFolders=true
+ShowStatusBar=true
+ShowZoomSlider=true
+ShowSpaceInfo=true
+LockPanels=true
+SortingChoice=NaturalSorting
+ModifiedStartupSettings=true
+
+[Notification Messages]
+ConfirmOpenManyFolders=true
+ConfirmOpenManyTerminals=true

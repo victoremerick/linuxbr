@@ -50,6 +50,12 @@ def build(output, work, calamares_deb, breeze_deb):
         source = ROOT / 'packages' / name / 'files'
         if source.exists():
             shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    # Executable launchers must retain their mode even when edited on Windows.
+    for command in ('linuxbr-welcome','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions'):
+        (roots['linuxbr-system'] / 'usr/bin' / command).chmod(0o755)
+    extensions = roots['linuxbr-system'] / 'usr/share/chromium/extensions'
+    extensions.mkdir(parents=True, exist_ok=True)
+    (extensions / 'linuxbr-webapps').symlink_to('/usr/share/linuxbr/webapps', target_is_directory=True)
     release = roots['linuxbr-release']
     # Store payload outside the diverted paths; dpkg owns only our source files.
     for path in ['etc/issue', 'etc/linuxbr-release']:
@@ -120,7 +126,7 @@ remove|purge)
     ;;
 esac
 ''', True)
-    control(roots['linuxbr-system'], 'linuxbr-system', 'linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, powerdevil, kde-config-screenlocker, kscreen, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd')
+    control(roots['linuxbr-system'], 'linuxbr-system', 'chromium, chromium-sandbox, python3, python3-pyqt6, linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, krdp, flatpak, powerdevil, kde-config-screenlocker, kscreen, libkscreen-bin, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd, kcalc, kate, kolourpaint')
     write(roots['linuxbr-system'], 'DEBIAN/postinst', """#!/bin/sh
 set -eu
 if [ "$1" = configure ] && [ -z "${2:-}" ]; then
@@ -249,7 +255,7 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
     write(cala, 'etc/calamares/modules/locale.conf',
           'region: America\nzone: Sao_Paulo\nuseSystemTimezone: false\ngeoip:\n  style: none\n')
     write(cala, 'etc/calamares/modules/keyboard.conf',
-          'guessLayout: false\nwriteEtcDefaultKeyboard: true\nconfigure:\n  kwin: true\n')
+          'guessLayout: false\nuseLocale1: true\nwriteEtcDefaultKeyboard: true\nconfigure:\n  kwin: true\n')
     write(cala, 'etc/calamares/modules/plymouthcfg.conf', 'plymouth_theme: linuxbr\n')
     welcome = cala / 'etc/calamares/modules/welcome.conf'
     data = load(welcome)

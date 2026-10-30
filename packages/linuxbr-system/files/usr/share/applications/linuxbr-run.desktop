@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Executar
+Comment=Abrir um programa, pasta, documento ou site
+Exec=linuxbr-run
+TryExec=linuxbr-run
+Icon=system-run
+Terminal=false
+Categories=System;Utility;
+Keywords=Windows;Run;Win R;comando;abrir;notepad;calc;
+StartupNotify=false

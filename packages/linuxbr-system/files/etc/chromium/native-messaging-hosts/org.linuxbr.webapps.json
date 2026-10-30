@@ -1,0 +1,9 @@
+{
+  "name": "org.linuxbr.webapps",
+  "description": "Aplicativos web Linux BR",
+  "path": "/usr/bin/linuxbr-webapps-host",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://lhanpdfpjlicodjfidgojclnppokanbi/"
+  ]
+}

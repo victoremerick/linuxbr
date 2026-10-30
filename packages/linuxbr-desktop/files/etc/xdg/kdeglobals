@@ -27,13 +27,13 @@ IntensityAmount=0
 IntensityEffect=0
 
 [Colors:Button]
-BackgroundAlternate=230,226,244
+BackgroundAlternate=225,239,252
 BackgroundNormal=252,252,252
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -43,9 +43,9 @@ ForegroundVisited=155,89,182
 [Colors:Complementary]
 BackgroundAlternate=27,30,32
 BackgroundNormal=24,35,43
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=161,169,177
 ForegroundLink=29,153,243
 ForegroundNegative=218,68,83
@@ -57,11 +57,11 @@ ForegroundVisited=155,89,182
 [Colors:Header]
 BackgroundAlternate=243,244,246
 BackgroundNormal=232,235,239
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -71,11 +71,11 @@ ForegroundVisited=155,89,182
 [Colors:Header][Inactive]
 BackgroundAlternate=232,235,239
 BackgroundNormal=243,244,246
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -83,10 +83,10 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [Colors:Selection]
-BackgroundAlternate=230,226,244
-BackgroundNormal=96,84,163
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
+BackgroundAlternate=225,239,252
+BackgroundNormal=0,95,184
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
 ForegroundActive=255,255,255
 ForegroundInactive=93,103,114
 ForegroundLink=253,188,75
@@ -99,11 +99,11 @@ ForegroundVisited=155,89,182
 [Colors:Tooltip]
 BackgroundAlternate=243,244,246
 BackgroundNormal=247,247,247
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -113,11 +113,11 @@ ForegroundVisited=155,89,182
 [Colors:View]
 BackgroundAlternate=247,247,247
 BackgroundNormal=255,255,255
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -127,11 +127,11 @@ ForegroundVisited=155,89,182
 [Colors:Window]
 BackgroundAlternate=232,235,239
 BackgroundNormal=243,244,246
-DecorationFocus=96,84,163
-DecorationHover=96,84,163
-ForegroundActive=96,84,163
+DecorationFocus=0,95,184
+DecorationHover=0,95,184
+ForegroundActive=0,95,184
 ForegroundInactive=93,103,114
-ForegroundLink=83,69,148
+ForegroundLink=0,83,158
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=30,37,44
@@ -139,10 +139,14 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [General]
-BrowserApplication=firefox-esr.desktop
-ColorScheme=LinuxBRClean
-Name=Linux BR Clean
+BrowserApplication=chromium.desktop
+ColorScheme=LinuxBRLightBlue
+Name=Linux BR Light Blue
 shadeSortColumn=true
+font=Noto Sans,10,-1,5,50,0,0,0,0,0
+menuFont=Noto Sans,10,-1,5,50,0,0,0,0,0
+smallestReadableFont=Noto Sans,9,-1,5,50,0,0,0,0,0
+toolBarFont=Noto Sans,10,-1,5,50,0,0,0,0,0
 
 [KDE]
 LookAndFeelPackage=org.linuxbr.desktop
@@ -161,3 +165,12 @@ inactiveForeground=93,103,114
 [Toolbar style]
 ToolButtonStyle=TextBesideIcon
 ToolButtonStyleOtherToolbars=IconOnly
+
+[KFileDialog Settings]
+Show Speedbar=true
+Show Bookmarks=false
+Breadcrumb Navigation=true
+Show Full Path=false
+Automatically select filename extension=true
+Places Icons Auto-resize=false
+Places Icons Static Size=22

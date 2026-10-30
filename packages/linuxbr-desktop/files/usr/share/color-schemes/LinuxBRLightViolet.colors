@@ -131,7 +131,7 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [General]
-ColorScheme=LinuxBRClean
+ColorScheme=LinuxBRLightViolet
 Name=Linux BR Light Violet
 shadeSortColumn=true
 

@@ -25,6 +25,19 @@ for name in files:
     values.read(source)
     for group in values.sections():
         for key, value in values[group].items():
+            # Appearance must not reset the user's browser, window focus,
+            # tiling, fonts, or double-click preference.
+            if name == 'kwinrc' and group != 'org.kde.kdecoration2':
+                continue
+            if name.startswith('gtk-') and key == 'gtk-font-name':
+                continue
+            if name == 'kdeglobals':
+                if group == 'General' and key not in ('ColorScheme', 'Name', 'shadeSortColumn'):
+                    continue
+                if group == 'KDE' and key not in ('widgetStyle', 'contrast'):
+                    continue
+                if group not in ('General', 'KDE', 'WM', 'Toolbar style') and not group.startswith(('Colors:', 'ColorEffects:')):
+                    continue
             groups = []
             for part in group.split(']['):
                 groups.extend(['--group', part])

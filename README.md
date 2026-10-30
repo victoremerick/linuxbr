@@ -1,6 +1,17 @@
-# Linux BR 0.2.1 Alpha
+# Linux BR 0.4.4 Alpha
 
-Distribuição experimental baseada em Debian 13 (Trixie), KDE Plasma 6 e Calamares. A versão 0.2.1 organiza a identidade Linux BR em pacotes locais e preserva os módulos de instalação Debian usados na 0.2.
+Atualização em desenvolvimento 0.4.8: ícones dos sites nos aplicativos web,
+Gerenciador de Tarefas independente com acesso pela barra, tela de Ctrl+Alt+Del
+e localização no prompt do terminal com letras de unidade e barras invertidas.
+Inclui as melhorias da 0.4.7: área de trabalho e atalhos familiares,
+Executar, ferramentas de arquivos, biblioteca de programas Windows, loja ampliada,
+aplicativos e formatos de uso diário. Este lote está somente em código-fonte,
+sem testes, pacotes ou ISO novos, conforme solicitado. A última ISO gerada
+continua sendo a 0.4.4; o último pacote de sistema validado em UEFI é o 0.4.6.
+Os perfis web de 0.4.6 foram preservados. Veja [sessões e contas](docs/APLICATIVOS-WEB.md)
+e [implementação de 30/10](docs/IMPLEMENTACAO-SESSAO-2026-10-30.md).
+
+Distribuição experimental baseada em Debian 13 (Trixie), KDE Plasma 6 e Calamares. A versão atual acrescenta uma loja unificada para programas Linux, aplicativos web no Chromium e programas Windows com Wine. Inclui Steam/Proton e ferramentas em português para facilitar a migração do Windows. A sequência de instalação Debian é preservada.
 
 ## Construir no Fedora
 
@@ -8,17 +19,16 @@ Dependências do host: Podman, QEMU/KVM, qemu-img, edk2-ovmf e xorriso. Os nomes
 
 ```bash
 sudo dnf install podman qemu-system-x86 qemu-img edk2-ovmf xorriso
-sudo env CONTAINER_ENGINE=podman ./build.sh
-./tests/verify-iso.sh
+./init-build.sh
 ```
 
-O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-0.2.1.XXXXXX`, sem apagar a compilação anterior. Reserve espaço para múltiplos chroots. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
+O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-0.4.4.XXXXXX`, sem apagar a compilação anterior. Reserve espaço para múltiplos chroots. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
 
 Saídas:
 
-- `dist/linuxbr-0.2.1-amd64.iso`
-- `dist/linuxbr-0.2.1-amd64.iso.sha256`
-- `dist/linuxbr-0.2.1-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
+- `dist/linuxbr-0.4.4-amd64.iso`
+- `dist/linuxbr-0.4.4-amd64.iso.sha256`
+- `dist/linuxbr-0.4.4-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
 - `dist/SHA256SUMS`, preservando entradas das outras versões
 
 A ISO 0.2 existente permanece como referência. `apply-stage2.sh` é histórico e recusa execução no projeto atual.
@@ -38,6 +48,8 @@ Os quatro atalhos verificam QEMU e qemu-img e instalam via DNF os componentes au
 
 Execute os scripts de VM como usuário normal; sudo é usado somente para instalar pacotes, sem elevar o QEMU. Instale o sistema usando a variante com CD, encerre a VM e execute a variante sem CD do mesmo modo. Cada par reutiliza seu disco; o par UEFI também reutiliza a NVRAM. Os ajustes por variáveis de ambiente descritos abaixo continuam disponíveis.
 
+O emulador usa VGA com EDID de 1280×768 como padrão, inclusive no diagnóstico. A tela da sessão pode ser ajustada pela Central. Para testar VirtIO, use `QEMU_VIDEO_DEVICE=virtio-vga` (a resolução inicial pode variar conforme o backend gráfico do QEMU).
+
 ## Testes em VM
 
 ```bash
@@ -49,9 +61,9 @@ Execute os scripts de VM como usuário normal; sudo é usado somente para instal
 
 Instale pelo Calamares antes de executar a variante `installed`. Encerre a VM anterior antes de reutilizar seu disco. O modo `installed` não conecta a ISO.
 
-Os discos padrão são separados: `vm/linuxbr-0.2.1-bios.qcow2` e `vm/linuxbr-0.2.1-uefi.qcow2`. A NVRAM UEFI é copiada uma vez e preservada ao reiniciar. O script procura pares OVMF sem Secure Boot; se necessário, informe `OVMF_CODE` e `OVMF_VARS_TEMPLATE`. Outros ajustes: `ISO`, `DISK_IMAGE`, `OVMF_VARS`, `RAM_MB`, `CPUS`, `DISK_SIZE` e `QEMU_DISPLAY`.
+Os discos padrão são separados: `vm/linuxbr-0.4.4-bios.qcow2` e `vm/linuxbr-0.4.4-uefi.qcow2`. A NVRAM UEFI é copiada uma vez e preservada ao reiniciar. O script procura pares OVMF sem Secure Boot; se necessário, informe `OVMF_CODE` e `OVMF_VARS_TEMPLATE`. Outros ajustes: `ISO`, `DISK_IMAGE`, `OVMF_VARS`, `RAM_MB`, `CPUS`, `DISK_SIZE` e `QEMU_DISPLAY`.
 
-Verificar hash e entradas El Torito não prova que o sistema inicia ou instala. Execute ambos os modos e a matriz em [VALIDACAO-0.2.1.md](VALIDACAO-0.2.1.md).
+Verificar hash e entradas El Torito não prova que o sistema inicia ou instala. Execute ambos os modos e acompanhe a matriz em [Experiência brasileira](docs/EXPERIENCIA-BRASILEIRA.md).
 
 ## Organização
 
@@ -60,7 +72,7 @@ Verificar hash e entradas El Torito não prova que o sistema inicia ou instala. 
 - `config/package-lists/`: pacotes Debian.
 - `config/includes.chroot/`: reservado para arquivos adicionais; a identidade foi migrada para pacotes.
 - `packages/`: recursos e configurações Linux BR.
-- `scripts/build-packages.py`: gera seis pacotes `.deb` locais.
+- `scripts/build-packages.py`: gera os pacotes `.deb` locais.
 - `tests/`: verificações de pacotes, scripts, ISO e filesystem.
 - `build/`, `dist/`, `.cache/`, `vm/`: artefatos ignorados pelo Git.
 
@@ -87,6 +99,23 @@ O smoke test instala e remove pacotes apenas no container descartável, sem priv
 Novos usuários recebem o tema global Linux BR, painel inferior com menu próprio, Dolphin, Firefox, Configurações e Discover fixados. O desktop usa duplo clique e aplicativos padrão definidos em `/etc/skel/.config`. Contas existentes mantêm suas escolhas. O wallpaper Grafite 4K e a marca geométrica Linux BR são usados no desktop, SDDM e Calamares.
 
 O idioma do Live é pt_BR; a escolha feita no instalador é preservada. Firefox e LibreOffice incluem traduções brasileiras. O teste de layout com Node.js usa uma API simulada; confirme o resultado na VM antes de considerar essa parte homologada.
+
+## Primeiros passos e ajuda
+
+O aplicativo **Primeiros passos Linux BR** abre no primeiro acesso, funciona sem internet e pode ser reaberto pelo menu. Inclui equivalências com Windows, programas, arquivos, atalhos, recuperação e exportação local de informações para suporte. A Central reúne Primeiros passos e Recuperação e ajuda; sua busca aceita termos familiares e informa quando não há resultados.
+
+Contas novas recebem Windows+E para arquivos, Windows+I para a Central, Windows+R para pesquisar/executar, Ctrl+Shift+Esc para tarefas e Print para capturas. Os arquivos padrão incluem documentos Office e OpenDocument. O Live usa locale pt_BR.UTF-8 persistente, ABNT2 e dicionário brasileiro; a escolha de idioma do instalador continua disponível. Preferências de contas existentes não são substituídas.
+
+Veja [implementação e validação](docs/EXPERIENCIA-BRASILEIRA.md).
+
+## Programas Windows e jogos
+
+Abra **Programas Windows e jogos** pelo menu ou pela Central. EXE e MSI abrem
+nessa ferramenta para escolher um ambiente Wine e confirmar a execução. A imagem
+inclui Wine de 32/64 bits, iniciador Steam e Vulkan/Mesa nas duas arquiteturas.
+Steam baixa seu cliente e Proton quando necessários; Bottles pode ser instalado
+para a conta pelo botão dedicado via Flathub. Nenhum jogo comercial é incluído.
+Veja [como usar, dependências e validação](docs/PROGRAMAS-WINDOWS.md).
 
 ## Limites
 
@@ -279,3 +308,11 @@ A Central reúne a lista de usuários locais e o acesso ao gerenciamento de cont
 Consulte [Configurações e janelas](docs/CONFIGURACOES-E-JANELAS.md) para a Central ampliada, instaladores e validação visual.
 
 A Central também reúne **Firewall**, **Gerenciador de Tarefas**, **Áudio**, **Endereços IP e DNS** e o gerenciamento de grupos locais em **Usuários**. O clique direito no botão Iniciar oferece as ações principais do sistema e o diálogo **Executar**. Consulte [escopo e validação dessas páginas](docs/CENTRAL-FIREWALL-REDE-AUDIO.md).
+
+## Aplicativos web
+
+Chromium é o navegador inicial para novas contas. A extensão Aplicativos web Linux BR reconhece serviços do catálogo e manifestos PWA, oferece instalação confirmada pelo usuário e evita sugestões para serviços com aplicativo Linux conhecido. O gerenciador cria atalhos e perfis separados, sem servidor de histórico. Veja [o guia e os limites da detecção](docs/APLICATIVOS-WEB.md).
+
+## Loja de aplicativos
+
+Catálogo selecionado com busca por nome ou finalidade, filtros por tipo e categoria, integração ao Discover, instalação confirmada de webapps e links oficiais para instaladores Windows. Veja [como usar e ampliar o catálogo](docs/LOJA-DE-APLICATIVOS.md).

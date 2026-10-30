@@ -1,0 +1,39 @@
+#!/bin/sh
+# live-build runs binary hooks inside binary/, before computing media checksums.
+set -eu
+python3 - <<'PY'
+from pathlib import Path
+import re
+
+translations = (
+    ('Live system', 'Iniciar Linux BR'),
+    ('fail-safe mode', 'modo de compatibilidade'),
+    ('autodetect', 'automatico'),
+    ('Utilities', 'Ferramentas'),
+    ('Hardware Detection Tool (HDT)', 'Informacoes do computador (HDT)'),
+    ('Memory test', 'Teste de memoria'),
+    ('UEFI Firmware Settings', 'Configuracao UEFI'),
+    ('Verify integrity of the boot medium', 'Verificar integridade da midia'),
+    ('Press ENTER to boot or TAB to edit a menu entry', 'ENTER para iniciar | TAB para editar'),
+)
+label = re.compile(r'^\s*(?:menuentry|submenu|menu\s+(?:label|title|tabmsg))\b')
+changed = 0
+for directory in (Path('isolinux'), Path('syslinux'), Path('boot/grub'), Path('EFI/boot')):
+    if not directory.is_dir():
+        continue
+    for path in directory.rglob('*.cfg'):
+        if path.is_symlink():
+            continue
+        original = path.read_text()
+        result = []
+        for line in original.splitlines(keepends=True):
+            if label.match(line):
+                for english, portuguese in translations:
+                    line = line.replace(english, portuguese)
+            result.append(line)
+        updated = ''.join(result)
+        if updated != original:
+            path.write_text(updated)
+            changed += 1
+print(f'Linux BR: menus de inicializacao em portugues ({changed} arquivos atualizados).')
+PY

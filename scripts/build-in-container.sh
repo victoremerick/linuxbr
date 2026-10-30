@@ -61,7 +61,7 @@ main() {
       --firmware-chroot false \
       --firmware-binary false \
       --archive-areas 'main contrib non-free non-free-firmware' \
-      --bootappend-live 'boot=live components locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=abnt2 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0' \
+      --bootappend-live 'boot=live components hostname=linuxbr user-fullname=LinuxBR locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=abnt2 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0' \
       --iso-application 'Linux BR Live' \
       --iso-publisher 'Projeto Linux BR' \
       --iso-volume "LINUXBR_${VERSION//./_}"

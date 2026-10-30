@@ -7,6 +7,8 @@ set -eu
 }
 cd /src
 sh config/hooks/live/0200-linuxbr-keyboard.hook.chroot
+grep -q '^LANG="\?pt_BR.UTF-8"\?$' /etc/default/locale
+locale -a | grep -qi '^pt_BR.utf8$'
 . /etc/default/keyboard
 [ "$XKBLAYOUT" = br ]
 [ "$XKBMODEL" = abnt2 ]

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Primeiros passos Linux BR
+Comment=Conheça o sistema, os atalhos e as opções de ajuda
+Keywords=Windows;Iniciar;Ajuda;Guia;Recuperação;Tutorial;Bem-vindo;
+Exec=linuxbr-welcome
+Icon=linuxbr
+Categories=System;Documentation;
+Terminal=false
+StartupNotify=true

@@ -2,6 +2,7 @@
 Type=Application
 Name=Central do Sistema Linux BR
 Comment=Dispositivos, armazenamento, rede e administração
+Keywords=Configurações;Painel de controle;Windows;Rede;Som;Tela;Atualizações;Ajuda;
 Exec=linuxbr-system
 Icon=linuxbr
 Categories=System;Settings;

@@ -1,0 +1,51 @@
+[services][org.kde.dolphin.desktop]
+_launch=Meta+E
+
+[services][linuxbr-system.desktop]
+_launch=Meta+I
+
+[services][org.kde.krunner.desktop]
+_launch=Meta+S\tAlt+F2
+
+[services][linuxbr-run.desktop]
+_launch=Meta+R
+
+[services][linuxbr-quick-access.desktop]
+_launch=Meta+X
+
+[services][linuxbr-task-manager.desktop]
+_launch=Ctrl+Shift+Esc
+
+[services][org.kde.spectacle.desktop]
+_launch=Print
+RectangularRegionScreenShot=Meta+Shift+S\tMeta+Shift+Print
+ActiveWindowScreenShot=Alt+Print
+FullScreenScreenShot=Meta+Print\tShift+Print
+RecordRegion=Meta+Shift+R
+
+[kwin]
+Show Desktop=Meta+D,Meta+D,Mostrar a área de trabalho
+Window Operations Menu=Alt+Space\tAlt+F3,Alt+F3,Menu da janela
+Window Close=Alt+F4,Alt+F4,Fechar janela
+Window Quick Tile Left=Meta+Left,Meta+Left,Ajustar janela à esquerda
+Window Quick Tile Right=Meta+Right,Meta+Right,Ajustar janela à direita
+Window Quick Tile Top=none,Meta+Up,Ajustar janela acima
+Window Quick Tile Bottom=none,Meta+Down,Ajustar janela abaixo
+Window to Next Screen=Meta+Shift+Right,Meta+Shift+Right,Mover janela para a próxima tela
+Window to Previous Screen=Meta+Shift+Left,Meta+Shift+Left,Mover janela para a tela anterior
+Overview=Meta+Tab\tMeta+W,Meta+W,Visão de tarefas e áreas de trabalho
+Switch One Desktop to the Right=Meta+Ctrl+Right,Meta+Ctrl+Right,Próxima área de trabalho
+Switch One Desktop to the Left=Meta+Ctrl+Left,Meta+Ctrl+Left,Área de trabalho anterior
+
+[plasmashell]
+stop current activity=none,Meta+S,Parar a atividade atual
+
+[klipper]
+show-on-mouse-pos=Meta+V,Meta+V,Histórico da área de transferência
+
+[ksmserver]
+Log Out=none,Ctrl+Alt+Del,Mostrar opções de saída
+Lock Session=Meta+L\tScreensaver,Meta+L\tScreensaver,Bloquear a sessão
+
+[services][linuxbr-session-actions.desktop]
+_launch=Ctrl+Alt+Del

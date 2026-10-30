@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, '/usr/lib/linuxbr-drive-manager')
 sys.path.insert(0, '/usr/lib/linuxbr-device-manager')
 from PyQt6.QtCore import QProcess, QSize, Qt
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
                             QListWidget, QListWidgetItem, QStackedWidget, QLabel, QPushButton, QMessageBox, QToolButton, QScrollArea, QFrame, QLineEdit)
 from app import Window as Drives
@@ -15,10 +15,13 @@ from accounts import AccountsPage
 from appearance import Appearance
 from proxy import Proxy
 from firewall import Firewall
-from tasks import Tasks
 from network_page import IPPage
 from audio import Audio
+from display_page import Displays
+from remote_page import RemoteAccess
+from power_page import Power
 from visual_style import BUTTONS
+from welcome import HelpPage
 
 PAGES = [
  ('Sistema', '', []),
@@ -27,11 +30,13 @@ PAGES = [
      ('Bluetooth', ['kcmshell6', 'kcm_bluetooth']),
      ('Áudio e headsets', ['kcmshell6', 'kcm_pulseaudio']),
      ('Celulares', ['kdeconnect-settings']),
-     ('Impressoras', ['kcmshell6', 'kcm_printer_manager'])]),
+     ('Impressoras', ['kcmshell6', 'kcm_printer_manager']),
+     ('Digitalizar documentos', ['skanpage'])]),
  ('Armazenamento', '', []),
  ('Rede', 'Conexões, Wi-Fi, VPN e unidades de rede.', [
      ('Wi-Fi e Ethernet', ['kcmshell6', 'kcm_networkmanagement']),
      ('VPN', ['kcmshell6', 'kcm_networkmanagement']),
+     ('Mapear unidade de rede', ['linuxbr-file-tools', '--map-network']),
      
      ('Bluetooth', ['kcmshell6', 'kcm_bluetooth'])]),
  ('Usuários', 'Contas locais e configurações de acesso.', [
@@ -39,26 +44,26 @@ PAGES = [
  ('Organização', '', []),
  ('Administração', 'Ferramentas de manutenção do sistema.', [
      ('Aplicativos e atualizações', ['plasma-discover']),
+     ('Firmware de dispositivos', ['plasma-discover', '--mode', 'Update']),
+     ('Analisar espaço ocupado', ['filelight']),
+     ('Executar um programa', ['linuxbr-run']),
      ('Aplicativos na inicialização', ['kcmshell6', 'kcm_autostart']),
      ('Logs desta inicialização', ['konsole', '-e', 'journalctl', '-b', '--pager-end']),
      ('Estado dos serviços', ['konsole', '-e', 'systemctl', 'status']),
      ('Configurações do terminal', ['linuxbr-terminal-settings']),
      ('Configurações avançadas', ['systemsettings'])]),
  ('Programas', 'Instale, remova e atualize aplicativos.', [
+     ('Loja de aplicativos', ['linuxbr-store']),
      ('Instalar a partir de arquivo', ['linuxbr-install-package']),
+     ('Programas Windows e jogos', ['linuxbr-windows']),
+     ('Aplicativos web', ['linuxbr-webapps']),
      ('Programas instalados', ['plasma-discover', '--mode', 'Installed']),
-     ('Encontrar programas', ['plasma-discover']),
+     ('Encontrar programas', ['linuxbr-store']),
      ('Atualizações', ['plasma-discover', '--mode', 'Update'])]),
- ('Telas', 'Monitores, resolução, escala, orientação e disposição das telas.', [
-     ('Configurar telas e resoluções', ['kcmshell6', 'kcm_kscreen']),
-     ('Luz noturna', ['kcmshell6', 'kcm_nightlight'])]),
+ ('Telas', 'Monitores, resolução, escala, orientação e disposição das telas.', []),
  ('Personalização', '', []),
- ('Acesso remoto', 'Conecte a outro computador ou compartilhe sua sessão com autorização.', [
-     ('Conectar por RDP ou VNC', ['krdc']),
-     ('Compartilhar esta sessão (VNC)', ['krfb'])]),
- ('Energia e bateria', 'Configure separadamente o uso na tomada e na bateria. As ações disponíveis dependem do hardware.', [
-     ('Tela ligada, suspensão, tampa e botão de energia', ['kcmshell6', 'kcm_powerdevilprofilesconfig']),
-     ('Bloqueio automático da sessão', ['kcmshell6', 'kcm_screenlocker'])]),
+ ('Acesso remoto', 'Permita conexões RDP ou VNC à sessão deste computador.', []),
+ ('Energia e bateria', 'Tempo de tela, suspensão, tampa e botão de energia.', []),
  ('Notificações', 'Alertas temporários, histórico, sons e Não perturbe.', [
      ('Preferências e permissões por aplicativo', ['kcmshell6', 'kcm_notifications'])]),
  ('Acessibilidade', 'Recursos de visão, teclado e interação.', [
@@ -85,11 +90,45 @@ PAGES = [
      ('Restaurar sessão e encerramento', ['kcmshell6', 'kcm_smserver'])]),
 ]
 PAGES += [
+ ('Arquivos e atalhos', 'Crie atalhos, mapeie unidades de rede e organize documentos.', [
+     ('Ferramentas de arquivos', ['linuxbr-file-tools']),
+     ('Mapear unidade de rede', ['linuxbr-file-tools', '--map-network']),
+     ('Este computador', ['dolphin', 'linuxbr:/']),
+     ('Lixeira', ['dolphin', 'trash:/']),
+     ('Arquivos compactados', ['ark']),
+     ('Analisar espaço ocupado', ['filelight'])]),
+ ('Aplicativos web', 'Sites instalados como aplicativos, com janela própria no Chromium.', [
+     ('Gerenciar aplicativos web', ['linuxbr-webapps']),
+     ('Abrir Chromium', ['chromium'])]),
  ('Firewall', 'Proteção de rede, portas liberadas e aplicativos com portas abertas.', []),
- ('Gerenciador de tarefas', 'Processos, uso de CPU e memória.', []),
  ('Áudio', 'Alto-falantes, microfones, perfis e mixer por aplicativo.', []),
  ('Endereços IP e DNS', 'Propriedades IPv4 e IPv6 das conexões de rede.', []),
+ ('Proxy', 'Proxy manual ou PAC para aplicativos KDE.', []),
+ ('Primeiros passos', 'Ajuda, guia para quem vem do Windows, menu Iniciar e uso diário.', []),
+ ('Recuperação e ajuda', 'Suporte, cópia de segurança, backup, falhas e reparação da inicialização.', []),
+ ('Programas Windows e jogos', 'Compatibilidade com EXE, MSI, Wine, Steam, Proton e Bottles.', [
+     ('Abrir central de compatibilidade', ['linuxbr-windows']),
+     ('Meus programas Windows', ['linuxbr-windows', '--page', 'library']),
+     ('Instalar programa Windows', ['linuxbr-windows', '--page', 'install']),
+     ('Jogos e controles', ['linuxbr-windows', '--page', 'games']),
+     ('Abrir Steam', ['steam'])]),
 ]
+
+SEARCH_ALIASES = {
+ 'Administração': 'gerenciador de tarefas taskmgr processos cpu memória desempenho ctrl shift esc',
+ 'Arquivos e atalhos': 'explorer explorador atalho desktop área trabalho lixeira rede compartilhamento unc smb zip copiar caminho',
+ 'Aplicativos web': 'chromium navegador site pwa webapp whatsapp teams canva instalar internet',
+ 'Sistema': 'painel de controle configurações computador versão memória processador',
+ 'Programas Windows e jogos': 'exe msi wine steam proton bottles directx vulkan jogos games aplicativos windows',
+ 'Rede': 'wifi wi-fi internet conexão cabo ethernet vpn',
+ 'Programas': 'loja instalar desinstalar remover aplicativos microsoft store windows update atualizar',
+ 'Armazenamento': 'disco pendrive usb unidade partição formatar letras c: d: compartilhamento',
+ 'Áudio': 'som volume microfone fone alto-falante headset',
+ 'Telas': 'monitor resolução escala brilho imagem texto tamanho',
+ 'Dispositivos': 'driver impressora scanner bluetooth hardware',
+ 'Pesquisa e padrões': 'abrir com navegador padrão pdf pastas procurar arquivos',
+ 'Recuperação e ajuda': 'não inicia erro falha backup restaurar reparo suporte ajuda',
+}
 
 class Central(QMainWindow):
     def __init__(self):
@@ -106,7 +145,14 @@ class Central(QMainWindow):
         brand=QLabel('Linux BR'); brand.setStyleSheet('font-size:18px; font-weight:600; padding-left:12px')
         side.addWidget(brand)
         self.search=QLineEdit();self.search.setPlaceholderText('Buscar configuração…');self.search.setClearButtonEnabled(True);side.addWidget(self.search)
+        self.search.setAccessibleName('Buscar configurações e ferramentas')
+        self.search_status=QLabel();self.search_status.setWordWrap(True);self.search_status.hide();side.addWidget(self.search_status)
+        self.find_shortcut=QShortcut(QKeySequence.StandardKey.Find,self)
+        self.find_shortcut.activated.connect(self.search.setFocus)
+        self.clear_shortcut=QShortcut(QKeySequence('Esc'),self)
+        self.clear_shortcut.activated.connect(self.search.clear)
         self.nav=QListWidget(); self.nav.setSpacing(2); self.nav.setIconSize(QSize(18,18))
+        self.nav.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.nav.setObjectName('linuxbrNavigation')
         self.nav.setStyleSheet("""
             QListWidget#linuxbrNavigation { border: none; background: palette(window); }
@@ -120,11 +166,12 @@ class Central(QMainWindow):
         self.stack=QStackedWidget()
         layout.addWidget(sidebar); layout.addWidget(self.stack,1)
         self.drives=Drives(); self.devices=Devices()
-        self.firewall=Firewall();self.tasks=Tasks();self.audio=Audio();self.ip=IPPage()
+        self.firewall=Firewall();self.audio=Audio();self.ip=IPPage()
+        self.displays=Displays();self.remote=RemoteAccess();self.proxy=Proxy();self.power=Power()
         self.users=AccountsPage(False,self.launch); self.organization=AccountsPage(True,self.launch)
         icons=['computer','preferences-devices','drive-harddisk','network-workgroup','system-users','preferences-system','preferences-other','applications-other','video-display','preferences-desktop-theme','krdc']
         for index,(title,description,actions) in enumerate(PAGES):
-            item=QListWidgetItem(QIcon.fromTheme(icons[index] if index<len(icons) else 'preferences-system'),title); item.setSizeHint(QSize(190,38)); self.nav.addItem(item)
+            item=QListWidgetItem(QIcon.fromTheme(icons[index] if index<len(icons) else 'preferences-system'),title); item.setSizeHint(QSize(170,38)); self.nav.addItem(item)
             if title=='Sistema':
                 page=About(self.launch,self.navigate)
             elif title=='Personalização':
@@ -133,9 +180,17 @@ class Central(QMainWindow):
                 page=self.users
             elif title=='Organização':
                 page=self.organization
-            elif title in ('Firewall','Gerenciador de tarefas','Áudio','Endereços IP e DNS'):
-                page={'Firewall':self.firewall,'Gerenciador de tarefas':self.tasks,
-                      'Áudio':self.audio,'Endereços IP e DNS':self.ip}[title]
+            elif title=='Telas':
+                page=self.displays
+            elif title=='Acesso remoto':
+                page=self.remote
+            elif title=='Energia e bateria':
+                page=self.power
+            elif title in ('Primeiros passos','Recuperação e ajuda'):
+                page=HelpPage(self.launch,title)
+            elif title in ('Firewall','Áudio','Endereços IP e DNS','Proxy'):
+                page={'Firewall':self.firewall,
+                      'Áudio':self.audio,'Endereços IP e DNS':self.ip,'Proxy':self.proxy}[title]
             elif title=='Dispositivos':
                 page=QWidget(); body=QVBoxLayout(page); body.setContentsMargins(0,0,0,16)
                 body.addWidget(self.devices)
@@ -154,15 +209,13 @@ class Central(QMainWindow):
                 text=QLabel(description); text.setWordWrap(True); body.addWidget(text)
                 for caption,command in actions:
                     body.addWidget(self.action_link(caption,lambda checked=False,cmd=command:self.launch(cmd)),0,Qt.AlignmentFlag.AlignLeft)
-                if title=='Acesso remoto':
-                    note=QLabel('O compartilhamento só é iniciado por você. Configure senha e permissão de controle no compartilhador. Para acesso fora da rede local, use a VPN da empresa.'); note.setWordWrap(True); body.addWidget(note)
                 if title=='Rede':
                     body.addWidget(self.action_link('Endereços IP e DNS',lambda:self.navigate('Endereços IP e DNS')),0,Qt.AlignmentFlag.AlignLeft)
                     body.addWidget(self.action_link('Configurar proxy',self.open_proxy),0,Qt.AlignmentFlag.AlignLeft)
                     body.addWidget(self.action_link('Compartilhamentos e letras de rede',lambda:self.navigate('Armazenamento')),0,Qt.AlignmentFlag.AlignLeft)
                 if title=='Administração':
                     body.addWidget(self.action_link('Firewall',lambda:self.navigate('Firewall')),0,Qt.AlignmentFlag.AlignLeft)
-                    body.addWidget(self.action_link('Gerenciador de tarefas',lambda:self.navigate('Gerenciador de tarefas')),0,Qt.AlignmentFlag.AlignLeft)
+                    body.addWidget(self.action_link('Gerenciador de Tarefas',lambda:self.launch(['linuxbr-task-manager'])),0,Qt.AlignmentFlag.AlignLeft)
                 body.addStretch()
             self.stack.addWidget(page)
         self.nav.currentRowChanged.connect(self.stack.setCurrentIndex)
@@ -175,10 +228,14 @@ class Central(QMainWindow):
             return ''.join(c for c in unicodedata.normalize('NFD',value.casefold()) if not unicodedata.combining(c))
         query=normalized(text.strip());first=None
         for i,(title,description,actions) in enumerate(PAGES):
-            visible=query in normalized(' '.join([title,description]+[a[0] for a in actions]))
+            haystack=normalized(' '.join([title,description,SEARCH_ALIASES.get(title,'')]+[a[0] for a in actions]))
+            visible=all(word in haystack for word in query.split())
             self.nav.item(i).setHidden(not visible)
             if visible and first is None:first=i
         if first is not None and (self.nav.currentItem() is None or self.nav.currentItem().isHidden()):self.nav.setCurrentRow(first)
+        self.stack.setVisible(first is not None)
+        self.search_status.setText('Nenhuma configuração encontrada. Tente palavras como rede, som, tela ou programas.' if first is None else '')
+        self.search_status.setVisible(first is None)
 
     @staticmethod
     def action_link(caption,callback):
@@ -188,7 +245,7 @@ class Central(QMainWindow):
         return button
 
     def open_proxy(self):
-        self.proxy_window=Proxy(); self.proxy_window.setWindowTitle("Linux BR — Proxy"); self.proxy_window.resize(650,480); self.proxy_window.show()
+        self.navigate('Proxy')
 
     def navigate(self, title):
         self.nav.setCurrentRow(next(i for i, page in enumerate(PAGES) if page[0] == title))
@@ -201,7 +258,7 @@ class Central(QMainWindow):
         if self.users.process is not None or self.organization.process is not None or self.users.groups.process is not None:
             QMessageBox.information(self,'Operação em andamento','Aguarde a operação de contas ou domínio terminar.')
             event.ignore()
-        elif self.firewall.process is not None or self.audio.process is not None or self.ip.process is not None:
+        elif self.firewall.process is not None or self.audio.process is not None or self.ip.process is not None or self.remote.process is not None:
             QMessageBox.information(self,'Operação em andamento','Aguarde a alteração de sistema terminar.')
             event.ignore()
         elif self.drives.process is not None:
@@ -214,6 +271,8 @@ class Central(QMainWindow):
 
 if __name__=='__main__':
     application=QApplication(sys.argv)
+    if sys.argv[1:]==['--page','Gerenciador de tarefas']:
+        sys.exit(0 if QProcess.startDetached('linuxbr-task-manager',[])[0] else 1)
     application.setDesktopFileName("linuxbr-system")
     window=Central(); window.show()
     if len(sys.argv)==3 and sys.argv[1]=='--page' and sys.argv[2] in (page[0] for page in PAGES):

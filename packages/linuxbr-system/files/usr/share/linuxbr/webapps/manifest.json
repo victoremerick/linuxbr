@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Aplicativos web Linux BR",
+  "version": "0.4.6",
+  "description": "Sugestões locais para usar sites como aplicativos no Linux BR.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+6VkoiqOZQEGSCv2GAFlHNghnwuAsFWiYCHjk4sqKRP3gGGlf7uYsSqwF0o17EJEz/stgtBfMyGvAaJFv3+bRAVXuqGmHacQurSp/9n6dUkR/JbssaobHrYcpJCCGWwpiyudMxKaB4tf2XFrGwmU7BKtJJIP+yZw/wpQBdNGzW7O9/9YRa5nyeIaiUN1TeF5rK/qfcNLxN/5uRdXjbWv/ERQZ1Sn9jiuKGV9lOJSv2XB7heHXD0RvKxBgH1aueY6ao6UD5k0eGDS+rrKlusw6vVYZhJr+X4izvySi9wKh0kkun9vA8UZa2MeMvZJKMhizHg5OEvJaWJgAitcB7sEQIDAQAB",
+  "permissions": [
+    "storage",
+    "tabs",
+    "nativeMessaging",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "profiles-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Aplicativos web Linux BR",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "128": "icon.png"
+  },
+  "incognito": "not_allowed",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

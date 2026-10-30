@@ -1,0 +1,3 @@
+# Debian loads our symlink alongside the other distribution extensions.
+# Do not replace its --load-extension list (which includes KDE integration).
+export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --no-first-run"

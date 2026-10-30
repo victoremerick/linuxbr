@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const dir=new URL('../packages/linuxbr-system/files/usr/share/linuxbr/webapps/',import.meta.url);
+const rules=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync(new URL('rules.js',dir))).toString('base64'));
+const catalog=JSON.parse(fs.readFileSync(new URL('catalog.json',dir)));
+const whatsapp=rules.classify('https://web.whatsapp.com/?token=secret',{},catalog);
+assert.equal(whatsapp.url,'https://web.whatsapp.com/');assert.equal(whatsapp.availability,'web');
+assert.equal(rules.classify('https://web.whatsapp.com.evil.org/',{},catalog),null);
+assert.equal(rules.classify('https://example.org/',{manifest:{name:'App',display:'standalone',start_url:'https://evil.org/'}},catalog),null);
+const unknown=rules.classify('https://example.org/',{manifest:{name:'App',display:'standalone',start_url:'https://example.org/app?secret=1#state'}},catalog);
+assert.equal(unknown.url,'https://example.org/app');assert.equal(unknown.availability,'unknown');
+assert.equal(rules.shouldNotify(unknown,{}),false);
+assert.equal(rules.shouldNotify(whatsapp,{}),true);
+for(const extra of [{installed:true},{native_installed:true},{availability:'native'}])assert.equal(rules.shouldNotify({...whatsapp,...extra},{}),false);
+for(const prefs of [{enabled:false},{ignored:{[whatsapp.origin]:true}},{offered:{[whatsapp.origin]:Date.now()}}])assert.equal(rules.shouldNotify(whatsapp,prefs),false);
+assert.equal(rules.classify('https://open.spotify.com/',{},catalog).availability,'native');
+for(const url of ['http://example.org/','https://user:pass@example.org/','https://127.0.0.1/','https://example.org:22/'])assert.equal(rules.safeURL(url),null);
+console.log('PASS: catálogo, domínio exato, PWA, origem, tokens, alternativas Linux e frequência das sugestões.');

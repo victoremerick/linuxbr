@@ -1,0 +1,12 @@
+[Unit]
+Description=Linux BR VNC da sessão atual
+After=plasma-core.target
+PartOf=plasma-workspace.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/krfb --nodialog
+Restart=on-failure
+
+[Install]
+WantedBy=plasma-workspace.target

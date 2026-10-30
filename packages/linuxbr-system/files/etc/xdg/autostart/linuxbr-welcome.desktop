@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Primeiros passos Linux BR
+Exec=linuxbr-welcome --autostart
+TryExec=linuxbr-welcome
+Icon=linuxbr
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+Terminal=false

@@ -1,8 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Gerenciador de Tarefas Linux BR
-Comment=Processos, CPU e memória
-Exec=linuxbr-system --page "Gerenciador de tarefas"
+Name=Gerenciador de Tarefas
+Comment=Veja os processos e o uso de memória e processador
+Keywords=Processos;CPU;Memória;Travado;Windows;
+Exec=linuxbr-task-manager
 Icon=utilities-system-monitor
 Categories=System;Monitor;
 Terminal=false
+StartupNotify=true

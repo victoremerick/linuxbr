@@ -9,9 +9,9 @@ BOOT="${2:-live}"
 ISO="${ISO:-dist/linuxbr-${VERSION}-amd64.iso}"
 DISK="${DISK_IMAGE:-vm/linuxbr-${VERSION}-${MODE}.qcow2}"
 command -v qemu-system-x86_64 >/dev/null || { echo 'Instale qemu-system-x86' >&2; exit 1; }
-VIDEO="${QEMU_VIDEO_DEVICE:-virtio-vga}"
+VIDEO="${QEMU_VIDEO_DEVICE:-VGA}"
 [[ "$VIDEO" == virtio-vga || "$VIDEO" == VGA ]] || { echo 'Video deve ser virtio-vga ou VGA.' >&2; exit 1; }
-ARGS=(-machine q35 -m "${RAM_MB:-8192}" -smp "${CPUS:-4}" -device "$VIDEO" -display "${QEMU_DISPLAY:-gtk}" -nic "user,model=virtio-net-pci")
+ARGS=(-machine q35 -m "${RAM_MB:-8192}" -smp "${CPUS:-4}" -device "$VIDEO,edid=on,xres=1280,yres=768" -display "${QEMU_DISPLAY:-gtk}" -nic "user,model=virtio-net-pci")
 if [[ -r /dev/kvm && -w /dev/kvm ]]; then
     ARGS+=(-enable-kvm -cpu host)
 else

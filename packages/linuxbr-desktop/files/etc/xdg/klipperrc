@@ -1,0 +1,10 @@
+[General]
+MaxClipItems=25
+KeepClipboardContents=false
+IgnoreSelection=true
+SyncClipboards=false
+IgnoreImages=false
+URLGrabberEnabled=false
+
+[Actions]
+ReplayActionInHistory=false

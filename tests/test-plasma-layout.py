@@ -1,11 +1,22 @@
 #!/usr/bin/python3
 """Reversible patches and upstream drift, without touching the host session."""
 import importlib.util,tempfile,unittest
+from unittest.mock import patch
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('layout',ROOT/'packages/linuxbr-desktop/files/usr/lib/linuxbr-desktop/plasma-layout.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class Patches(unittest.TestCase):
+ def test_patch_definition_updates_keep_the_upstream_backup(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp);name='fixture/main.qml';file=root/'usr/share/plasma/plasmoids'/name
+   file.parent.mkdir(parents=True);file.write_text('upstream')
+   with patch.object(module,'patches',return_value={name:[('upstream','revision one')]}):module.apply(root)
+   self.assertEqual(file.read_text(),'revision one')
+   with patch.object(module,'patches',return_value={name:[('upstream','revision two')]}):
+    module.apply(root);self.assertEqual(file.read_text(),'revision two')
+    module.apply(root,restore=True)
+   self.assertEqual(file.read_text(),'upstream')
  def test_idempotence_restore_and_upstream_drift(self):
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp);base=root/'usr/share/plasma/plasmoids';originals={}
@@ -16,6 +27,7 @@ class Patches(unittest.TestCase):
    self.assertEqual(kickoff.count('Plasmoid.contextualActions:'),1)
    self.assertIn('linuxbr-action:///run',kickoff)
    self.assertIn('text: i18n("Edit Applications…")',kickoff)
+   self.assertIn('Component.onCompleted: Qt.callLater',kickoff)
    module.apply(root);self.assertEqual(once,{name:(base/name).read_text() for name in originals})
    first=next(iter(originals));(base/first).write_text('upstream update with unknown layout')
    module.apply(root);self.assertEqual((base/first).read_text(),'upstream update with unknown layout')

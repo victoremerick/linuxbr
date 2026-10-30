@@ -24,14 +24,26 @@ podem desenhar seus próprios controles.
 | Rede | Wi-Fi/Ethernet, VPN, proxy KDE, Bluetooth e compartilhamentos |
 | Usuários / Organização | Contas locais e integração de domínio existente |
 | Programas | Programas instalados, instalação local, catálogo e atualizações via Discover |
-| Telas | Monitores, resolução, escala e disposição via KScreen |
+| Telas | Resolução, frequência, escala, orientação e posição dentro da Central, via KScreen, com reversão automática |
 | Personalização | Claro/escuro e quatro cores de destaque, mantendo layout e decoração |
-| Acesso remoto | Cliente RDP/VNC (KRDC) e compartilhamento da sessão via VNC (Krfb) |
+| Acesso remoto | Ativação RDP e VNC da sessão, portas e senha VNC dentro da Central |
+| Energia e bateria | Tempo de tela, suspensão, tampa e botão de energia dentro da Central, por perfil |
 
-Os módulos de hardware usam as ferramentas KDE do sistema. O compartilhamento
-remoto não é ativado automaticamente: configure autorização e senha no Krfb;
-para acesso externo, utilize a rede privada/VPN da organização. Isso não configura
-um servidor de login RDP nem sessões remotas independentes.
+As demais categorias ainda contêm ações que abrem módulos KDE e aplicativos
+separados. A migração dessas opções para controles próprios da Central está
+pendente; esta tabela não representa uma implementação integral das configurações.
+
+O compartilhamento remoto não é ativado automaticamente. RDP usa KRDP no Plasma
+Wayland com a conta da sessão; VNC usa Krfb e pede confirmação local em cada
+conexão. As duas opções compartilham somente a sessão já aberta. A Central não
+abre o cliente de conexão remota. Para acesso externo, use a rede privada/VPN da
+organização. Isso não configura login gráfico remoto no SDDM nem sessões
+independentes.
+
+Os esquemas de cores claro/escuro têm identificadores próprios. Ao escolher o
+modo escuro, o texto normal de janelas, controles e listas usa a cor clara do
+esquema. Aplicativos já abertos podem precisar ser reiniciados para reler a
+paleta.
 
 O proxy é por usuário, para aplicações KDE/KIO: desativado, manual ou PAC.
 Não altera proxy do APT, serviços ou configurações próprias dos navegadores.
@@ -80,8 +92,10 @@ A decoração segue o formato público [Aurorae do KDE](https://develop.kde.org/
 
 ## Refinamento de navegação, energia e controles
 
-O prompt padrão do terminal é apenas `> `. Usuário e caminho com letra de unidade
-ficam no título; caracteres de controle são removidos antes de escrever esse título.
+Na implementação histórica desta etapa, o prompt era apenas `> `, com o caminho
+no título. A versão 0.4.8 substitui esse comportamento: a localização com letra de
+unidade e barras invertidas aparece no próprio prompt. Veja
+[sessão, terminal e ícones](IMPLEMENTACAO-SESSAO-2026-10-30.md).
 O alinhamento dos títulos permanece à esquerda. A prévia de Personalização muda
 imediatamente com a seleção, sem aplicar as cores até clicar em Aplicar.
 
@@ -94,9 +108,9 @@ próprios não são redesenhados pelo plugin Qt 6.
 
 A Central oferece busca por categoria, descrição e ações, ignorando acentos.
 Inclui energia/bateria, notificações, acessibilidade, hora/idioma, entrada/atalhos,
-pesquisa/padrões e privacidade/sessão. Energia abre o PowerDevil para ajustar tempo
-até apagar a tela, suspensão, tampa e botão de energia, com opções por alimentação
-quando disponíveis. O bloqueio automático usa o módulo de bloqueio da sessão.
+pesquisa/padrões e privacidade/sessão. Energia configura diretamente os perfis do
+PowerDevil para apagar a tela, suspender, fechar a tampa e pressionar o botão de
+energia, separadamente para tomada, bateria e bateria fraca.
 As configurações avançadas usam módulos KDE em suas próprias janelas: não são uma
 reimplementação integral de todas as páginas do Windows. Recursos exclusivos da
 Microsoft, como Windows Update, Defender ou BitLocker, não são apresentados como

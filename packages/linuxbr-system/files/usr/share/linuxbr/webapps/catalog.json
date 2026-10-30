@@ -1,0 +1,12 @@
+{
+  "reviewed": "2026-10-28",
+  "services": [
+    {"name":"WhatsApp", "hosts":["web.whatsapp.com"], "url":"https://web.whatsapp.com/", "availability":"web", "source":"https://www.whatsapp.com/download/", "desktop_ids":["com.github.eneshecan.WhatsAppForLinux.desktop","com.ktechpit.whatsie.desktop"]},
+    {"name":"Microsoft Teams", "hosts":["teams.microsoft.com","teams.cloud.microsoft","teams.live.com"], "url":"https://teams.cloud.microsoft/", "availability":"web", "source":"https://www.microsoft.com/en-us/microsoft-teams/download-app", "desktop_ids":["teams-for-linux.desktop","com.github.IsmaelMartinez.teams_for_linux.desktop","teams.desktop"]},
+    {"name":"Canva", "hosts":["www.canva.com","canva.com"], "url":"https://www.canva.com/", "availability":"web", "source":"https://www.canva.com/download/", "desktop_ids":[]},
+    {"name":"Spotify", "hosts":["open.spotify.com"], "url":"https://open.spotify.com/", "availability":"native", "source":"https://www.spotify.com/download/linux/", "desktop_ids":["spotify.desktop","com.spotify.Client.desktop"]},
+    {"name":"Discord", "hosts":["discord.com"], "url":"https://discord.com/app", "availability":"native", "source":"https://discord.com/download", "desktop_ids":["discord.desktop","com.discordapp.Discord.desktop"]},
+    {"name":"Telegram", "hosts":["web.telegram.org"], "url":"https://web.telegram.org/", "availability":"native", "source":"https://desktop.telegram.org/", "desktop_ids":["org.telegram.desktop.desktop","telegramdesktop.desktop"]},
+    {"name":"Slack", "hosts":["app.slack.com"], "url":"https://app.slack.com/", "availability":"native", "source":"https://slack.com/downloads/linux", "desktop_ids":["slack.desktop","com.slack.Slack.desktop"]}
+  ]
+}

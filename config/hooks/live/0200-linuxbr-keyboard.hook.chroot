@@ -2,6 +2,15 @@
 # Set image defaults before initramfs and rootfs validation. live-config boot
 # arguments remain in place; Calamares may replace these with the user's choice.
 set -eu
+# Make the base filesystem Brazilian as well as the live boot session.
+# Calamares may replace this locale with the user's installation choice.
+sed -i 's/^# *pt_BR.UTF-8 UTF-8/pt_BR.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+update-locale LANG=pt_BR.UTF-8
+# New users inherit the distribution avatar; existing account images stay intact.
+if [ -f /usr/share/icons/hicolor/512x512/apps/linuxbr.png ]; then
+    install -m 0644 /usr/share/icons/hicolor/512x512/apps/linuxbr.png /etc/skel/.face
+fi
 cat > /etc/default/keyboard <<'KEYBOARD'
 XKBMODEL="abnt2"
 XKBLAYOUT="br"

@@ -1,0 +1,47 @@
+"""Bounded native-messaging protocol; installation always opens confirmation UI."""
+import json
+import os
+import struct
+import subprocess
+import sys
+import webapps_backend as backend
+
+def handle(message):
+    if os.geteuid()==0 or not isinstance(message,dict):
+        raise ValueError('Use a sua conta de usuário.')
+    action=message.get('action')
+    if action in ('profile-context','new-profile'):
+        item=backend.profile_context()
+        if not item:return {'available':False}
+        if action=='new-profile':
+            subprocess.Popen(['/usr/bin/linuxbr-webapps','--new-profile',item['id']],
+                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+            return {'opened':True}
+        return {'available':True,'name':item['name'],'session':item['session']}
+    if action=='status':return backend.status(message)
+    if action=='offer':
+        item=backend.normalize_offer(message)
+        subprocess.Popen(['/usr/bin/linuxbr-webapps','--offer',json.dumps(item,ensure_ascii=False)],
+            stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+        return {'opened':True}
+    if action=='manage':
+        subprocess.Popen(['/usr/bin/linuxbr-webapps'],stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+        return {'opened':True}
+    raise ValueError('Ação não reconhecida.')
+
+def main():
+    stream=sys.stdin.buffer
+    header=stream.read(4)
+    if len(header)!=4:return
+    length=struct.unpack('=I',header)[0]
+    if not 0<length<=16384:return
+    payload=stream.read(length)
+    try:
+        if len(payload)!=length:raise ValueError('Mensagem incompleta.')
+        result=handle(json.loads(payload))
+    except (ValueError,TypeError,KeyError,OSError) as exc:result={'error':str(exc)}
+    encoded=json.dumps(result,ensure_ascii=False).encode()
+    sys.stdout.buffer.write(struct.pack('=I',len(encoded))+encoded);sys.stdout.buffer.flush()
+
+if __name__=='__main__':main()

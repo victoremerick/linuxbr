@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Id": "linuxbr-window-shortcuts",
+        "Name": "Linux BR — Atalhos de janelas",
+        "Description": "Maximizar, restaurar e minimizar com os atalhos familiares do teclado.",
+        "Icon": "preferences-system-windows",
+        "Version": "1.0",
+        "License": "GPL-3.0-or-later",
+        "Authors": [{"Name": "Linux BR"}]
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js"
+}

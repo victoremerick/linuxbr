@@ -7,7 +7,8 @@ _linuxbr_terminal_helper() { /usr/bin/python3 /usr/lib/linuxbr-drive-manager/ter
 _linuxbr_apply_mode() {
     _LINUXBR_TERMINAL_MODE=$1
     if [[ $1 == letras ]]; then
-        PS1='> '
+        LINUXBR_TERMINAL_PATH=${LINUXBR_TERMINAL_PATH:-C:\\}
+        PS1='${LINUXBR_TERMINAL_PATH}> '
     else
         PS1=$_LINUXBR_ORIGINAL_PS1
     fi
@@ -47,17 +48,15 @@ _linuxbr_drive() {
     _linuxbr_cd "$1"
 }
 _linuxbr_prompt() {
-    local previous=$? output selected
-    output=$(_linuxbr_terminal_helper prompt "$PWD" 2>/dev/null) || return "$previous"
-    selected=${output%%$'\n'*}
-    LINUXBR_TERMINAL_PATH=${output#*$'\n'}
-    # OSC title: strip terminal control characters from untrusted directory names.
-    if [[ $TERM == xterm* || $TERM == konsole* ]]; then
-        local title="${USER:-Linux BR} — ${LINUXBR_TERMINAL_PATH}"
-        title=${title//[[:cntrl:]]/}
-        printf '\033]2;%s\007' "$title"
+    local previous=$? output fallback
+    if [[ $_LINUXBR_TERMINAL_MODE == letras ]]; then
+        if output=$(_linuxbr_terminal_helper prompt "$PWD" 2>/dev/null); then
+            LINUXBR_TERMINAL_PATH=${output#*$'\n'}
+        else
+            fallback=${PWD//\//\\}
+            LINUXBR_TERMINAL_PATH="C:${fallback//[[:cntrl:]]/?}"
+        fi
     fi
-    # Mode is local to this shell; new terminals always start with drive letters.
     return "$previous"
 }
 # Append without evaluating/replacing the user's existing prompt hooks.

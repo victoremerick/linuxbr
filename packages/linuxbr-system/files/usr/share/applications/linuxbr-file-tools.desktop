@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Name=Arquivos e atalhos
+Comment=Crie atalhos, mapeie pastas de rede e organize seus arquivos
+Exec=linuxbr-file-tools
+Icon=system-file-manager
+Categories=Utility;FileTools;
+Keywords=atalho;arquivos;pastas;rede;Windows;mapear;SMB;lixeira;explorador;
+Terminal=false
+StartupNotify=true
+Actions=shortcut;network;
+
+[Desktop Action shortcut]
+Name=Criar atalho
+Exec=linuxbr-file-tools --shortcut
+Icon=emblem-symbolic-link
+
+[Desktop Action network]
+Name=Mapear unidade de rede
+Exec=linuxbr-file-tools --map-network
+Icon=folder-network

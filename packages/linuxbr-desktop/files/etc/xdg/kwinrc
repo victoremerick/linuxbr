@@ -15,3 +15,15 @@ CommandInactiveTitlebar3=Operations menu
 
 [Windows]
 TitlebarDoubleClickCommand=Maximize
+FocusPolicy=ClickToFocus
+ClickRaise=true
+AutoRaise=false
+NextFocusPrefersMouse=false
+FocusStealingPreventionLevel=1
+Placement=Centered
+BorderSnapZone=10
+WindowSnapZone=10
+ElectricBorderMaximize=true
+ElectricBorderTiling=true
+ElectricBorderCornerRatio=0.25
+BorderlessMaximizedWindows=false

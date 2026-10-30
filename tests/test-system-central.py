@@ -21,7 +21,13 @@ assert window.stack.currentIndex()==0
 assert not window.drives.isWindow()
 window.nav.setCurrentRow(4);assert window.stack.currentIndex()==4
 window.search.setText('tampa');assert window.nav.currentItem().text()=='Energia e bateria'
+window.search.setText('wifi');assert window.nav.currentItem().text()=='Rede'
+window.search.setText('windows update');assert window.nav.currentItem().text()=='Programas'
+window.search.setText('naoexiste-configuracao');assert window.search_status.isVisible();assert not window.stack.isVisible()
 window.search.clear()
+assert window.stack.isVisible();assert not window.search_status.isVisible()
+window.navigate('Primeiros passos');assert 'Bem-vindo' in window.stack.currentWidget().browser.toPlainText()
+window.navigate('Recuperação e ajuda');assert 'Cópia de segurança' in window.stack.currentWidget().browser.toPlainText()
 window.navigate('Sistema')
 about=window.stack.currentWidget()
 assert len(about.details)==2

@@ -29,6 +29,7 @@ assert (locale['region'], locale['zone']) == ('America', 'Sao_Paulo')
 assert locale['geoip']['style'] == 'none' and locale['useSystemTimezone'] is False
 keyboard = yaml.safe_load((modified / 'etc/calamares/modules/keyboard.conf').read_text())
 assert keyboard['guessLayout'] is False and keyboard['configure']['kwin'] is True
+assert keyboard['useLocale1'] is True
 assert 'anchors.centerIn: parent' in (modified / 'etc/calamares/branding/linuxbr/show.qml').read_text()
 print('PASS: fuso, teclado e logo centralizada do instalador')
 
@@ -50,6 +51,15 @@ assert 'Architecture: all' not in (drive / 'DEBIAN/control').read_text()
 assert (drive / 'usr/lib/systemd/user/linuxbr-drive-manager.service').is_file()
 assert (drive / 'usr/share/dbus-1/services/org.linuxbr.DriveManager1.service').is_file()
 assert (work / 'work/linuxbr-system/usr/bin/linuxbr-system').stat().st_mode & 0o111
+assert (work / 'work/linuxbr-system/usr/bin/linuxbr-welcome').stat().st_mode & 0o111
+assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/welcome.py').is_file()
+assert (work / 'work/linuxbr-system/etc/xdg/autostart/linuxbr-welcome.desktop').is_file()
+assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/display_page.py').is_file()
+assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/remote_page.py').is_file()
+assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/power_page.py').is_file()
+assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/power_backend.py').is_file()
+assert (work / 'work/linuxbr-system/usr/lib/systemd/user/linuxbr-vnc.service').is_file()
+assert 'krdp' in (work / 'work/linuxbr-system/DEBIAN/control').read_text()
 print('PASS: Central, serviço de sessão e plugin KIO nativo empacotados')
 
 devices = work / 'work/linuxbr-device-manager'
@@ -99,6 +109,8 @@ print('PASS: perfil interativo, configuracao de terminal e KIO FUSE empacotados'
 
 # Window theme payload must survive packaging alongside the desktop defaults.
 desktop = work / 'work/linuxbr-desktop'
+assert not (desktop / 'etc/xdg/plasmanotifyrc').exists(), 'plasma-workspace possui esse arquivo'
+assert (desktop / 'etc/skel/.config/plasmanotifyrc').is_file()
 for relative in ['etc/xdg/breezerc', 'etc/xdg/kwinrc', 'etc/xdg/gtk-3.0/settings.ini',
                  'etc/xdg/gtk-4.0/settings.ini', 'usr/bin/linuxbr-apply-theme',
                  'usr/share/themes/LinuxBRClean/gtk-3.0/gtk.css',

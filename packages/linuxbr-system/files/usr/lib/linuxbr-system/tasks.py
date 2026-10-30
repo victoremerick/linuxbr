@@ -91,3 +91,21 @@ class Tasks(QWidget):
         try:os.kill(pid,signal.SIGTERM);self.message.setText('Sinal de encerramento enviado.')
         except ProcessLookupError:self.message.setText('O processo já terminou.')
         except PermissionError:self.message.setText('Sem permissão para encerrar esse processo.')
+
+
+def main():
+    import sys
+    from PyQt6.QtGui import QIcon
+    from PyQt6.QtWidgets import QApplication
+    from visual_style import BUTTONS
+    application=QApplication(sys.argv)
+    application.setDesktopFileName('linuxbr-task-manager')
+    window=Tasks();window.setWindowTitle('Gerenciador de tarefas Linux BR')
+    window.setWindowIcon(QIcon.fromTheme('utilities-system-monitor'))
+    window.setStyleSheet(BUTTONS);window.resize(920,620)
+    window.show()
+    return application.exec()
+
+
+if __name__=='__main__':
+    raise SystemExit(main())
