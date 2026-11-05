@@ -1,0 +1,2384 @@
+{
+  "status": "REVIEW_RECORDED",
+  "reviewed_at": "2026-11-04T15:31:37.036Z",
+  "reference": "Windows 11 Enterprise Evaluation 26H2, build 26300.9457, pt-BR",
+  "source": "https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings",
+  "attempted_routes": 182,
+  "published_routes": 181,
+  "distinct_observed_paths": 125,
+  "failures": 0,
+  "method": "Navegação sem alterar preferências; títulos e controles consultados no início e no fim da rolagem. Rotas podem redirecionar. Controles não foram todos exercitados.",
+  "limits": [
+    "A consulta do catálogo não representa todos os diálogos ou recursos de todas as versões do Windows.",
+    "Windows 10 e recursos exclusivos de Windows Server não foram instalados neste levantamento.",
+    "Hardware ausente, contas externas e opções condicionais exigem revisão adicional.",
+    "A 0.8.5 permanece em planejamento; este relatório não é homologação da implementação."
+  ],
+  "pages": [
+    {
+      "uri": "ms-settings:about",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Sobre"
+      ],
+      "controls": 99,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:54.8214932Z",
+      "distinct_path": "Sistema > Sobre"
+    },
+    {
+      "uri": "ms-settings:activation",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Sistema",
+        "Ativação"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:17.4547465Z",
+      "distinct_path": "Sistema > Ativação"
+    },
+    {
+      "uri": "ms-settings:apps-volume",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som",
+        "Mixer de volume"
+      ],
+      "controls": 47,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:41.4772557Z",
+      "distinct_path": "Sistema > Som > Mixer de volume"
+    },
+    {
+      "uri": "ms-settings:appsfeatures-app",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Aplicativos instalados"
+      ],
+      "controls": 145,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:00.6126745Z",
+      "distinct_path": "Aplicativos > Aplicativos instalados"
+    },
+    {
+      "uri": "ms-settings:appsfeatures",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Aplicativos instalados"
+      ],
+      "controls": 116,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:58.3514729Z",
+      "distinct_path": "Aplicativos > Aplicativos instalados"
+    },
+    {
+      "uri": "ms-settings:appsforwebsites",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Aplicativos para sites"
+      ],
+      "controls": 103,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:02.5028202Z",
+      "distinct_path": "Aplicativos > Aplicativos para sites"
+    },
+    {
+      "uri": "ms-settings:assignedaccess",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Outros usuários",
+        "Quiosque"
+      ],
+      "controls": 40,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:50.3679488Z",
+      "distinct_path": "Contas > Outros usuários > Quiosque"
+    },
+    {
+      "uri": "ms-settings:autoplay",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Reprodução Automática"
+      ],
+      "controls": 52,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:14.3172930Z",
+      "distinct_path": "Bluetooth e dispositivos > Reprodução Automática"
+    },
+    {
+      "uri": "ms-settings:batterysaver-settings",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia"
+      ],
+      "controls": 49,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:00.8957355Z",
+      "distinct_path": "Sistema > Energia"
+    },
+    {
+      "uri": "ms-settings:batterysaver-usagedetails",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia"
+      ],
+      "controls": 88,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:02.6928185Z",
+      "distinct_path": "Sistema > Energia"
+    },
+    {
+      "uri": "ms-settings:batterysaver",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia"
+      ],
+      "controls": 94,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:59.1344297Z",
+      "distinct_path": "Sistema > Energia"
+    },
+    {
+      "uri": "ms-settings:bluetooth",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Dispositivos"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:16.1517018Z",
+      "distinct_path": "Bluetooth e dispositivos > Dispositivos"
+    },
+    {
+      "uri": "ms-settings:clipboard",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Área de Transferência"
+      ],
+      "controls": 74,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:04.5668540Z",
+      "distinct_path": "Sistema > Área de Transferência"
+    },
+    {
+      "uri": "ms-settings:colors",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Cores"
+      ],
+      "controls": 91,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:14.9244874Z",
+      "distinct_path": "Personalização > Cores"
+    },
+    {
+      "uri": "ms-settings:connecteddevices",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Dispositivos"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:18.0022192Z",
+      "distinct_path": "Bluetooth e dispositivos > Dispositivos"
+    },
+    {
+      "uri": "ms-settings:crossdevice",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Compartilhamento por proximidade"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:27.9815700Z",
+      "distinct_path": "Sistema > Compartilhamento por proximidade"
+    },
+    {
+      "uri": "ms-settings:dateandtime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Data e hora"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:44.9644122Z",
+      "distinct_path": "Hora e idioma > Data e hora"
+    },
+    {
+      "uri": "ms-settings:defaultapps",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Aplicativos padrão"
+      ],
+      "controls": 75,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:04.3908691Z",
+      "distinct_path": "Aplicativos > Aplicativos padrão"
+    },
+    {
+      "uri": "ms-settings:delivery-optimization-activity",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Otimização de Entrega"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:21.1291023Z",
+      "distinct_path": "Windows Update > Otimização de Entrega"
+    },
+    {
+      "uri": "ms-settings:delivery-optimization-advanced",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Otimização de Entrega"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:22.9424803Z",
+      "distinct_path": "Windows Update > Otimização de Entrega"
+    },
+    {
+      "uri": "ms-settings:delivery-optimization",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Otimização de Entrega"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:19.3127108Z",
+      "distinct_path": "Windows Update > Otimização de Entrega"
+    },
+    {
+      "uri": "ms-settings:developers",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Sistema",
+        "Avançado"
+      ],
+      "controls": 98,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:26.5275816Z",
+      "distinct_path": "Sistema > Avançado"
+    },
+    {
+      "uri": "ms-settings:deviceencryption",
+      "reference_category": "System",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Criptografia do dispositivo"
+      ],
+      "controls": 74,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:12.0040730Z",
+      "distinct_path": "Privacidade e segurança > Criptografia do dispositivo"
+    },
+    {
+      "uri": "ms-settings:devices-touch",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Impressoras e scanners"
+      ],
+      "controls": 78,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:26.7951490Z",
+      "distinct_path": "Bluetooth e dispositivos > Impressoras e scanners"
+    },
+    {
+      "uri": "ms-settings:devices-touchpad",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Impressoras e scanners"
+      ],
+      "controls": 78,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:28.6273977Z",
+      "distinct_path": "Bluetooth e dispositivos > Impressoras e scanners"
+    },
+    {
+      "uri": "ms-settings:devicestyping-hwkbtextsuggestions",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Hora e idioma",
+        "Digitação"
+      ],
+      "controls": 74,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:30.4841699Z",
+      "distinct_path": "Hora e idioma > Digitação"
+    },
+    {
+      "uri": "ms-settings:deviceusage",
+      "reference_category": "Phone",
+      "observed_headers": [
+        "Personalização",
+        "Temas"
+      ],
+      "controls": 82,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:35.7425567Z",
+      "distinct_path": "Personalização > Temas"
+    },
+    {
+      "uri": "ms-settings:disksandvolumes",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Armazenamento",
+        "Discos e volumes"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:43.0272449Z",
+      "distinct_path": "Sistema > Armazenamento > Discos e volumes"
+    },
+    {
+      "uri": "ms-settings:display-advanced",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela"
+      ],
+      "controls": 87,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:56.7048481Z",
+      "distinct_path": "Sistema > Tela"
+    },
+    {
+      "uri": "ms-settings:display-advancedgraphics-default",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela",
+        "Elementos gráficos"
+      ],
+      "controls": 87,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:19.4016081Z",
+      "distinct_path": "Sistema > Tela > Elementos gráficos"
+    },
+    {
+      "uri": "ms-settings:display-advancedgraphics",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela",
+        "Elementos gráficos"
+      ],
+      "controls": 87,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:17.4554097Z",
+      "distinct_path": "Sistema > Tela > Elementos gráficos"
+    },
+    {
+      "uri": "ms-settings:display",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:08.2536186Z",
+      "distinct_path": "Sistema > Tela"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-audio",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Áudio"
+      ],
+      "controls": 73,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:37.4167067Z",
+      "distinct_path": "Acessibilidade > Áudio"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-closedcaptioning",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Legendas"
+      ],
+      "controls": 57,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:39.2485763Z",
+      "distinct_path": "Acessibilidade > Legendas"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-colorfilter-adaptivecolorlink",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Sistema",
+        "Tela"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:42.9848150Z",
+      "distinct_path": "Sistema > Tela"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-colorfilter-bluelightlink",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Sistema",
+        "Tela",
+        "Luz noturna"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:44.6237475Z",
+      "distinct_path": "Sistema > Tela > Luz noturna"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-colorfilter",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Filtros de cor"
+      ],
+      "controls": 75,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:41.0957731Z",
+      "distinct_path": "Acessibilidade > Filtros de cor"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-cursor",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Cursor de texto"
+      ],
+      "controls": 64,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:06.9223641Z",
+      "distinct_path": "Acessibilidade > Cursor de texto"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-display",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Tamanho do texto"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:46.4471304Z",
+      "distinct_path": "Acessibilidade > Tamanho do texto"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-eyecontrol",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Controle com os olhos"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:48.0573399Z",
+      "distinct_path": "Acessibilidade > Controle com os olhos"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-hearingaids",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Dispositivos auditivos"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:49.7290401Z",
+      "distinct_path": "Acessibilidade > Dispositivos auditivos"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-highcontrast",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Temas de contraste"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:51.5645285Z",
+      "distinct_path": "Acessibilidade > Temas de contraste"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-keyboard",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Teclado"
+      ],
+      "controls": 79,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:53.4507130Z",
+      "distinct_path": "Acessibilidade > Teclado"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-magnifier",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Lupa"
+      ],
+      "controls": 81,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:55.3754907Z",
+      "distinct_path": "Acessibilidade > Lupa"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-mouse",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Mouse"
+      ],
+      "controls": 87,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:57.2287258Z",
+      "distinct_path": "Acessibilidade > Mouse"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-mousepointer",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Ponteiro do mouse e entrada por toque"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:59.1426005Z",
+      "distinct_path": "Acessibilidade > Ponteiro do mouse e entrada por toque"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-narrator-isautostartenabled",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Narrador"
+      ],
+      "controls": 75,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:03.1428364Z",
+      "distinct_path": "Acessibilidade > Narrador"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-narrator",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Narrador"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:01.1480080Z",
+      "distinct_path": "Acessibilidade > Narrador"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-speechrecognition",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Fala"
+      ],
+      "controls": 69,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:04.9913957Z",
+      "distinct_path": "Acessibilidade > Fala"
+    },
+    {
+      "uri": "ms-settings:easeofaccess-visualeffects",
+      "reference_category": "Ease of access",
+      "observed_headers": [
+        "Acessibilidade",
+        "Efeitos visuais"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:08.5645336Z",
+      "distinct_path": "Acessibilidade > Efeitos visuais"
+    },
+    {
+      "uri": "ms-settings:emailandaccounts",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Suas contas"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:47.2650579Z",
+      "distinct_path": "Contas > Suas contas"
+    },
+    {
+      "uri": "ms-settings:energyrecommendations",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia",
+        "Recomendações de energia"
+      ],
+      "controls": 56,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:13.6278599Z",
+      "distinct_path": "Sistema > Energia > Recomendações de energia"
+    },
+    {
+      "uri": "ms-settings:findmydevice",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Localizar meu dispositivo"
+      ],
+      "controls": 64,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:24.6237185Z",
+      "distinct_path": "Privacidade e segurança > Localizar meu dispositivo"
+    },
+    {
+      "uri": "ms-settings:fonts",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Fontes"
+      ],
+      "controls": 79,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:20.7294894Z",
+      "distinct_path": "Personalização > Fontes"
+    },
+    {
+      "uri": "ms-settings:gaming-fullscreen",
+      "reference_category": "Gaming",
+      "observed_headers": [
+        "Jogos",
+        "modo XBOX"
+      ],
+      "controls": 68,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:15.6083451Z",
+      "distinct_path": "Jogos > modo XBOX"
+    },
+    {
+      "uri": "ms-settings:gaming-gamebar",
+      "reference_category": "Gaming",
+      "observed_headers": [
+        "Jogos",
+        "Xbox Game Bar"
+      ],
+      "controls": 71,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:10.3907812Z",
+      "distinct_path": "Jogos > Xbox Game Bar"
+    },
+    {
+      "uri": "ms-settings:gaming-gamedvr",
+      "reference_category": "Gaming",
+      "observed_headers": [
+        "Jogos",
+        "Capturas"
+      ],
+      "controls": 82,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:12.3751898Z",
+      "distinct_path": "Jogos > Capturas"
+    },
+    {
+      "uri": "ms-settings:gaming-gamemode",
+      "reference_category": "Gaming",
+      "observed_headers": [
+        "Jogos",
+        "Modo de Jogo"
+      ],
+      "controls": 50,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:13.9868414Z",
+      "distinct_path": "Jogos > Modo de Jogo"
+    },
+    {
+      "uri": "ms-settings:keyboard-advanced",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:52.7325728Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:keyboard",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:50.8514243Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:lockscreen",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Tela de bloqueio"
+      ],
+      "controls": 68,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:22.5695828Z",
+      "distinct_path": "Personalização > Tela de bloqueio"
+    },
+    {
+      "uri": "ms-settings:maps-downloadmaps",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Mapas offline"
+      ],
+      "controls": 34,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:09.1571868Z",
+      "distinct_path": "Aplicativos > Mapas offline"
+    },
+    {
+      "uri": "ms-settings:maps",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Mapas offline"
+      ],
+      "controls": 28,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:07.5685495Z",
+      "distinct_path": "Aplicativos > Mapas offline"
+    },
+    {
+      "uri": "ms-settings:mobile-devices",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Dispositivos móveis"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:35.5781073Z",
+      "distinct_path": "Bluetooth e dispositivos > Dispositivos móveis"
+    },
+    {
+      "uri": "ms-settings:mousetouchpad",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Mouse"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:19.8925882Z",
+      "distinct_path": "Bluetooth e dispositivos > Mouse"
+    },
+    {
+      "uri": "ms-settings:multitasking-sgupdate",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Multitarefas"
+      ],
+      "controls": 68,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:23.1038620Z",
+      "distinct_path": "Sistema > Multitarefas"
+    },
+    {
+      "uri": "ms-settings:multitasking",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Multitarefas"
+      ],
+      "controls": 81,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:21.2563058Z",
+      "distinct_path": "Sistema > Multitarefas"
+    },
+    {
+      "uri": "ms-settings:network-advancedsettings",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Configurações avançadas de rede"
+      ],
+      "controls": 82,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:19.2155836Z",
+      "distinct_path": "Rede e Internet > Configurações avançadas de rede"
+    },
+    {
+      "uri": "ms-settings:network-airplanemode",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Configurações avançadas de rede"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:50.0378957Z",
+      "distinct_path": "Rede e Internet > Configurações avançadas de rede"
+    },
+    {
+      "uri": "ms-settings:network-cellular",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Configurações avançadas de rede"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:53.6659966Z",
+      "distinct_path": "Rede e Internet > Configurações avançadas de rede"
+    },
+    {
+      "uri": "ms-settings:network-dialup",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Conexão discada"
+      ],
+      "controls": 34,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:55.2113617Z",
+      "distinct_path": "Rede e Internet > Conexão discada"
+    },
+    {
+      "uri": "ms-settings:network-directaccess",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Conexão discada"
+      ],
+      "controls": 34,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:56.7620721Z",
+      "distinct_path": "Rede e Internet > Conexão discada"
+    },
+    {
+      "uri": "ms-settings:network-ethernet",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Mais configurações",
+        "Rede e Internet",
+        "Ethernet"
+      ],
+      "controls": 104,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:58.6445820Z",
+      "distinct_path": "Mais configurações > Rede e Internet > Ethernet"
+    },
+    {
+      "uri": "ms-settings:network-mobilehotspot",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Mais configurações",
+        "Rede e Internet",
+        "Ethernet"
+      ],
+      "controls": 104,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:02.3718178Z",
+      "distinct_path": "Mais configurações > Rede e Internet > Ethernet"
+    },
+    {
+      "uri": "ms-settings:network-proxy",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Proxy"
+      ],
+      "controls": 60,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:03.9583656Z",
+      "distinct_path": "Rede e Internet > Proxy"
+    },
+    {
+      "uri": "ms-settings:network-status",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:24:17.2768290Z",
+      "distinct_path": "Rede e Internet"
+    },
+    {
+      "uri": "ms-settings:network-vpn",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "VPN"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:05.5432449Z",
+      "distinct_path": "Rede e Internet > VPN"
+    },
+    {
+      "uri": "ms-settings:network-wifi",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "VPN"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:07.1148199Z",
+      "distinct_path": "Rede e Internet > VPN"
+    },
+    {
+      "uri": "ms-settings:network-wifisettings",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Mais configurações",
+        "Rede e Internet",
+        "Ethernet"
+      ],
+      "controls": 104,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:00.5220291Z",
+      "distinct_path": "Mais configurações > Rede e Internet > Ethernet"
+    },
+    {
+      "uri": "ms-settings:nightlight",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela",
+        "Luz noturna"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:24.6953769Z",
+      "distinct_path": "Sistema > Tela > Luz noturna"
+    },
+    {
+      "uri": "ms-settings:notifications",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Notificações"
+      ],
+      "controls": 88,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:29.9560605Z",
+      "distinct_path": "Sistema > Notificações"
+    },
+    {
+      "uri": "ms-settings:optionalfeatures",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Sistema",
+        "Recursos opcionais"
+      ],
+      "controls": 46,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:05.9650121Z",
+      "distinct_path": "Sistema > Recursos opcionais"
+    },
+    {
+      "uri": "ms-settings:otherusers",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Outros usuários"
+      ],
+      "controls": 52,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:48.8241836Z",
+      "distinct_path": "Contas > Outros usuários"
+    },
+    {
+      "uri": "ms-settings:pen-button",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Caneta e Windows Ink"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:23.0776219Z",
+      "distinct_path": "Bluetooth e dispositivos > Caneta e Windows Ink"
+    },
+    {
+      "uri": "ms-settings:pen",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Caneta e Windows Ink"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:21.4951431Z",
+      "distinct_path": "Bluetooth e dispositivos > Caneta e Windows Ink"
+    },
+    {
+      "uri": "ms-settings:personalization-background",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Tela de fundo"
+      ],
+      "controls": 75,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:08.9236676Z",
+      "distinct_path": "Personalização > Tela de fundo"
+    },
+    {
+      "uri": "ms-settings:personalization-colors",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Cores"
+      ],
+      "controls": 91,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:12.8433804Z",
+      "distinct_path": "Personalização > Cores"
+    },
+    {
+      "uri": "ms-settings:personalization-lighting",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Iluminação Dinâmica"
+      ],
+      "controls": 73,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:18.5771970Z",
+      "distinct_path": "Personalização > Iluminação Dinâmica"
+    },
+    {
+      "uri": "ms-settings:personalization-start-places",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Iniciar",
+        "Pastas"
+      ],
+      "controls": 60,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:10.7737018Z",
+      "distinct_path": "Personalização > Iniciar > Pastas"
+    },
+    {
+      "uri": "ms-settings:personalization-start",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Iniciar"
+      ],
+      "controls": 71,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:26.2126328Z",
+      "distinct_path": "Personalização > Iniciar"
+    },
+    {
+      "uri": "ms-settings:personalization-textinput",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Entrada de texto"
+      ],
+      "controls": 114,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:30.0279173Z",
+      "distinct_path": "Personalização > Entrada de texto"
+    },
+    {
+      "uri": "ms-settings:personalization-touchkeyboard",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Entrada de texto"
+      ],
+      "controls": 104,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:31.9262411Z",
+      "distinct_path": "Personalização > Entrada de texto"
+    },
+    {
+      "uri": "ms-settings:personalization",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:24.4069975Z",
+      "distinct_path": "Personalização"
+    },
+    {
+      "uri": "ms-settings:powersleep",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia"
+      ],
+      "controls": 94,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:33.5251263Z",
+      "distinct_path": "Sistema > Energia"
+    },
+    {
+      "uri": "ms-settings:presence",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Energia"
+      ],
+      "controls": 88,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:35.3271695Z",
+      "distinct_path": "Sistema > Energia"
+    },
+    {
+      "uri": "ms-settings:printers",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "Impressoras e scanners"
+      ],
+      "controls": 81,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:24.9499620Z",
+      "distinct_path": "Bluetooth e dispositivos > Impressoras e scanners"
+    },
+    {
+      "uri": "ms-settings:privacy-accountinfo",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Informações da conta"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:37.3537670Z",
+      "distinct_path": "Privacidade e segurança > Informações da conta"
+    },
+    {
+      "uri": "ms-settings:privacy-activityhistory",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Informações da conta"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:38.9525585Z",
+      "distinct_path": "Privacidade e segurança > Informações da conta"
+    },
+    {
+      "uri": "ms-settings:privacy-appdiagnostics",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Diagnóstico de aplicativos"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:40.5499386Z",
+      "distinct_path": "Privacidade e segurança > Diagnóstico de aplicativos"
+    },
+    {
+      "uri": "ms-settings:privacy-automaticfiledownloads",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Downloads automáticos de arquivos"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:42.1518705Z",
+      "distinct_path": "Privacidade e segurança > Downloads automáticos de arquivos"
+    },
+    {
+      "uri": "ms-settings:privacy-backgroundspatialperception",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Downloads automáticos de arquivos"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:43.7336601Z",
+      "distinct_path": "Privacidade e segurança > Downloads automáticos de arquivos"
+    },
+    {
+      "uri": "ms-settings:privacy-broadfilesystemaccess",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Sistema de arquivos"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:00.4834554Z",
+      "distinct_path": "Privacidade e segurança > Sistema de arquivos"
+    },
+    {
+      "uri": "ms-settings:privacy-calendar",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Calendário"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:45.3211859Z",
+      "distinct_path": "Privacidade e segurança > Calendário"
+    },
+    {
+      "uri": "ms-settings:privacy-callhistory",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Histórico de chamadas"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:46.9247607Z",
+      "distinct_path": "Privacidade e segurança > Histórico de chamadas"
+    },
+    {
+      "uri": "ms-settings:privacy-contacts",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Contatos"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:50.4111733Z",
+      "distinct_path": "Privacidade e segurança > Contatos"
+    },
+    {
+      "uri": "ms-settings:privacy-customdevices",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Outros dispositivos"
+      ],
+      "controls": 67,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:22.1379865Z",
+      "distinct_path": "Privacidade e segurança > Outros dispositivos"
+    },
+    {
+      "uri": "ms-settings:privacy-documents",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Documentos"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:52.0170323Z",
+      "distinct_path": "Privacidade e segurança > Documentos"
+    },
+    {
+      "uri": "ms-settings:privacy-downloadsfolder",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Pasta Downloads"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:53.6052929Z",
+      "distinct_path": "Privacidade e segurança > Pasta Downloads"
+    },
+    {
+      "uri": "ms-settings:privacy-email",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Email"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:55.2318153Z",
+      "distinct_path": "Privacidade e segurança > Email"
+    },
+    {
+      "uri": "ms-settings:privacy-eyetracker",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Email"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:56.8290348Z",
+      "distinct_path": "Privacidade e segurança > Email"
+    },
+    {
+      "uri": "ms-settings:privacy-feedback",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Diagnóstico e comentários"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:58.7414747Z",
+      "distinct_path": "Privacidade e segurança > Diagnóstico e comentários"
+    },
+    {
+      "uri": "ms-settings:privacy-general",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Recomendações & ofertas"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:04.5933108Z",
+      "distinct_path": "Privacidade e segurança > Recomendações & ofertas"
+    },
+    {
+      "uri": "ms-settings:privacy-graphicscaptureprogrammatic",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Capturas de tela e gravação de tela"
+      ],
+      "controls": 88,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:06.2459522Z",
+      "distinct_path": "Privacidade e segurança > Capturas de tela e gravação de tela"
+    },
+    {
+      "uri": "ms-settings:privacy-graphicscapturewithoutborder",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Bordas da captura de tela"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:07.8934148Z",
+      "distinct_path": "Privacidade e segurança > Bordas da captura de tela"
+    },
+    {
+      "uri": "ms-settings:privacy-location",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Localização"
+      ],
+      "controls": 90,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:11.4002657Z",
+      "distinct_path": "Privacidade e segurança > Localização"
+    },
+    {
+      "uri": "ms-settings:privacy-messaging",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Sistema de Mensagens"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:13.0310449Z",
+      "distinct_path": "Privacidade e segurança > Sistema de Mensagens"
+    },
+    {
+      "uri": "ms-settings:privacy-microphone",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Microfone"
+      ],
+      "controls": 93,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:14.9929866Z",
+      "distinct_path": "Privacidade e segurança > Microfone"
+    },
+    {
+      "uri": "ms-settings:privacy-motion",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Microfone"
+      ],
+      "controls": 94,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:16.8567557Z",
+      "distinct_path": "Privacidade e segurança > Microfone"
+    },
+    {
+      "uri": "ms-settings:privacy-musiclibrary",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Biblioteca de músicas"
+      ],
+      "controls": 51,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:18.7312633Z",
+      "distinct_path": "Privacidade e segurança > Biblioteca de músicas"
+    },
+    {
+      "uri": "ms-settings:privacy-notifications",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Notificações"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:20.3368935Z",
+      "distinct_path": "Privacidade e segurança > Notificações"
+    },
+    {
+      "uri": "ms-settings:privacy-phonecalls",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Chamadas telefônicas"
+      ],
+      "controls": 72,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:23.7477307Z",
+      "distinct_path": "Privacidade e segurança > Chamadas telefônicas"
+    },
+    {
+      "uri": "ms-settings:privacy-pictures",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Imagens"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:25.3705534Z",
+      "distinct_path": "Privacidade e segurança > Imagens"
+    },
+    {
+      "uri": "ms-settings:privacy-radios",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Rádios"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:26.9687441Z",
+      "distinct_path": "Privacidade e segurança > Rádios"
+    },
+    {
+      "uri": "ms-settings:privacy-speech",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Controle por Voz"
+      ],
+      "controls": 50,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:28.5610739Z",
+      "distinct_path": "Privacidade e segurança > Controle por Voz"
+    },
+    {
+      "uri": "ms-settings:privacy-speechtyping",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Personalização de escrita à tinta e digitação"
+      ],
+      "controls": 60,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:09.4898013Z",
+      "distinct_path": "Privacidade e segurança > Personalização de escrita à tinta e digitação"
+    },
+    {
+      "uri": "ms-settings:privacy-tasks",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Tarefas"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:30.1440244Z",
+      "distinct_path": "Privacidade e segurança > Tarefas"
+    },
+    {
+      "uri": "ms-settings:privacy-videos",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Vídeos"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:31.7542836Z",
+      "distinct_path": "Privacidade e segurança > Vídeos"
+    },
+    {
+      "uri": "ms-settings:privacy-voiceactivation",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Ativação de voz"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:33.9389134Z",
+      "distinct_path": "Privacidade e segurança > Ativação de voz"
+    },
+    {
+      "uri": "ms-settings:privacy-webcam",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Câmera"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:48.8117878Z",
+      "distinct_path": "Privacidade e segurança > Câmera"
+    },
+    {
+      "uri": "ms-settings:privacy",
+      "reference_category": "Privacy",
+      "observed_headers": [
+        "Privacidade e segurança"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:02.6779359Z",
+      "distinct_path": "Privacidade e segurança"
+    },
+    {
+      "uri": "ms-settings:project",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Projeção para este computador"
+      ],
+      "controls": 42,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:26.3367444Z",
+      "distinct_path": "Sistema > Projeção para este computador"
+    },
+    {
+      "uri": "ms-settings:proximity",
+      "reference_category": "Network and internet",
+      "observed_headers": [
+        "Rede e Internet",
+        "Configurações avançadas de rede"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:25:51.8722463Z",
+      "distinct_path": "Rede e Internet > Configurações avançadas de rede"
+    },
+    {
+      "uri": "ms-settings:quiethours",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Foco"
+      ],
+      "controls": 70,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:15.4797507Z",
+      "distinct_path": "Sistema > Foco"
+    },
+    {
+      "uri": "ms-settings:recovery",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Sistema",
+        "Recuperação"
+      ],
+      "controls": 85,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:28.4112096Z",
+      "distinct_path": "Sistema > Recuperação"
+    },
+    {
+      "uri": "ms-settings:regionformatting",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:48.9273558Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-bpmfime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:56.5272738Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-cangjieime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:58.4179026Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-pinyin-domainlexicon",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:07.8810040Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-pinyin-keyconfig",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:09.7811656Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-pinyin-udp",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:11.6787171Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-pinyin",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:05.9869415Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-wubi-udp",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:00.3267625Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-chsime-wubi",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:15.5676447Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-jpnime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:46.9033925Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-korime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:04.0683170Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage-quickime",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:02.1937162Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:regionlanguage",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Idioma e região"
+      ],
+      "controls": 89,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:54.6398432Z",
+      "distinct_path": "Hora e idioma > Idioma e região"
+    },
+    {
+      "uri": "ms-settings:remotedesktop",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Área de Trabalho Remota"
+      ],
+      "controls": 66,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:31.6844535Z",
+      "distinct_path": "Sistema > Área de Trabalho Remota"
+    },
+    {
+      "uri": "ms-settings:savelocations",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Armazenamento",
+        "Onde o novo conteúdo é salvo"
+      ],
+      "controls": 51,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:06.3797274Z",
+      "distinct_path": "Sistema > Armazenamento > Onde o novo conteúdo é salvo"
+    },
+    {
+      "uri": "ms-settings:screenrotation",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Tela"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:10.1617109Z",
+      "distinct_path": "Sistema > Tela"
+    },
+    {
+      "uri": "ms-settings:search-moredetails",
+      "reference_category": "Search",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Pesquisar"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:37.7455626Z",
+      "distinct_path": "Privacidade e segurança > Pesquisar"
+    },
+    {
+      "uri": "ms-settings:search-permissions",
+      "reference_category": "Search",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Pesquisar"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:39.6612506Z",
+      "distinct_path": "Privacidade e segurança > Pesquisar"
+    },
+    {
+      "uri": "ms-settings:search",
+      "reference_category": "Search",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Pesquisar"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:35.8758917Z",
+      "distinct_path": "Privacidade e segurança > Pesquisar"
+    },
+    {
+      "uri": "ms-settings:signinoptions-dynamiclock",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Opções de entrada"
+      ],
+      "controls": 79,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:54.2797219Z",
+      "distinct_path": "Contas > Opções de entrada"
+    },
+    {
+      "uri": "ms-settings:signinoptions",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Opções de entrada"
+      ],
+      "controls": 86,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:52.3514132Z",
+      "distinct_path": "Contas > Opções de entrada"
+    },
+    {
+      "uri": "ms-settings:sound-defaultinputproperties",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som",
+        "Propriedades"
+      ],
+      "controls": 109,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:47.9241589Z",
+      "distinct_path": "Sistema > Som > Propriedades"
+    },
+    {
+      "uri": "ms-settings:sound-defaultoutputproperties",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som",
+        "Propriedades"
+      ],
+      "controls": 107,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:50.0567532Z",
+      "distinct_path": "Sistema > Som > Propriedades"
+    },
+    {
+      "uri": "ms-settings:sound-devices",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som",
+        "Todos os dispositivos de som"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:44.9473685Z",
+      "distinct_path": "Sistema > Som > Todos os dispositivos de som"
+    },
+    {
+      "uri": "ms-settings:sound-properties",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som"
+      ],
+      "controls": 94,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:52.1130675Z",
+      "distinct_path": "Sistema > Som"
+    },
+    {
+      "uri": "ms-settings:sound",
+      "reference_category": "Sound",
+      "observed_headers": [
+        "Sistema",
+        "Som"
+      ],
+      "controls": 52,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:27:43.3476918Z",
+      "distinct_path": "Sistema > Som"
+    },
+    {
+      "uri": "ms-settings:speech",
+      "reference_category": "Time and language",
+      "observed_headers": [
+        "Hora e idioma",
+        "Fala"
+      ],
+      "controls": 59,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:13.6308535Z",
+      "distinct_path": "Hora e idioma > Fala"
+    },
+    {
+      "uri": "ms-settings:startupapps",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Inicialização"
+      ],
+      "controls": 104,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:10.7996180Z",
+      "distinct_path": "Aplicativos > Inicialização"
+    },
+    {
+      "uri": "ms-settings:storagepolicies",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Armazenamento",
+        "Sensor de armazenamento"
+      ],
+      "controls": 52,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:39.2435042Z",
+      "distinct_path": "Sistema > Armazenamento > Sensor de armazenamento"
+    },
+    {
+      "uri": "ms-settings:storagerecommendations",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Armazenamento"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:41.1515510Z",
+      "distinct_path": "Sistema > Armazenamento"
+    },
+    {
+      "uri": "ms-settings:storagesense",
+      "reference_category": "System",
+      "observed_headers": [
+        "Sistema",
+        "Armazenamento"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:28:37.3530593Z",
+      "distinct_path": "Sistema > Armazenamento"
+    },
+    {
+      "uri": "ms-settings:taskbar",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Barra de Tarefas"
+      ],
+      "controls": 52,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:28.0560048Z",
+      "distinct_path": "Personalização > Barra de Tarefas"
+    },
+    {
+      "uri": "ms-settings:themes",
+      "reference_category": "Personalization",
+      "observed_headers": [
+        "Personalização",
+        "Temas"
+      ],
+      "controls": 92,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:26:33.9019159Z",
+      "distinct_path": "Personalização > Temas"
+    },
+    {
+      "uri": "ms-settings:troubleshoot",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Sistema",
+        "Solução de Problemas"
+      ],
+      "controls": 80,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:30.3812736Z",
+      "distinct_path": "Sistema > Solução de Problemas"
+    },
+    {
+      "uri": "ms-settings:typing",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Hora e idioma",
+        "Digitação"
+      ],
+      "controls": 38,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:32.3108041Z",
+      "distinct_path": "Hora e idioma > Digitação"
+    },
+    {
+      "uri": "ms-settings:usb",
+      "reference_category": "Devices",
+      "observed_headers": [
+        "Bluetooth e dispositivos",
+        "USB"
+      ],
+      "controls": 36,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:33.9428410Z",
+      "distinct_path": "Bluetooth e dispositivos > USB"
+    },
+    {
+      "uri": "ms-settings:videoplayback",
+      "reference_category": "Apps",
+      "observed_headers": [
+        "Aplicativos",
+        "Reprodução de vídeo"
+      ],
+      "controls": 74,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:23:12.7232911Z",
+      "distinct_path": "Aplicativos > Reprodução de vídeo"
+    },
+    {
+      "uri": "ms-settings:windowsdefender",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Privacidade e segurança",
+        "Segurança do Windows"
+      ],
+      "controls": 87,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:32.2476543Z",
+      "distinct_path": "Privacidade e segurança > Segurança do Windows"
+    },
+    {
+      "uri": "ms-settings:windowsinsider",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Programa Windows Insider"
+      ],
+      "controls": 62,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:34.1291735Z",
+      "distinct_path": "Windows Update > Programa Windows Insider"
+    },
+    {
+      "uri": "ms-settings:windowsupdate-activehours",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Opções avançadas"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:37.8764433Z",
+      "distinct_path": "Windows Update > Opções avançadas"
+    },
+    {
+      "uri": "ms-settings:windowsupdate-history",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Histórico de atualização"
+      ],
+      "controls": 77,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:44.9818028Z",
+      "distinct_path": "Windows Update > Histórico de atualização"
+    },
+    {
+      "uri": "ms-settings:windowsupdate-optionalupdates",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Atualizações opcionais"
+      ],
+      "controls": 26,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:41.3027333Z",
+      "distinct_path": "Windows Update > Atualizações opcionais"
+    },
+    {
+      "uri": "ms-settings:windowsupdate-options",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update",
+        "Opções avançadas"
+      ],
+      "controls": 84,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:39.7583938Z",
+      "distinct_path": "Windows Update > Opções avançadas"
+    },
+    {
+      "uri": "ms-settings:windowsupdate-restartoptions",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update"
+      ],
+      "controls": 101,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:43.1617429Z",
+      "distinct_path": "Windows Update"
+    },
+    {
+      "uri": "ms-settings:windowsupdate",
+      "reference_category": "Update and security",
+      "observed_headers": [
+        "Windows Update"
+      ],
+      "controls": 81,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:29:36.0121734Z",
+      "distinct_path": "Windows Update"
+    },
+    {
+      "uri": "ms-settings:workplace",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Acessar trabalho ou escola"
+      ],
+      "controls": 76,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:45.6239418Z",
+      "distinct_path": "Contas > Acessar trabalho ou escola"
+    },
+    {
+      "uri": "ms-settings:yourinfo",
+      "reference_category": "Accounts",
+      "observed_headers": [
+        "Contas",
+        "Suas informações"
+      ],
+      "controls": 75,
+      "status": "NAVEGACAO_REGISTRADA",
+      "error": null,
+      "observed_at": "2026-11-04T15:22:56.0998217Z",
+      "distinct_path": "Contas > Suas informações"
+    }
+  ]
+}

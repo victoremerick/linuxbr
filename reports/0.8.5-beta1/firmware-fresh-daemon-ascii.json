@@ -1,0 +1,5 @@
+{
+  "status": "PASS",
+  "template": "/var/lib/linuxbr/firmware/OVMF_VARS_4M.ms-2023.fd",
+  "id": "0b8a473a-6482-4059-afa5-f2785c9b6163"
+}

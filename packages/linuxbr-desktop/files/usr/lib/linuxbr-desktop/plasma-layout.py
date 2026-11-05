@@ -9,6 +9,8 @@ import hashlib
 import json
 from pathlib import Path
 
+RETIRED_PATCHES = ('org.kde.plasma.taskmanager/contents/ui/main.qml',)
+
 
 def replace(text, old, new):
     if text.count(old) != 1:
@@ -19,7 +21,6 @@ def replace(text, old, new):
 def patches():
     return {
       "org.kde.panel/contents/ui/main.qml": [( "    id: root", "    id: root\n    Plasmoid.contextualActions: [\n        PlasmaCore.Action { text: \"Gerenciador de Tarefas\"; icon.name: \"utilities-system-monitor\"; onTriggered: Qt.openUrlExternally(\"linuxbr-action:///tasks\") }\n    ]" )],
-      "org.kde.plasma.taskmanager/contents/ui/main.qml": [( "    id: tasks", "    id: tasks\n    Plasmoid.contextualActions: [\n        PlasmaCore.Action { text: \"Gerenciador de Tarefas\"; icon.name: \"utilities-system-monitor\"; onTriggered: Qt.openUrlExternally(\"linuxbr-action:///tasks\") }\n    ]" )],
       "org.kde.plasma.taskmanager/contents/ui/ContextMenu.qml": [( "    id: menu", "    id: menu\n    PlasmaExtras.MenuItem {\n        text: \"Gerenciador de Tarefas\"\n        icon: \"utilities-system-monitor\"\n        onClicked: Qt.openUrlExternally(\"linuxbr-action:///tasks\")\n    }\n    PlasmaExtras.MenuItem { separator: true }" )],
       'org.kde.plasma.kickoff/contents/ui/main.qml': [
         ('''        Component.onCompleted: {
@@ -107,6 +108,15 @@ def apply(root, restore=False):
     state=root/'var/lib/linuxbr/plasma-layout';state.mkdir(parents=True,exist_ok=True)
     manifest=state/'manifest.json'
     records=json.loads(manifest.read_text()) if manifest.exists() else {}
+    # The panel supplies the task manager action to empty applet menus.
+    # Retire the previous applet action on upgrades without overwriting edits.
+    for name in RETIRED_PATCHES:
+        record=records.pop(name,None)
+        path=base/name
+        if record and path.is_file():
+            digest=hashlib.sha256(path.read_text().encode()).hexdigest()
+            if digest==record['patched']:
+                path.write_text(record['original'])
     for name,edits in patches().items():
         path=base/name
         if not path.exists():continue

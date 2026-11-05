@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "steps": [
+    "start",
+    "pause",
+    "resume",
+    "save",
+    "start",
+    "poweroff",
+    "snapshot-create",
+    "snapshot-restore"
+  ]
+}

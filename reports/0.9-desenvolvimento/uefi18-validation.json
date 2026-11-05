@@ -1,0 +1,20 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "iso_sha256": "e6c34cd34f7a106a819ccc2537ae6fca958c6ac0b402ad26dd024a03167f628d",
+  "firmware": "OVMF UEFI",
+  "scenarios": [
+    "Live recovery authenticated UID1000",
+    "NetworkManager inactive",
+    "SSH not installed in official Live",
+    "firewalld active",
+    "Reboot normal Live authenticated Plasma",
+    "Normal NetworkManager active and cmdline has no restricted mode"
+  ],
+  "resolution": "1280x768",
+  "screenshots": [
+    "uefi18-recuperacao-politica.png",
+    "uefi18-retorno-normal.png"
+  ],
+  "installation_tested": false
+}

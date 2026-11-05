@@ -11,7 +11,7 @@ grep -q '^LANG="\?pt_BR.UTF-8"\?$' /etc/default/locale
 locale -a | grep -qi '^pt_BR.utf8$'
 . /etc/default/keyboard
 [ "$XKBLAYOUT" = br ]
-[ "$XKBMODEL" = abnt2 ]
+[ "$XKBMODEL" = pc105 ]
 keymap=$(mktemp)
 trap 'rm -f "$keymap"' EXIT
 setupcon --save-keyboard "$keymap"

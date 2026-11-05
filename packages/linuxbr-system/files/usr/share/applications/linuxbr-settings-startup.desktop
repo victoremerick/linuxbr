@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Programas de inicialização
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page startup
+Icon=system-run
+Keywords=Inicialização;Autostart;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

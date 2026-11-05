@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Cuidados com o computador
+Comment=Proteção, resolução de problemas e limpeza revisada
+Exec=linuxbr-maintenance
+Icon=security-high
+Terminal=false
+Categories=System;Settings;
+Keywords=backup;proteção;atualização;limpeza;problemas;diagnóstico;

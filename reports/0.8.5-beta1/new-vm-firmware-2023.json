@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "id": "d1ad0357-7e7f-453a-b5dd-cb9781aaa638",
+  "template": "/var/lib/linuxbr/firmware/OVMF_VARS_4M.ms-2023.fd",
+  "cpu": "host-model"
+}

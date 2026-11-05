@@ -12,6 +12,9 @@ build_parse_args() {
         esac
     done
 }
+build_version_label() {
+    printf '%s' "$1" | sed -E 's/~beta([0-9]+)$/ Beta \1/'
+}
 build_banner() {
     [[ ${LINUXBR_BANNER_SHOWN:-0} == 1 ]] && return 0
     local yellow='' green='' purple='' reset=''
@@ -36,7 +39,7 @@ build_banner() {
         (( i != 2 && i != 3 )) || color=$purple
         printf '  %s%s%s%s\n' "$color" "${logo[$i]}" "$reset" "${wordmark[$i]}"
     done
-    printf '  %s%s%s%s Alpha · amd64 · KDE Plasma\n' "$yellow" "${logo[5]}" "$reset" "$1"
+    printf '  %s%s%s%s · amd64 · KDE Plasma\n' "$yellow" "${logo[5]}" "$reset" "$(build_version_label "$1")"
     printf '  %s%s%s\n\n' "$green" '--------------------------------------------------------' "$reset"
 
 }

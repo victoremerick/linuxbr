@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "candidate": "source17 packaged",
+  "installed_media": "source16 plus final boot tools and guide",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "mode": "basic-video",
+  "authenticated_uid": 1000,
+  "session": "Plasma X11",
+  "software_rendering": true,
+  "compositing_disabled": true,
+  "cmdline": "BOOT_IMAGE=/boot/vmlinuz-6.12.115+deb13.1-amd64 root=UUID=105db587-443d-4d16-91ba-ba6ae4b1aec1 ro quiet splash resume=UUID=49536719-a499-4928-a9c7-dbc033808e61 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0 module_blacklist=amdgpu,radeon,nouveau,nvidia,nvidia_drm,nvidia_modeset,i915,xe linuxbr.video=basic"
+}

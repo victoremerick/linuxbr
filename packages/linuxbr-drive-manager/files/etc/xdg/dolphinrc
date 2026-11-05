@@ -1,11 +1,12 @@
 [General]
 HomeUrl=linuxbr:/
+RememberOpenedTabs=false
+ModifiedStartupSettings=true
+GlobalViewProps=false
 EditableUrl=false
 ShowFullPath=false
 ShowFullPathInTitlebar=false
-RememberOpenedTabs=false
 OpenExternallyCalledFolderInNewTab=false
-GlobalViewProps=false
 BrowseThroughArchives=true
 ConfirmClosingMultipleTabs=true
 ConfirmClosingTerminalRunningProgram=true
@@ -18,7 +19,6 @@ ShowZoomSlider=true
 ShowSpaceInfo=true
 LockPanels=true
 SortingChoice=NaturalSorting
-ModifiedStartupSettings=true
 
 [Notification Messages]
 ConfirmOpenManyFolders=true

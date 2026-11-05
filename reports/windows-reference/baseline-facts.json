@@ -1,0 +1,75 @@
+{
+  "status": "PASS",
+  "checked_at": "2026-11-04T14:57:54.0096791Z",
+  "operating_system": {
+    "build": "26300",
+    "version": "10.0.26300",
+    "caption": "Microsoft Windows 11 Enterprise Evaluation",
+    "architecture": "64 bits",
+    "display_version": "26H2",
+    "edition": "EnterpriseEval",
+    "revision": 9457
+  },
+  "session": {
+    "input": [
+      {
+        "LanguageTag": null,
+        "InputMethodTips": null
+      }
+    ],
+    "timezone": "E. South America Standard Time",
+    "language": "pt-BR",
+    "identity": "WIN11-REF\\referencia",
+    "input_observation": "Indicador PTB2 observado na barra de tarefas; a coleta estruturada de InputMethodTips retornou nulo."
+  },
+  "resources": {
+    "logical_processors": 4,
+    "processor": [
+      {
+        "Name": "11th Gen Intel(R) Core(TM) i7-11390H @ 3.40GHz",
+        "VirtualizationFirmwareEnabled": true,
+        "VMMonitorModeExtensions": true,
+        "SecondLevelAddressTranslationExtensions": true
+      }
+    ],
+    "ram_bytes": 8499519488
+  },
+  "licensing": [
+    {
+      "Name": "Windows(R), EnterpriseEval edition",
+      "Description": "Windows(R) Operating System, TIMEBASED_EVAL channel",
+      "LicenseStatus": 1,
+      "GracePeriodRemaining": 129580
+    }
+  ],
+  "secure_boot": true,
+  "tpm": {
+    "TpmPresent": true,
+    "TpmReady": true,
+    "TpmEnabled": true,
+    "TpmActivated": true,
+    "AutoProvisioning": 0
+  },
+  "network": [
+    {
+      "Name": "Ethernet",
+      "InterfaceDescription": "Intel(R) 82574L Gigabit Network Connection",
+      "Status": "Up",
+      "LinkSpeed": "1 Gbps"
+    }
+  ],
+  "store": [
+    {
+      "Name": "Microsoft.WindowsStore",
+      "Version": "22609.1401.11.0",
+      "Status": 0
+    }
+  ],
+  "system_volume": {
+    "FileSystem": "NTFS",
+    "Size": 101711867904,
+    "SizeRemaining": 79897948160,
+    "HealthStatus": "Healthy"
+  },
+  "scope": "Instalacao e recursos de base; nao representa revisao de todas as paginas."
+}

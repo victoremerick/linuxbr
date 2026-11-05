@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Endereços IP e DNS
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page ip
+Icon=network-wired
+Keywords=DHCP;IPv4;IPv6;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

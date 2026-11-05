@@ -12,12 +12,22 @@ if [ -f /usr/share/icons/hicolor/512x512/apps/linuxbr.png ]; then
     install -m 0644 /usr/share/icons/hicolor/512x512/apps/linuxbr.png /etc/skel/.face
 fi
 cat > /etc/default/keyboard <<'KEYBOARD'
-XKBMODEL="abnt2"
+XKBMODEL="pc105"
 XKBLAYOUT="br"
 XKBVARIANT=""
 XKBOPTIONS=""
 BACKSPACE="guess"
 KEYBOARD
+mkdir -p /etc/X11/xorg.conf.d
+cat > /etc/X11/xorg.conf.d/00-keyboard.conf <<'XORG'
+Section "InputClass"
+    Identifier "system-keyboard"
+    MatchIsKeyboard "on"
+    Option "XkbLayout" "br"
+    Option "XkbModel" "pc105"
+    Option "XkbVariant" ""
+EndSection
+XORG
 setupcon --save-only
 # Include the configured console keymap in each already-installed kernel.
 update-initramfs -u -k all

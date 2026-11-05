@@ -10,9 +10,12 @@ import subprocess
 import tempfile
 import uuid
 import shlex
-from urllib.parse import urlsplit, urlunsplit, unquote
+import shutil
+import configparser
+from urllib.parse import urlsplit, urlunsplit, unquote, quote
 
 CATALOG = Path('/usr/share/linuxbr/webapps/catalog.json')
+EXTENSION_ID = 'lhanpdfpjlicodjfidgojclnppokanbi'
 
 def clean_url(value):
     if not isinstance(value, str) or len(value) > 2048 or any(ord(c) < 33 for c in value) or '\\' in value:
@@ -146,6 +149,13 @@ def install(data):
     if os.geteuid()==0:
         raise ValueError('Instale aplicativos na sua conta, sem sudo.')
     item=normalize_offer(data)
+    subscription=None
+    if data.get('signed_source'):
+        import signed_catalog
+        app=signed_catalog.application(data['signed_source'],data.get('signed_app'))
+        if clean_url(app['url'])!=item['url'] or app['status']!='published':
+            raise ValueError('A origem assinada não corresponde ao aplicativo solicitado.')
+        subscription=dict(source=data['signed_source'],app=app['id'],revision=app['revision'])
     item['session'] = clean_name(data.get('session', 'Principal'))
     item['instance'] = uuid.uuid4().hex if data.get('new_session', False) else ''
     if data.get('new_session', False) and any(app['session'].casefold() == item['session'].casefold()
@@ -156,6 +166,7 @@ def install(data):
     if (directory/'app.json').exists():
         # Reinstalling a legacy/default entry must retain its session and data.
         item = read_record(identifier)
+    if subscription:item['catalog_subscription']=subscription
     save_record(identifier, item)
     from webapp_icons import request_refresh
     request_refresh(item['url'])
@@ -181,6 +192,7 @@ def save_record(identifier, item):
         '[Desktop Entry]\nType=Application\n'
         f'Name={desktop_escape(item["name"])}\nExec=/usr/bin/linuxbr-webapps --open-app {identifier}\n'
         f'Icon={desktop_escape(str(icon))}\nTerminal=false\nCategories=Network;\n')
+    if session_start_enabled(identifier):set_session_start(identifier,True)
 
 def profile_context():
     """Identify only our dedicated Chromium profile through host ancestry."""
@@ -230,6 +242,7 @@ def launch(identifier):
 
 def remove(identifier):
     item=read_record(identifier)
+    set_session_start(identifier, False)
     (apps_dir()/f'linuxbr-webapp-{checked_id(identifier)}.desktop').unlink(missing_ok=True)
     if not sessions(item['url']):
         (apps_dir()/f'linuxbr-webapp-site-{app_id(item["url"])}.desktop').unlink(missing_ok=True)
@@ -247,3 +260,258 @@ def status(data):
     item=normalize_offer(data)
     return {'installed': any(app['url']==item['url'] for app in installed()),
             'native_installed':native_present(service_for(item['url'])), **item}
+
+
+def running_profiles(items=None, proc_root=Path('/proc')):
+    """Find our live Chromium profiles without reading tabs, cookies or accounts."""
+    items = installed() if items is None else items
+    profiles = {str(record_path(item['id'])/'profile'): item['id'] for item in items}
+    running = set()
+    if not profiles:
+        return running
+    try:
+        processes = list(proc_root.iterdir())
+    except OSError:
+        return running
+    for process in processes:
+        if not process.name.isdigit():
+            continue
+        try:
+            if process.stat().st_uid != os.geteuid():
+                continue
+            with (process/'cmdline').open('rb') as stream:
+                args = stream.read(65536).decode('utf-8', errors='replace').rstrip('\0').split('\0')
+            if not args or Path(args[0]).name not in ('chromium', 'chromium-browser', 'chrome'):
+                continue
+            if any(arg.startswith('--type=') for arg in args):
+                continue
+            for index, arg in enumerate(args[1:], 1):
+                directory = arg.split('=', 1)[1] if arg.startswith('--user-data-dir=') else (
+                    args[index+1] if arg == '--user-data-dir' and index+1 < len(args) else None)
+                if directory in profiles:
+                    running.add(profiles[directory])
+        except OSError:
+            # Chromium can exit between reading its process directory and arguments.
+            continue
+    return running
+
+
+def profile_states(items=None, proc_root=Path('/proc')):
+    items = installed() if items is None else items
+    running = running_profiles(items, proc_root)
+    preferred = {url: preferred_profile(url) for url in {item['url'] for item in items}}
+    return {item['id']: {'running': item['id'] in running,
+                         'preferred': preferred[item['url']] == item['id']} for item in items}
+
+
+def _profile_preferences():
+    try:
+        preferences = json.loads((root()/'preferences.json').read_text())
+        return preferences if isinstance(preferences, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def preferred_profile(url):
+    try:
+        preferences=_profile_preferences()
+        identifier=preferences.get(app_id(normalize_offer({'url':url})['url']))
+        return identifier if any(item['id']==identifier for item in sessions(url)) else None
+    except (OSError,ValueError,TypeError,AttributeError):
+        return None
+
+
+def set_preferred_profile(identifier):
+    if os.geteuid()==0:raise ValueError('Gerencie perfis na sua conta, sem sudo.')
+    item=read_record(identifier)
+    if not any(entry['id']==identifier for entry in sessions(item['url'])):
+        raise ValueError('Restaure o perfil antes de usá-lo como preferido.')
+    preferences=_profile_preferences()
+    preferences[app_id(item['url'])]=identifier
+    atomic_write(root()/'preferences.json',json.dumps(preferences))
+
+
+def clear_preferred_profile(identifier):
+    if os.geteuid()==0:raise ValueError('Gerencie perfis na sua conta, sem sudo.')
+    item=read_record(identifier)
+    preferences=_profile_preferences()
+    key=app_id(item['url'])
+    if preferences.get(key)==identifier:
+        preferences.pop(key)
+        atomic_write(root()/'preferences.json',json.dumps(preferences))
+
+
+def delete_profile(identifier):
+    if os.geteuid()==0:raise ValueError('Gerencie perfis na sua conta, sem sudo.')
+    item=read_record(identifier);directory=record_path(identifier)
+    profile=directory/'profile'
+    if profile.is_symlink():raise ValueError('Diretório de perfil inválido.')
+    lock=profile/'SingletonLock'
+    if lock.exists() or lock.is_symlink():
+        raise ValueError('Feche todas as janelas deste perfil antes de apagar seus dados.')
+    if identifier in running_profiles([item]):
+        raise ValueError('Feche todas as janelas deste perfil antes de apagar seus dados.')
+    remove(identifier)
+    shutil.rmtree(directory)
+    preferences=_profile_preferences()
+    key=app_id(item['url'])
+    if preferences.get(key)==identifier:
+        preferences.pop(key)
+        atomic_write(root()/'preferences.json',json.dumps(preferences))
+    remaining=sessions(item['url'])
+    if remaining:save_record(remaining[0]['id'],remaining[0])
+
+
+def config_home():
+    return Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home()/'.config')))
+
+
+def session_start_path(identifier):
+    return config_home()/'autostart'/f'linuxbr-webapp-{checked_id(identifier)}.desktop'
+
+
+def profile_options(identifier):
+    """Only launcher choices are stored here; Chromium owns its own preferences."""
+    read_record(identifier)
+    try:
+        data=json.loads((record_path(identifier)/'launcher-preferences.json').read_text())
+        mode=data.get('external_links', 'profile')
+    except (OSError, ValueError, AttributeError):
+        mode='profile'
+    return {'external_links': mode if mode in ('profile','default-browser') else 'profile',
+            'session_start': session_start_enabled(identifier)}
+
+
+def session_start_enabled(identifier):
+    path=session_start_path(identifier)
+    if path.is_symlink():return False
+    try:
+        parser=configparser.ConfigParser(interpolation=None, strict=False)
+        parser.read_string(path.read_text())
+        return (parser.has_section('Desktop Entry') and
+                parser.get('Desktop Entry','Hidden',fallback='false').casefold()!='true' and
+                parser.get('Desktop Entry','X-GNOME-Autostart-enabled',fallback='true').casefold()!='false')
+    except (OSError, ValueError, configparser.Error):return False
+
+
+def set_session_start(identifier, enabled):
+    if os.geteuid()==0:raise ValueError('Gerencie perfis na sua conta, sem sudo.')
+    item=read_record(identifier);path=session_start_path(identifier)
+    if path.is_symlink():raise ValueError('O lançador de inicialização é um link. Revise-o nas preferências da sessão.')
+    if not enabled:
+        path.unlink(missing_ok=True)
+        return
+    if not (apps_dir()/f'linuxbr-webapp-{identifier}.desktop').is_file():
+        raise ValueError('Restaure o perfil no menu antes de iniciar com a sessão.')
+    atomic_write(path, '[Desktop Entry]\nType=Application\n'
+        f'Name={desktop_escape(display_name(item))}\n'
+        f'Exec=/usr/bin/linuxbr-webapps --launch {identifier}\n'
+        f'Icon={desktop_escape(str(icon_path(item)))}\n'
+        'Terminal=false\nX-KDE-autostart-phase=2\n'
+        'Comment=Abre este perfil ao entrar na sessão\n')
+
+
+def save_profile_options(identifier, external_links='profile', session_start=False):
+    if os.geteuid()==0:raise ValueError('Gerencie perfis na sua conta, sem sudo.')
+    if external_links not in ('profile','default-browser'):
+        raise ValueError('Tratamento de links inválido.')
+    read_record(identifier)
+    if external_links=='default-browser':default_browser()
+    set_session_start(identifier, bool(session_start))
+    atomic_write(record_path(identifier)/'launcher-preferences.json',
+                 json.dumps({'external_links':external_links},ensure_ascii=False,indent=2)+'\n')
+
+
+def open_profile_settings(identifier, section='site'):
+    """Use the existing browser process and profile, including when already open."""
+    if os.geteuid()==0:raise ValueError('Abra as preferências na sua conta, sem sudo.')
+    item=read_record(identifier)
+    origin='https://'+urlsplit(item['url']).netloc
+    if section not in ('downloads','site','notifications','camera','microphone'):
+        raise ValueError('Preferência de navegador inválida.')
+    # Chromium on Linux accepts the extension page when joining an open profile.
+    # The local page validates the request and opens the native settings tab.
+    page=('chrome-extension://'+EXTENSION_ID+'/settings.html?section='+section+
+          '&origin='+quote(origin,safe=''))
+    profile=record_path(identifier)/'profile'
+    if profile.is_symlink():raise ValueError('Perfil do aplicativo inválido.')
+    profile.mkdir(exist_ok=True,mode=0o700)
+    return subprocess.Popen(['/usr/bin/chromium','--user-data-dir='+str(profile),
+        '--no-first-run','--no-default-browser-check','--new-window',page],
+        stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+
+
+def _browser_entry(identifier):
+    if not re.fullmatch(r'[A-Za-z0-9_.+-]+\.desktop',identifier):
+        raise ValueError('Escolha um navegador em Aplicativos padrão antes de ativar esta opção.')
+    paths=[apps_dir()]+[Path(value)/'applications' for value in os.environ.get('XDG_DATA_DIRS','/usr/local/share:/usr/share').split(':') if value]
+    paths += [Path.home()/'.local/share/flatpak/exports/share/applications',Path('/var/lib/flatpak/exports/share/applications')]
+    path=next((directory/identifier for directory in paths if (directory/identifier).is_file()),None)
+    if not path:raise ValueError('O lançador do navegador padrão não está disponível.')
+    parser=configparser.ConfigParser(interpolation=None,strict=False)
+    try:
+        parser.read_string(path.read_text())
+        command=parser.get('Desktop Entry','Exec',fallback='')
+        args=shlex.split(command)
+    except (OSError,UnicodeError,configparser.Error,ValueError) as exc:raise ValueError('Não foi possível ler o lançador do navegador padrão.') from exc
+    if (identifier.startswith('linuxbr-webapp') or not command or
+        'linuxbr-webapps' in command or any(arg in ('--app','--app-id') or arg.startswith(('--app=','--app-id=')) for arg in args)):
+        raise ValueError('O navegador padrão aponta para um aplicativo web. Escolha um navegador para evitar retorno ao mesmo perfil.')
+    for index,arg in enumerate(args):
+        profile=arg.split('=',1)[1] if arg.startswith('--user-data-dir=') else (args[index+1] if arg=='--user-data-dir' and index+1<len(args) else '')
+        if profile and Path(profile).resolve().is_relative_to(root().resolve()):
+            raise ValueError('O navegador padrão aponta para um perfil web dedicado. Escolha um navegador para evitar retorno ao mesmo perfil.')
+    if parser.get('Desktop Entry','Hidden',fallback='false').casefold()=='true':
+        raise ValueError('O navegador padrão está desativado.')
+    return identifier
+
+
+def default_browser(scheme=None):
+    """Require an actual registered browser; refuse a route back to a web app."""
+    try:
+        result=subprocess.run(['xdg-settings','get','default-web-browser'],capture_output=True,
+                              text=True,timeout=5,check=False)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ValueError('Não foi possível consultar o navegador padrão. Use Aplicativos padrão nas configurações.') from exc
+    identifier=result.stdout.strip()
+    if result.returncode:
+        raise ValueError('Escolha um navegador em Aplicativos padrão antes de ativar esta opção.')
+    _browser_entry(identifier)
+    if scheme in ('http','https'):
+        try:
+            handler=subprocess.run(['xdg-mime','query','default','x-scheme-handler/'+scheme],
+                                   capture_output=True,text=True,timeout=5,check=False)
+        except (OSError,subprocess.TimeoutExpired) as exc:raise ValueError('Não foi possível conferir o aplicativo associado a este tipo de link.') from exc
+        if handler.returncode or not handler.stdout.strip():
+            raise ValueError('Escolha um navegador para links '+scheme.upper()+' em Aplicativos padrão.')
+        _browser_entry(handler.stdout.strip())
+    return identifier
+
+
+def external_url(identifier, value):
+    item=read_record(identifier)
+    if not isinstance(value,str) or len(value)>8192 or any(ord(char)<33 or ord(char)==127 for char in value) or '\\' in value:
+        raise ValueError('Endereço externo inválido.')
+    parsed=urlsplit(value)
+    if parsed.scheme not in ('https','http') or not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError('Somente links HTTP e HTTPS sem credenciais podem abrir no navegador padrão.')
+    # Validate the port while retaining the full query needed by the clicked link.
+    try:parsed.port
+    except ValueError as exc:raise ValueError('Porta do endereço inválida.') from exc
+    service=service_for(item['url'])
+    hosts=set(service.get('hosts',[])) if service else set()
+    hosts.add(urlsplit(item['url']).hostname)
+    if parsed.hostname in hosts:raise ValueError('Este link pertence ao aplicativo e deve permanecer neste perfil.')
+    return value
+
+
+def open_external(identifier, value):
+    if os.geteuid()==0:raise ValueError('Abra links na sua conta, sem sudo.')
+    if profile_options(identifier)['external_links']!='default-browser':
+        raise ValueError('Este perfil mantém os links no próprio aplicativo.')
+    url=external_url(identifier,value)
+    default_browser(urlsplit(url).scheme)
+    # xdg-open uses the registered default without supplying this dedicated profile.
+    # The browser entry is checked above so a webapp handler cannot reopen itself.
+    return subprocess.Popen(['xdg-open',url],stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)

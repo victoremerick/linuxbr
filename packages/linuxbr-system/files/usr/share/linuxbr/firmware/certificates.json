@@ -1,0 +1,41 @@
+{
+  "repository": "https://github.com/microsoft/secureboot_objects",
+  "commit": "3d762aecbaecd12402efd21ba89c8c7bd40da4bd",
+  "license": "BSD-2-Clause-Patent",
+  "license_file": "MICROSOFT-LICENSE.txt",
+  "owner_guid": "77fa9abd-0359-4d32-bd60-28f4e78f784b",
+  "certificates": [
+    {
+      "file": "windows-uefi-ca-2023.der",
+      "variable": "db",
+      "source": "https://raw.githubusercontent.com/microsoft/secureboot_objects/3d762aecbaecd12402efd21ba89c8c7bd40da4bd/PreSignedObjects/DB/Certificates/windows%20uefi%20ca%202023.der",
+      "git_blob_sha1": "4c5430b28340de623d877bf09ce5284a7c45785b",
+      "sha256": "076f1fea90ac29155ebf77c17682f75f1fdd1be196da302dc8461e350a9ae330",
+      "certificate": "subject=C=US, O=Microsoft Corporation, CN=Windows UEFI CA 2023\nissuer=C=US, ST=Washington, L=Redmond, O=Microsoft Corporation, CN=Microsoft Root Certificate Authority 2010\nnotBefore=Jun 13 18:58:29 2023 GMT\nnotAfter=Jun 13 19:08:29 2035 GMT\nsha256 Fingerprint=07:6F:1F:EA:90:AC:29:15:5E:BF:77:C1:76:82:F7:5F:1F:DD:1B:E1:96:DA:30:2D:C8:46:1E:35:0A:9A:E3:30\n"
+    },
+    {
+      "file": "microsoft-uefi-ca-2023.der",
+      "variable": "db",
+      "source": "https://raw.githubusercontent.com/microsoft/secureboot_objects/3d762aecbaecd12402efd21ba89c8c7bd40da4bd/PreSignedObjects/DB/Certificates/microsoft%20uefi%20ca%202023.der",
+      "git_blob_sha1": "39a91b31730ad8dfd588a301a066f6f93d90d409",
+      "sha256": "f6124e34125bee3fe6d79a574eaa7b91c0e7bd9d929c1a321178efd611dad901",
+      "certificate": "subject=C=US, O=Microsoft Corporation, CN=Microsoft UEFI CA 2023\nissuer=C=US, O=Microsoft Corporation, CN=Microsoft RSA Devices Root CA 2021\nnotBefore=Jun 13 19:21:47 2023 GMT\nnotAfter=Jun 13 19:31:47 2038 GMT\nsha256 Fingerprint=F6:12:4E:34:12:5B:EE:3F:E6:D7:9A:57:4E:AA:7B:91:C0:E7:BD:9D:92:9C:1A:32:11:78:EF:D6:11:DA:D9:01\n"
+    },
+    {
+      "file": "microsoft-optionrom-ca-2023.der",
+      "variable": "db",
+      "source": "https://raw.githubusercontent.com/microsoft/secureboot_objects/3d762aecbaecd12402efd21ba89c8c7bd40da4bd/PreSignedObjects/DB/Certificates/microsoft%20option%20rom%20uefi%20ca%202023.der",
+      "git_blob_sha1": "bfdda98f6df3edde8600a50b881bc9c273d79e97",
+      "sha256": "e5be3e64c6e66a281457ecdece0d6d0787577aad2a3a0144262c10c14ba8d8f1",
+      "certificate": "subject=C=US, O=Microsoft Corporation, CN=Microsoft Option ROM UEFI CA 2023\nissuer=C=US, O=Microsoft Corporation, CN=Microsoft RSA Devices Root CA 2021\nnotBefore=Oct 26 19:02:20 2023 GMT\nnotAfter=Oct 26 19:12:20 2038 GMT\nsha256 Fingerprint=E5:BE:3E:64:C6:E6:6A:28:14:57:EC:DE:CE:0D:6D:07:87:57:7A:AD:2A:3A:01:44:26:2C:10:C1:4B:A8:D8:F1\n"
+    },
+    {
+      "file": "microsoft-kek-ca-2023.der",
+      "variable": "KEK",
+      "source": "https://raw.githubusercontent.com/microsoft/secureboot_objects/3d762aecbaecd12402efd21ba89c8c7bd40da4bd/PreSignedObjects/KEK/Certificates/microsoft%20corporation%20kek%202k%20ca%202023.der",
+      "git_blob_sha1": "e6ffb4f975fae9658631e5ca7697b63d3692b869",
+      "sha256": "3cd3f0309edae228767a976dd40d9f4affc4fbd5218f2e8cc3c9dd97e8ac6f9d",
+      "certificate": "subject=C=US, O=Microsoft Corporation, CN=Microsoft Corporation KEK 2K CA 2023\nissuer=C=US, O=Microsoft Corporation, CN=Microsoft RSA Devices Root CA 2021\nnotBefore=Mar  2 20:21:35 2023 GMT\nnotAfter=Mar  2 20:31:35 2038 GMT\nsha256 Fingerprint=3C:D3:F0:30:9E:DA:E2:28:76:7A:97:6D:D4:0D:9F:4A:FF:C4:FB:D5:21:8F:2E:8C:C3:C9:DD:97:E8:AC:6F:9D\n"
+    }
+  ]
+}

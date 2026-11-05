@@ -1,0 +1,14 @@
+{
+  "name": "QA09 servidor b727372b67",
+  "checks": [
+    "created UEFI Secure Boot TPM 2.0",
+    "actual KVM start pause resume stop",
+    "memory CPU and second adapter persisted",
+    "combined checkpoint restore with firmware and TPM",
+    "checkpoint and second adapter removal"
+  ],
+  "id": "f67729ca-4300-4d1c-bba1-560c8e0b7b96",
+  "status": "PASS",
+  "existing_vms_preserved": 8,
+  "generated_vm_stopped_and_definition_removed": true
+}

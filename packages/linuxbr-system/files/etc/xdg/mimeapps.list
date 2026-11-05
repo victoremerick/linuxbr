@@ -1,4 +1,5 @@
 [Default Applications]
+application/x-linuxbr-batch=org.kde.kate.desktop;
 x-scheme-handler/linuxbr-action=linuxbr-action.desktop;
 application/vnd.debian.binary-package=linuxbr-install-package.desktop;
 application/x-deb=linuxbr-install-package.desktop;

@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "id": "38067146-0ff7-41d9-9d17-e536184b8725",
+  "checks": [
+    "create-2023-firmware",
+    "resize-vcpus-single-socket",
+    "hardware-edit-preserves-firmware",
+    "boot-after-edits"
+  ]
+}

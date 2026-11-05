@@ -1,0 +1,10 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "build_exit": 0,
+  "bytes": 3659857920,
+  "sha256": "e6c34cd34f7a106a819ccc2537ae6fca958c6ac0b402ad26dd024a03167f628d",
+  "source_sha256": "fed5eef1453318ccfb1ff0f64e9caa954b36c0c09e1aa1c2a50e58d711aac557",
+  "rootfs_checks": "PASS identity,daily,0.7,0.8",
+  "iso": "/home/emericv/.local/state/linuxbr-dev-ssh/0.9/source18/source/dist/linuxbr-0.9.0~beta1-amd64.iso"
+}

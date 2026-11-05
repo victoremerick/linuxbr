@@ -1,0 +1,4 @@
+type: job
+name: linuxbr_edition
+interface: python
+script: main.py

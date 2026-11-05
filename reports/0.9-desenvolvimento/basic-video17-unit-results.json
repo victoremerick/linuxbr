@@ -1,0 +1,10 @@
+[
+  {
+    "test": "test-basic-video.py",
+    "returncode": 0
+  },
+  {
+    "test": "test-boot-09.py",
+    "returncode": 0
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "firmware": "UEFI",
+  "boot": "Installed disk, ISO detached",
+  "resolution": [
+    1280,
+    768
+  ],
+  "first_login": true,
+  "store_opened": true,
+  "settings_opened": true,
+  "vm_manager_kvm_connected": true,
+  "native_polkit": true,
+  "properties_native": true,
+  "sha256_matches_known_empty_file": true,
+  "apply_rename_persisted_after_reopen": true,
+  "known_visual_issue": "After Apply renames a file, the Windows-form path display refreshes only on reopening Properties; actual file and real path update correctly.",
+  "at": "2026-11-04T21:50:13.751Z"
+}

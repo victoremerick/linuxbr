@@ -1,0 +1,243 @@
+From: Linux BR
+Subject: [PATCH] KPropertiesDialog: apply pending changes without closing
+
+Reuse the asynchronous native apply sequence and refresh its editing baseline.
+Prevent concurrent application and discard callbacks from a failed attempt.
+
+--- a/src/widgets/kpropertiesdialog.h
++++ b/src/widgets/kpropertiesdialog.h
+@@ -282,6 +282,9 @@
+     using KPageDialog::buttonBox;
+ 
+ public Q_SLOTS:
++    /** Applies pending changes while keeping this dialog open. */
++    void apply();
++
+     /**
+      * Called when the user presses 'Ok'.
+      * @since 5.25
+--- a/src/widgets/kpropertiesdialog.cpp
++++ b/src/widgets/kpropertiesdialog.cpp
+@@ -43,6 +43,8 @@
+ #include <kioglobal_p.h>
+ 
+ #include <KJobWidgets>
++#include <KJob>
++#include <KMessageBox>
+ #include <KLocalizedString>
+ #include <KPluginFactory>
+ #include <KPluginMetaData>
+@@ -56,6 +58,7 @@
+ #include <QMimeData>
+ #include <QMimeDatabase>
+ #include <QRegularExpression>
++#include <QPushButton>
+ #include <QStandardPaths>
+ #include <QUrl>
+ 
+@@ -102,6 +105,25 @@
+      */
+     void insertPages();
+ 
++    void refreshItems(int index, std::function<void()> finished)
++    {
++        if (index >= m_items.size()) {
++            finished();
++            return;
++        }
++        auto *job = KIO::stat(m_items.at(index).url(), KIO::HideProgressInfo);
++        KJobWidgets::setWindow(job, q);
++        QObject::connect(job, &KJob::result, q, [this, job, index, finished]() {
++            if (job->error()) {
++                q->abortApplying();
++                KMessageBox::error(q, QStringLiteral("Não foi possível atualizar as propriedades. As operações anteriores podem já ter terminado.\n") + job->errorText());
++                return;
++            }
++            m_items[index] = KFileItem(job->statResult(), m_items.at(index).url());
++            refreshItems(index + 1, finished);
++        });
++    }
++
+     void insertPlugin(KPropertiesDialogPlugin *plugin)
+     {
+         q->connect(plugin, &KPropertiesDialogPlugin::changed, plugin, [plugin]() {
+@@ -112,6 +134,10 @@
+ 
+     KPropertiesDialog *const q;
+     bool m_aborted = false;
++    bool m_applyOnly = false;
++    bool m_applying = false;
++    QMetaObject::Connection m_fileApplyConnection;
++    QMetaObject::Connection m_permissionsApplyConnection;
+     KPageWidgetItem *fileSharePageItem = nullptr;
+     KFilePropsPlugin *m_filePropsPlugin = nullptr;
+     KFilePermissionsPropsPlugin *m_permissionsPropsPlugin = nullptr;
+@@ -332,6 +358,8 @@
+ void KPropertiesDialogPrivate::init()
+ {
+     q->setFaceType(KPageDialog::Tabbed);
++    q->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Apply);
++    QObject::connect(q->button(QDialogButtonBox::Apply), &QPushButton::clicked, q, &KPropertiesDialog::apply);
+ 
+     insertPages();
+     // Ensure users can't make it so small where things break
+@@ -401,15 +429,48 @@
+     /* clang-format on */
+ }
+ 
++void KPropertiesDialog::apply()
++{
++    if (d->m_applying) {
++        return;
++    }
++    d->m_applyOnly = true;
++    accept();
++}
++
+ void KPropertiesDialog::accept()
+ {
++    if (d->m_applying) {
++        return;
++    }
++    const bool applyOnly = d->m_applyOnly;
++    d->m_applyOnly = false;
+     d->m_aborted = false;
+-
+-    auto acceptAndClose = [this]() {
++    d->m_applying = true;
++    QObject::disconnect(d->m_fileApplyConnection);
++    QObject::disconnect(d->m_permissionsApplyConnection);
++    if (auto *ok = button(QDialogButtonBox::Ok)) ok->setEnabled(false);
++    if (auto *apply = button(QDialogButtonBox::Apply)) apply->setEnabled(false);
++
++    auto completeApply = [this, applyOnly]() {
++        d->m_applying = false;
++        if (auto *ok = button(QDialogButtonBox::Ok)) ok->setEnabled(true);
++        if (auto *apply = button(QDialogButtonBox::Apply)) apply->setEnabled(true);
+         Q_EMIT applied();
++        if (applyOnly) {
++            return;
++        }
+         Q_EMIT propertiesClosed();
+         deleteLater(); // Somewhat like Qt::WA_DeleteOnClose would do.
+         KPageDialog::accept();
++    };
++
++    auto acceptAndClose = [this, applyOnly, completeApply]() {
++        if (applyOnly) {
++            d->refreshItems(0, completeApply);
++        } else {
++            completeApply();
++        }
+     };
+ 
+     const bool isAnyDirty = std::any_of(d->m_pages.cbegin(), d->m_pages.cend(), [](const KPropertiesDialogPlugin *page) {
+@@ -466,7 +527,7 @@
+     };
+ 
+     auto applyPermissionsChanges = [this, applyOtherChanges]() {
+-        connect(d->m_permissionsPropsPlugin, &KFilePermissionsPropsPlugin::changesApplied, this, [applyOtherChanges]() {
++        d->m_permissionsApplyConnection = connect(d->m_permissionsPropsPlugin, &KFilePermissionsPropsPlugin::changesApplied, this, [applyOtherChanges]() {
+             applyOtherChanges();
+         });
+ 
+@@ -475,7 +536,7 @@
+ 
+     if (d->m_filePropsPlugin && d->m_filePropsPlugin->isDirty()) {
+         // changesApplied() is _not_ emitted if applying the changes was aborted
+-        connect(d->m_filePropsPlugin, &KFilePropsPlugin::changesApplied, this, [this, applyPermissionsChanges, applyOtherChanges]() {
++        d->m_fileApplyConnection = connect(d->m_filePropsPlugin, &KFilePropsPlugin::changesApplied, this, [this, applyPermissionsChanges, applyOtherChanges]() {
+             if (d->m_permissionsPropsPlugin && d->m_permissionsPropsPlugin->isDirty()) {
+                 applyPermissionsChanges();
+             } else {
+@@ -527,9 +588,7 @@
+         insertPlugin(m_urlPropsPlugin);
+     }
+ 
+-    if (m_items.count() != 1) {
+-        return;
+-    }
++    const bool multiple = m_items.count() > 1;
+ 
+     const KFileItem item = m_items.first();
+     const QString mimetype = item.mimetype();
+@@ -539,7 +598,10 @@
+     }
+ 
+     const auto scheme = item.url().scheme();
+-    const auto filter = [mimetype, scheme](const KPluginMetaData &metaData) {
++    const auto filter = [mimetype, scheme, multiple](const KPluginMetaData &metaData) {
++        if (multiple && !metaData.value(QStringLiteral("X-KDE-SupportsMultipleFiles"), false)) {
++            return false;
++        }
+         const auto supportedProtocols = metaData.value(QStringLiteral("X-KDE-Protocols"), QStringList());
+         if (!supportedProtocols.isEmpty()) {
+             const auto none = std::none_of(supportedProtocols.cbegin(), supportedProtocols.cend(), [scheme](const auto &protocol) {
+@@ -602,6 +664,11 @@
+ void KPropertiesDialog::abortApplying()
+ {
+     d->m_aborted = true;
++    d->m_applying = false;
++    QObject::disconnect(d->m_fileApplyConnection);
++    QObject::disconnect(d->m_permissionsApplyConnection);
++    if (auto *ok = button(QDialogButtonBox::Ok)) ok->setEnabled(true);
++    if (auto *apply = button(QDialogButtonBox::Apply)) apply->setEnabled(true);
+ }
+ 
+ #include "moc_kpropertiesdialog.cpp"
+--- a/src/widgets/kpropertiesdialogbuiltin_p.cpp
++++ b/src/widgets/kpropertiesdialogbuiltin_p.cpp
+@@ -1008,6 +1008,11 @@
+ 
+ void KFilePropsPlugin::postApplyChanges()
+ {
++    if (!d->m_ui->fileNameLineEdit->isHidden()) {
++        d->oldName = d->m_ui->fileNameLineEdit->text();
++        while (d->oldName.endsWith(QLatin1Char(' '))) d->oldName.chop(1);
++    }
++    d->m_bFromTemplate = false;
+     // Save the icon only after applying the permissions changes (#46192)
+     applyIconChanges();
+ 
+@@ -1946,13 +1951,20 @@
+     }
+ 
+     const bool recursive = d->cbRecursive && d->cbRecursive->isChecked();
++    const KFileItemList currentItems = properties->items();
++    QString currentOwner = currentItems.constFirst().user();
++    QString currentGroup = currentItems.constFirst().group();
++    for (const auto &item : currentItems) {
++        if (item.user() != currentOwner) currentOwner.clear();
++        if (item.group() != currentGroup) currentGroup.clear();
++    }
+ 
+     if (!recursive) {
+-        if (owner == d->strOwner) {
++        if (owner == currentOwner) {
+             owner.clear();
+         }
+ 
+-        if (group == d->strGroup) {
++        if (group == currentGroup) {
+             group.clear();
+         }
+     }
+@@ -1984,6 +1996,8 @@
+     const bool defaultACLChange = (d->defaultACL != properties->item().defaultACL());
+ 
+     if (owner.isEmpty() && group.isEmpty() && !recursive && !permissionChange && !ACLChange && !defaultACLChange) {
++        setDirty(false);
++        Q_EMIT changesApplied();
+         return;
+     }
+ 
+@@ -2851,6 +2865,9 @@
+     config.writeEntry("StartupNotify", d->m_startupBool);
+     config.sync();
+ 
++    d->m_origDesktopFile = path;
++    d->m_origCommandStr = d->command();
++
+     // KSycoca update needed?
+     bool updateNeeded = !relativeAppsLocation(path).isEmpty();
+     if (updateNeeded) {

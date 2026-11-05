@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "checks": [
+    "vm-certificates-updated-with-checkpoint",
+    "secure-boot-start"
+  ],
+  "update": {
+    "status": "PASS",
+    "checkpoint": "Antes dos certificados 2023 20261104_183015",
+    "secure_boot_unchanged": true
+  },
+  "domain": "01ec22d5-8612-4e5e-a4db-1c8ceac390d7"
+}

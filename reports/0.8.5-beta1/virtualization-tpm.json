@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "steps": [
+    "create-uefi-secureboot-tpm-sata",
+    "start",
+    "pause-resume-poweroff",
+    "snapshot-tpm"
+  ],
+  "id": "0385d3b0-7d13-4340-8739-f788a07b7de7",
+  "firmware": "<os firmware=\"efi\">\n    <type arch=\"x86_64\" machine=\"pc-q35-10.0\">hvm</type>\n    <firmware>\n      <feature enabled=\"yes\" name=\"enrolled-keys\" />\n      <feature enabled=\"yes\" name=\"secure-boot\" />\n    </firmware>\n    <loader readonly=\"yes\" secure=\"yes\" type=\"pflash\" format=\"raw\">/usr/share/OVMF/OVMF_CODE_4M.ms.fd</loader>\n    <nvram template=\"/usr/share/OVMF/OVMF_VARS_4M.ms.fd\" templateFormat=\"raw\" format=\"raw\">/var/lib/libvirt/qemu/nvram/QA085 Windows seguro 1793811223_VARS.fd</nvram>\n    <boot dev=\"hd\" />\n    <bootmenu enable=\"yes\" />\n  </os>\n  ",
+  "tpm": "<tpm model=\"tpm-crb\">\n      <backend type=\"emulator\" version=\"2.0\" />\n    </tpm>\n    ",
+  "state_paths": [
+    "/var/lib/libvirt/swtpm/0385d3b0-7d13-4340-8739-f788a07b7de7/tpm2",
+    "/var/lib/libvirt/swtpm/0385d3b0-7d13-4340-8739-f788a07b7de7/tpm2/.lock",
+    "/var/lib/libvirt/swtpm/0385d3b0-7d13-4340-8739-f788a07b7de7/tpm2/tpm2-00.permall"
+  ]
+}

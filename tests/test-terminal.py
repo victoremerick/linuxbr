@@ -25,9 +25,9 @@ class Terminal(unittest.TestCase):
         with self.assertRaises(ValueError): terminal.resolve('D:',lambda _: 'http://server')
     def test_display_and_modes(self):
         state={'data':{'letters':{'uuid:x':'D'}},'rows':[{'key':'uuid:x','mounts':['/mnt/data'],'protected':False}]}
-        self.assertEqual(terminal.display('/mnt/data/docs',state),'D:/docs')
-        self.assertEqual(terminal.display('/mnt/database',state),'C:/mnt/database')
-        self.assertEqual(terminal.display('/home/user',{}),'C:/home/user')
+        self.assertEqual(terminal.display('/mnt/data/docs',state),'D:\\docs')
+        self.assertEqual(terminal.display('/mnt/database',state),'C:\\mnt\\database')
+        self.assertEqual(terminal.display('/home/user',{}),'C:\\home\\user')
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ,{'XDG_CONFIG_HOME':tmp}):
             self.assertEqual(terminal.mode(),'letras')
             terminal.set_mode('linux'); self.assertEqual(terminal.mode(),'linux')
@@ -39,12 +39,12 @@ class Terminal(unittest.TestCase):
             mount=Path(tmp)/'team'; mount.mkdir()
             terminal.remember('smb://server/team',str(mount))
             state={'data':{'letters':{'smb:smb://server/team':'Z'}}}
-            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Z:/Docs')
+            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Z:\\Docs')
             state['data']['letters']['smb:smb://server/team']='Y'
-            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Y:/Docs')
+            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Y:\\Docs')
             terminal.mount_cache().write_text('[]')
             terminal.remember('smb://server/team',str(mount))
-            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Y:/Docs')
+            self.assertEqual(terminal.display(str(mount/'Docs'),state),'Y:\\Docs')
 
     def test_interactive_bash_and_legacy(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -55,7 +55,7 @@ class Terminal(unittest.TestCase):
             (root/'terminal.bash').write_text(shell)
             (root/'rc').write_text("PS1='original> '\nPROMPT_COMMAND=': preserved'\nsource "+shlex.quote(str(root/'terminal.bash'))+'\n')
             script='''set -e
-[[ $PS1 == '> ' ]]
+[[ $PS1 == '${LINUXBR_TERMINAL_PATH}> ' ]]
 d:
 [[ $PWD == TARGET ]]
 cd D:/Projetos

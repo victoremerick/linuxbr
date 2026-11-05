@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Aplicativos instalados
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page installed
+Icon=applications-all
+Keywords=Adicionar ou remover programas;Desinstalar;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

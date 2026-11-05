@@ -26,7 +26,7 @@ SOURCE=$(find . -mindepth 1 -maxdepth 1 -type d -name 'dolphin-*' -print -quit)
 [[ -n "$SOURCE" ]]
 python3 "$ROOT/scripts/patch-dolphin.py" "$SOURCE"
 cd "$SOURCE"
-DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --local '+linuxbr' --distribution trixie 'Drive cards for linuxbr:/; preserve normal Dolphin views.'
+DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --newversion "${VERSION}+linuxbr2" --distribution trixie 'Drive cards for linuxbr:/; preserve normal Dolphin views.'
 DEB_BUILD_OPTIONS='nocheck' dpkg-buildpackage -b -uc -us -j2
 cd "$WORK"
 # Publish the matching runtime/data/library packages together; exclude symbols.

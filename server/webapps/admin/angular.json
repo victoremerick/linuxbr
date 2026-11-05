@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "cli": {
+    "analytics": false
+  },
+  "projects": {
+    "catalog": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": {
+              "base": "../public/admin",
+              "browser": ""
+            },
+            "browser": "src/main.ts",
+            "index": "src/index.html",
+            "tsConfig": "tsconfig.json",
+            "styles": [
+              "src/styles.css"
+            ],
+            "baseHref": "./",
+            "outputHashing": "all",
+            "budgets": [
+              {
+                "type": "initial",
+                "maximumWarning": "650kB",
+                "maximumError": "1MB"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "properties-dialog-check": {
+    "returncode": 0,
+    "output": "{\"applyApi\":true,\"familiarReadOnly\":true,\"location\":true,\"pages\":[\"&Geral\",\"Seguran\u00e7a\",\"Valida\u00e7\u00e3o\",\"&Detalhes\",\"Vers\u00f5es anteriores\"],\"validation\":true,\"versions\":true}\nnative-dialog-sha256-sha512-reference-match-mismatch: ok\nnative-dialog-familiar-location: read-only, initial position and copy: ok\nnative-dialog-apply: four applications, two renames, permissions unchanged, same window: ok\n",
+    "error": ""
+  },
+  "properties-multiple-check": {
+    "returncode": 0,
+    "output": "native-dialog-multiple: native selection preserved; recursion disabled; no first-item pages: ok\n",
+    "error": ""
+  }
+}

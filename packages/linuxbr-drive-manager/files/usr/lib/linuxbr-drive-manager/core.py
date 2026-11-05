@@ -22,7 +22,7 @@ def smb_url(text):
     if any(ord(c) < 32 for c in text) or p.port is not None:
         raise ValueError('Endereço SMB inválido; não informe porta ou caracteres de controle.')
     path = quote(unquote(p.path).rstrip('/'), safe='/')
-    if any(c in unquote(p.path) for c in ['\x00', '\n', '\r']):
+    if any(ord(c) < 32 or ord(c) == 127 for c in unquote(p.path)):
         raise ValueError('Endereço SMB inválido.')
     return urlunsplit(('smb', p.netloc.lower(), path, '', ''))
 
@@ -129,6 +129,8 @@ class Store:
 
     def add_share(self, url, label):
         url = smb_url(url)
+        if not isinstance(label, str) or len(label) > 80 or any(ord(c) < 32 or ord(c) == 127 for c in label):
+            raise ValueError('Use um nome de até 80 caracteres, sem quebras de linha ou caracteres de controle.')
         def action(data):
             data['shares'][url] = label.strip() or url
             key = 'smb:' + url

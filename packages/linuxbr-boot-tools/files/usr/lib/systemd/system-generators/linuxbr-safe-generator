@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+import sys
+sys.path.insert(0,'/usr/lib/linuxbr-boot')
+from boot_policy import generate
+generate(*sys.argv[1:4])

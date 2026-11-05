@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Service
+MimeType=application/x-linuxbr-batch;
+Actions=EditBatch;RunBatch;
+X-KDE-Priority=TopLevel
+
+[Desktop Action EditBatch]
+Name=Editar script Windows
+Icon=document-edit
+Exec=kate -- %f
+
+[Desktop Action RunBatch]
+Name=Executar script Windows…
+Icon=application-x-executable
+Exec=linuxbr-windows %f

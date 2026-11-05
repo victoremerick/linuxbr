@@ -1,0 +1,506 @@
+{
+  "scope": "Comparison with candidate5, for interpreting earlier functional laboratory records. Final7 regression and exact upgrade remain separate.",
+  "unchanged": 96,
+  "changed": [
+    "packages/linuxbr-system/files/usr/lib/linuxbr-system/desktop_jobs.py",
+    "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_source_page.py",
+    "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization.py"
+  ],
+  "files": [
+    {
+      "path": "packages/linuxbr-desktop/files/usr/lib/linuxbr-desktop/keyboard-defaults.py",
+      "unchanged": true,
+      "sha256_final": "30dce4d42842163abe02dc39c785ac6a7a300e8b5e23077c55f7216b6b74b805"
+    },
+    {
+      "path": "packages/linuxbr-desktop/files/usr/lib/linuxbr-desktop/plasma-layout.py",
+      "unchanged": true,
+      "sha256_final": "b1c3ada1134c256091dd62a7c702957aba41e19c6b32bc838849cdfae3b96913"
+    },
+    {
+      "path": "packages/linuxbr-device-manager/files/usr/lib/linuxbr-device-manager/devices.py",
+      "unchanged": true,
+      "sha256_final": "a51bd47a751e6e4c3e27c6140086eb4429b62490f67c038958c0c20a654204d8"
+    },
+    {
+      "path": "packages/linuxbr-device-manager/files/usr/lib/linuxbr-device-manager/firmware_admin.py",
+      "unchanged": true,
+      "sha256_final": "8c4c766a6edc8bb52c26ab5cf3e9ba54bfc0bae46baed7c0f83d114ef788b34d"
+    },
+    {
+      "path": "packages/linuxbr-device-manager/files/usr/lib/linuxbr-device-manager/hardware.py",
+      "unchanged": true,
+      "sha256_final": "7b3de0617b0c4c3284b2e0442523c23975767f287a7917c8599e9694600617f5"
+    },
+    {
+      "path": "packages/linuxbr-device-manager/files/usr/lib/linuxbr-device-manager/proprietary.py",
+      "unchanged": true,
+      "sha256_final": "b47bbd5d95244161da0fc1690f507e84f8e70d1ad9e5b090a651b425701eefb0"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/app.py",
+      "unchanged": true,
+      "sha256_final": "3b031952fb10cb1d1dee2acba727e2163110d2a449053d2e56037da01f6dab55"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/backend.py",
+      "unchanged": true,
+      "sha256_final": "dc005b3ecaa5e47221bbcb25a39c163b83e5c3d7a5f586da98efcfb508fbfd7b"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/capacity.py",
+      "unchanged": true,
+      "sha256_final": "f38186f212c629cfe7879f75e9b8da7e7537e921cfec86ac7a2f79a27ca14231"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/client.py",
+      "unchanged": true,
+      "sha256_final": "ecbd07a2477d73659cfa0ba7f55dc2b7d4c428df7ca1682765373f53a639bbe3"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/core.py",
+      "unchanged": true,
+      "sha256_final": "b2ec60b327140a25e754f9df80d109ae1d304064bf44dfcbe3f806c44e9f55a5"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/diskmap.py",
+      "unchanged": true,
+      "sha256_final": "1b50b4051355d3ce1228c92681c7555821a3ea6dcc6cd42b8a19833e7c162369"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/network_access.py",
+      "unchanged": true,
+      "sha256_final": "38ff6942dde1682df343e67a98edac2e8633808a3ef04d956b85cce22c2de0ab"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/partition_dialog.py",
+      "unchanged": true,
+      "sha256_final": "2dc76773b3b95d8000c9576b5703a49f078914340c0a0f13a419b8b2b5299588"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/partition_worker.py",
+      "unchanged": true,
+      "sha256_final": "0572e78c5258c4446cf0c435e250740fb7a4771fa7a3099185d0401d6daa75fa"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/partitioning.py",
+      "unchanged": true,
+      "sha256_final": "fd077ba31e3108381eaf7a31cc8077f86342cc50434db87a7d93d08cdfb9ffb1"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/properties.py",
+      "unchanged": true,
+      "sha256_final": "9b8c79267f26f7c31a03c3f9433d61f85e45a8bbdc93f084f02979f98aed9fd5"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/service.py",
+      "unchanged": true,
+      "sha256_final": "24e0993ec850f42bd821f05e4cfbfbd26cabf232327df9c41c6d102bc6e43686"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/service_model.py",
+      "unchanged": true,
+      "sha256_final": "0ae1f623f49241de3e98e5224a0a8de5be2349e59c1f830d405c4d2e82885b80"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/show_properties.py",
+      "unchanged": true,
+      "sha256_final": "2ec40184ffd92780e5767405d36a60b4cd27924b7216105bd7efffc6d9d00fb4"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/terminal.py",
+      "unchanged": true,
+      "sha256_final": "2978d61c24a1e11d985a6063d9e62dda6ba475360a2d44348294b731aeea10e4"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/terminal_settings.py",
+      "unchanged": true,
+      "sha256_final": "417821dec80454a37c5ec6f83d0dd879fb1fbd7a1cb26f752b2530c73c9b50ec"
+    },
+    {
+      "path": "packages/linuxbr-drive-manager/files/usr/lib/linuxbr-drive-manager/windows_commands.py",
+      "unchanged": true,
+      "sha256_final": "5b59fa7d5ba21b815c1a3dc091a9c04ff67b89812865dfa8a591889cfbe74547"
+    },
+    {
+      "path": "packages/linuxbr-file-properties/files/usr/lib/linuxbr-file-properties/backend.py",
+      "unchanged": true,
+      "sha256_final": "79a059b0a28d8a36caa344ec815c2b8c97d0ff0c798d7deb0f83a6a6432ccac9"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/about.py",
+      "unchanged": true,
+      "sha256_final": "1c198558a8cf3ee49e5ceb26069aa10c32644d3ab0fa1d4c3d23842ef3035078"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/accounts.py",
+      "unchanged": true,
+      "sha256_final": "26a83d4ea91d8191991e3c5a25970ae6ab5b5abba1fc9e2352149fef4da368dc"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/accounts_backend.py",
+      "unchanged": true,
+      "sha256_final": "5fad71856c7f0a39c5ad7d12e08e284d00321c1309f702abf2bf4e78f3862b1b"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/action.py",
+      "unchanged": true,
+      "sha256_final": "3b0605db59038e5fe2e645270b807f4811926cd7614546995dabc60d412b4139"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/administration.py",
+      "unchanged": true,
+      "sha256_final": "bab02273988c9a40e3e03ccdf9d8585fcc783278d64cfcf35504cd8838d754c8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/administration_backend.py",
+      "unchanged": true,
+      "sha256_final": "ff84b5e9ae0059f72fcbb62a0b3dfa72fcbbca51fa3c7a279985f57e1862b333"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/app_permissions.py",
+      "unchanged": true,
+      "sha256_final": "5788cbaa3bda0f477dd76850922ad6a0867fe84d806f1c80a94cf5ab4c30824f"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/appearance.py",
+      "unchanged": true,
+      "sha256_final": "9bac7f9b3af177e82144f2d85f08717127e9735e9c9d9264e111a79b8e704a84"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/audio.py",
+      "unchanged": true,
+      "sha256_final": "967556c9d0cb45d9475ad841d3f2174a5181741acf39c9a93e24657a643c55b0"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/catalog_sources.py",
+      "unchanged": true,
+      "sha256_final": "a0e22464b6719eeb508e2ea46c0808d4af58c7975dac2a45744752fdead727ad"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/central.py",
+      "unchanged": true,
+      "sha256_final": "d456d70f1934c014289014fc0247707c7b9b2b5766cfd21fa209fa793657c72c"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/daily_use.py",
+      "unchanged": true,
+      "sha256_final": "20220dd78bb8f0bca641ea98647bf4851f2921e23d9f1b8874c3fb16751ff49a"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/desktop_jobs.py",
+      "unchanged": false,
+      "sha256_final": "611e3bac49d94e5cf017b7b53d6db4a01d97d4d79f06fb6e71317b210c6694be"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/desktop_theme.py",
+      "unchanged": true,
+      "sha256_final": "8caa9e47c07dde45901ba2815b3cf198ff75c94c801b760c005033a551ff3915"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/desktopflows08.py",
+      "unchanged": true,
+      "sha256_final": "19fbd1d98fb422b085ac4e1f734a4c729e8ba2494bd3ac7daac13d10a49c82dc"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/desktopflows08_backend.py",
+      "unchanged": true,
+      "sha256_final": "c7979193ab6a4489fedacd5b9a3af962fd8c7a1643d4e91d9729cc9232118671"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/display_backend.py",
+      "unchanged": true,
+      "sha256_final": "5a6b666634d0e6c6a598c4fe6a60d9c88a3770344a74c723b887e3df91de6cdf"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/display_page.py",
+      "unchanged": true,
+      "sha256_final": "1f7e54f5a870ed09a0345feaabc8b0cb372ca8280130d105bfc1e7662a86e21a"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/file_tools.py",
+      "unchanged": true,
+      "sha256_final": "bb612eb65bae7855a2c8550fbbefc26d8c271c4f0e4f8bb4e8c407fa16e6fd4d"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/firewall.py",
+      "unchanged": true,
+      "sha256_final": "a6083bfb423119c7afbae839d3c0c890549b6faf3c726a7ced84caad6650e888"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/firewall_backend.py",
+      "unchanged": true,
+      "sha256_final": "1d825454e28871188b492030048cdb6aca17dd40d2242d16e71e3dd70307f05b"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/firmware_page.py",
+      "unchanged": true,
+      "sha256_final": "f37f1fb05d4e259dc8d60ffa32a64be202ee120a67aa350276c4e893edca321d"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/function_icons.py",
+      "unchanged": true,
+      "sha256_final": "ee084186322d628ea216c7586da2c1e3049f96284cd8954e2549678bc5ff24fb"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/groups.py",
+      "unchanged": true,
+      "sha256_final": "a274e05329d46ede7efea071034e5ed7ddef18728cf0e2968b0f041a7ca83278"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/groups_backend.py",
+      "unchanged": true,
+      "sha256_final": "5110c48c758113de0f626e6ced099dd2a0918f1c619a4cd77ac35483a1458150"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/installer.py",
+      "unchanged": true,
+      "sha256_final": "e353ad5f486be2bc709b06ba6ff37a2513e9e6efc6f84bbe2bcb2a8f953ebec0"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/maintenance.py",
+      "unchanged": true,
+      "sha256_final": "c04ae882fbe03132ab1a8d7297e749d9106f0d92ca4ba32437fadb4893e9178b"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/migration.py",
+      "unchanged": true,
+      "sha256_final": "b2535c558f57265a2ee9d7d4d9e09ad2c6ee3a4b3b795dba5f5a1ede86c39ff8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/migration_backend.py",
+      "unchanged": true,
+      "sha256_final": "0fc2d05aeed6adebadcef4a6e76af76aa5b1c1af502886d587c0092033cd8ec5"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/network_ip.py",
+      "unchanged": true,
+      "sha256_final": "2347f71efade44836cb0039451712a8fdbd84bb5d60f72e8ef438ec2d5001dec"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/network_page.py",
+      "unchanged": true,
+      "sha256_final": "d577d04529aa3a7ed4139d199237a9bac40cd2f905b6b26189a3350b5619e024"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/power_backend.py",
+      "unchanged": true,
+      "sha256_final": "33af4f47310a3d7243c0ece069a6d621fc73cf3f62eb2205c9fdde986be7b1d8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/power_page.py",
+      "unchanged": true,
+      "sha256_final": "a37f9b5f3bfb2b81c74836d6f1efcd9f27662d58fb0a2e87cb54b091456ab665"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/protection_status.py",
+      "unchanged": true,
+      "sha256_final": "9f0f7886081cd26b00aad4205df262408a1b4417c95460300eeb80c01af4a85e"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/proxy.py",
+      "unchanged": true,
+      "sha256_final": "ec2529f81e04a73c32c49896bff91d3a446337300d6e4d8b7a3bd5c77ee320d7"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/recovery.py",
+      "unchanged": true,
+      "sha256_final": "bc44966fcdf33898e6fb5ec989cfac45a9da7a62a72f0a2edd3471ef2aabc169"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/remote_backend.py",
+      "unchanged": true,
+      "sha256_final": "d3451e17544a188ba1fae3898e84e9b6a5b0079cf7b9896a4faadf80d8470e98"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/remote_page.py",
+      "unchanged": true,
+      "sha256_final": "789f1baa1f989e1317a99a7b3c1fa9d43e47d456948460ca8d3484ded1c89ca8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/run_dialog.py",
+      "unchanged": true,
+      "sha256_final": "f60fd9ae18f48b549c8b2757032b9a02bb5010e31c3a8057d33295f4392517eb"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/session_actions.py",
+      "unchanged": true,
+      "sha256_final": "b371e4e929f3d867ab6230220f763f543789fc16d5f8c5eec33c3718e6c49081"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/settings_catalog.py",
+      "unchanged": true,
+      "sha256_final": "adc34b05b824509e0c114139775bcda223b7a15becca8dc7374bd9cf55c02ccb"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/settings_hub.py",
+      "unchanged": true,
+      "sha256_final": "66becdf0e87ffe16fb06f2b80646dbc3ca60a2782f4c87fb4cc421a03c3f421c"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/settings_tools.py",
+      "unchanged": true,
+      "sha256_final": "932b25f95ae4af2ce668f55605d83435a0ddcc8a5f7368d2b6930645c92942d3"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/setup_flow.py",
+      "unchanged": true,
+      "sha256_final": "b8d3496f33203df99cd97bdccfba01943a9592ddd3baba330ed61b4058c56e85"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/snapshot_service.py",
+      "unchanged": true,
+      "sha256_final": "f44f1c34da798f67c33ae2365e9f30661c07194158bfb3de246cc13a87d1be4f"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/storage_cleanup.py",
+      "unchanged": true,
+      "sha256_final": "d93ba6b6acfbb39afc9e3a53a49388ad719a38b75f2f1d82c1bcd9089bcc2be8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store.py",
+      "unchanged": true,
+      "sha256_final": "fc6f82a491e6eaaabb8a6f038495cbfaea0c193215af486fbd3cf14bd7ae3035"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_backend.py",
+      "unchanged": true,
+      "sha256_final": "360e0c1503594fafc7eb92547b89821f0c12acf6d7a7aeca9fecc09ba37894d5"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_frontend.py",
+      "unchanged": true,
+      "sha256_final": "a3f05e15117d1137931d04d6d84f8651b6457b69ffdccefeeee98c14b8be11ac"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_operations.py",
+      "unchanged": true,
+      "sha256_final": "339081047bc5507e0c74f301e24ed39f296988b5a68a99c85318c7f1a560e460"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_redirect.py",
+      "unchanged": true,
+      "sha256_final": "2e3696f40832b5dd98bda3d3640eca0dd1dca0af13b6015c3b6c944f1b4df31d"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_repository.py",
+      "unchanged": true,
+      "sha256_final": "efbf89530847a9297b8fbc3795257540480d75660587e9ce2455bc40f0c50eef"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_source_page.py",
+      "unchanged": false,
+      "sha256_final": "6aaff3854d45eb5bcfff4b3b0fed8c5ccaed728c64ed0189f52781435b7a0e97"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_sources.py",
+      "unchanged": true,
+      "sha256_final": "9aed063dc31ed394337784c8d28d0d2a55858849fc2b5abfc6a6c2f4a09100e9"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/store_transactions.py",
+      "unchanged": true,
+      "sha256_final": "8938f1edc69edbe724815b50c008a005182ef2e4c7edecb3fcee19aa3e3e9833"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/tasks.py",
+      "unchanged": true,
+      "sha256_final": "764229ea4f7cc1463550f8d6d340c5ed05f3985ea5d13d6c4f17de4d7272461a"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/troubleshooting.py",
+      "unchanged": true,
+      "sha256_final": "d172fff4aeabdb241fe4a3caf7ce293b473714acc7b5661dc4a537c04c765fb4"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/update_status.py",
+      "unchanged": true,
+      "sha256_final": "a702e98dd5f7c295ed68a06c23952c10690ed6ed77791f0017492d4d28230496"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization.py",
+      "unchanged": false,
+      "sha256_final": "bd7775b1c4f80f8d9505032860d0b7ebde7fd9e5e9e8ea9e82d10736ce00533e"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization_backend.py",
+      "unchanged": true,
+      "sha256_final": "bdfaa52484595f87b6abe85b342cccafb423183e5b759689185c5cd59bdbee60"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization_preferences.py",
+      "unchanged": true,
+      "sha256_final": "4205a828f0103a0fd07bae659a43952bfa8c766d28eda7b408a26d12d7990626"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization_state.py",
+      "unchanged": true,
+      "sha256_final": "ae1c7ce72efebad3a912ded07d071a924e7faa63f2bb1059afd8db32c0321279"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/virtualization_transfer.py",
+      "unchanged": true,
+      "sha256_final": "7b218a9a29947df701e9b94be3ef244bf316edb78c3955b41af41cb17e89c225"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/visual_style.py",
+      "unchanged": true,
+      "sha256_final": "78b5043789c25f476e041da0b29ba65e378bc781df1bca08f3e2bbdc71a2eb39"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/vm_firmware.py",
+      "unchanged": true,
+      "sha256_final": "acbd46647355ad737fde4b73263a8e5b603427e745e0cc2b1d4d65024a7d88f1"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/webapp_icons.py",
+      "unchanged": true,
+      "sha256_final": "05b4432d76ea61eff962f4fff587908f549fef2a5a447a5570f859021c2589f1"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/webapps.py",
+      "unchanged": true,
+      "sha256_final": "2d3d51bd8e22f2d992d9514bae6fbc2198656452c60dcb408652cd8acb5883de"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/webapps_backend.py",
+      "unchanged": true,
+      "sha256_final": "2b4db15684165e38d90e9fda82dbe0897723d19975d31fec5bfa1be54610ac9d"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/webapps_host.py",
+      "unchanged": true,
+      "sha256_final": "afae5cbf0d2fd1e9deacee7b210743bd20baf5932a78a3768345d9f3f68a4d46"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/welcome.py",
+      "unchanged": true,
+      "sha256_final": "846eb663243e77920b79c05d8842da8f881d423367cc637b3e686490ab00466d"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/windows_compat.py",
+      "unchanged": true,
+      "sha256_final": "3e26818689a33ec716126001e978e80c1f0ed71df97d17579054e7d412ac10a8"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/windows_games.py",
+      "unchanged": true,
+      "sha256_final": "b62500b26d5765c7afb939435045ae80dee148d47f0344f5d1493e1a71baaf71"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/windows_recipes.py",
+      "unchanged": true,
+      "sha256_final": "554cd57c191940948f78da46a1187bfe8ef3449b24bde7bc82e0924e090604f7"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/windows_runner.py",
+      "unchanged": true,
+      "sha256_final": "df281d76cd03829067c17c710e6b84c8b3f48496dfe74d407774f4fa973c5ae0"
+    },
+    {
+      "path": "packages/linuxbr-system/files/usr/lib/linuxbr-system/windows_tools.py",
+      "unchanged": true,
+      "sha256_final": "eb156d6bf29967fd233fafd7357d37b58303faa46d36cf2811de305661d64d9f"
+    }
+  ]
+}

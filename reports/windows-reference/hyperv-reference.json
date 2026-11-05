@@ -1,0 +1,51 @@
+{
+  "service": {
+    "Name": "vmms",
+    "state": "Running"
+  },
+  "tpm": {
+    "TpmEnabled": true
+  },
+  "adapters": [
+    {
+      "Name": "Adaptador de Rede",
+      "SwitchName": "Referencia-Interna",
+      "MacAddress": "000000000000"
+    },
+    {
+      "Name": "Rede privada",
+      "SwitchName": "Referencia-Privada",
+      "MacAddress": "000000000000"
+    }
+  ],
+  "firmware": {
+    "secure_boot": "On",
+    "SecureBootTemplate": "MicrosoftWindows"
+  },
+  "switches": [
+    {
+      "Name": "Default Switch",
+      "type": "Internal"
+    },
+    {
+      "Name": "Referencia-Interna",
+      "type": "Internal"
+    },
+    {
+      "Name": "Referencia-Privada",
+      "type": "Private"
+    }
+  ],
+  "status": "PASS",
+  "scope": "Definição vazia para observar configuração; sem sistema instalado nem teste de carga.",
+  "vm": {
+    "Name": "LinuxBR-Referencia-Vazia",
+    "Generation": 2,
+    "state": "Off",
+    "ProcessorCount": 2,
+    "DynamicMemoryEnabled": true,
+    "MemoryStartup": 1073741824,
+    "MemoryMinimum": 536870912,
+    "MemoryMaximum": 2147483648
+  }
+}

@@ -1,0 +1,306 @@
+{
+  "status": "PASS",
+  "firmware": "uefi",
+  "version": "0.8.5~beta1",
+  "scope": "Verificação offline de instalação limpa; não valida inicialização nem interface gráfica.",
+  "source_manifest_sha256": "ac6b7649976d61a1efe1995d7ca204625ceb01b748ee7e1e748f2a4e7614e19b",
+  "rootfs_checker_sha256": "cd3222f4fa7f0af2283a969123119775e4a7742e44c98cdf9661e54f41f6d7e0",
+  "partitions": [
+    {
+      "name": "nbd8p1",
+      "filesystem": "vfat"
+    },
+    {
+      "name": "nbd8p2",
+      "filesystem": "ext4"
+    },
+    {
+      "name": "nbd8p3",
+      "filesystem": "swap"
+    }
+  ],
+  "ext4_fsck_readonly": "PASS",
+  "fat_fsck_readonly": "PASS",
+  "efi_files": [
+    "EFI/Linux_BR/fbx64.efi",
+    "EFI/Linux_BR/grubx64.efi",
+    "EFI/Linux_BR/mmx64.efi",
+    "EFI/Linux_BR/shimx64.efi",
+    "EFI/boot/bootx64.efi"
+  ],
+  "boot_files_and_fstab_match": true,
+  "rootfs_installed_check": "PASS",
+  "diagnostic_sshd_absent": true,
+  "diagnostic_authorized_keys_absent": true,
+  "diagnostic_ssh_material_absent": true,
+  "core_package_versions": {
+    "linuxbr-release": "0.8.5~beta1",
+    "linuxbr-branding": "0.8.5~beta1",
+    "linuxbr-desktop": "0.8.5~beta1",
+    "linuxbr-sddm-theme": "0.8.5~beta1",
+    "linuxbr-boot-theme": "0.8.5~beta1",
+    "linuxbr-drive-manager": "0.8.5~beta1",
+    "linuxbr-system": "0.8.5~beta1",
+    "linuxbr-device-manager": "0.8.5~beta1",
+    "linuxbr-file-properties": "0.8.5~beta1"
+  },
+  "installer_package_states": {
+    "linuxbr-calamares-settings": {
+      "Status": null,
+      "Version": null
+    },
+    "calamares-settings-debian": {
+      "Status": null,
+      "Version": null
+    },
+    "calamares": {
+      "Status": "install ok installed",
+      "Version": "3.3.14-1"
+    }
+  },
+  "installer_launchers": {
+    "usr/bin/calamares-install-linuxbr": false,
+    "usr/share/applications/calamares-install-linuxbr.desktop": false,
+    "usr/share/applications/calamares.desktop": true
+  },
+  "installed_live_customization_removed": true,
+  "installer_cleanup_policy": "Configuração e lançadores Live removidos; Calamares genérico pode permanecer com seu lançador restaurado, conforme package-smoke e rootfs installed.",
+  "release_anchor_exact_components": true,
+  "patched_kio_versions": {
+    "kio6": "6.13.0-6+linuxbr0.8.1",
+    "libkf6kiocore6": "6.13.0-6+linuxbr0.8.1",
+    "libkf6kiogui6": "6.13.0-6+linuxbr0.8.1",
+    "libkf6kiowidgets6": "6.13.0-6+linuxbr0.8.1",
+    "libkf6kiofilewidgets6": "6.13.0-6+linuxbr0.8.1"
+  },
+  "native_properties_apply_and_plugin": true,
+  "native_binary_payloads": {
+    "kio6": {
+      "version": "6.13.0-6+linuxbr0.8.1",
+      "deb_sha256": "46c72c5ecbbf8619b0d281432fed325357f5b0f97e15b11d4e487e7227e7bfd0",
+      "installed_binary_sha256": {
+        "usr/bin/ktelnetservice6": "eaa95b893e745c3e883060f74efc7d58a2db6bba871f752830393f6bba6557bf",
+        "usr/bin/ktrash6": "9b4cbe0c86353c00a64fd084f16a7392ba3b18032ca11ac1bf2b8d1b33579046",
+        "usr/lib/x86_64-linux-gnu/libkuriikwsfiltereng_private.so": "9e9c44c0a20095354917f277626f11ec8805a76f13364aa2d6712dcf3bddca17",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kded/remotenotifier.so": "7ecab37f652b7f642d4ec16a1b1b4b0289580eb48e2d94178b55a3cb608509cd",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_file.so": "042bb81f6c7cd38685dfda64c85774a989df70b1045b9d12ca59b26bb3fe1dea",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_ftp.so": "5462f1247e535a7903e8a21b1c953a4802cad588bba3c660cc0a0c44ebf88fec",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_ghelp.so": "1b9cd443ad50b35e76835d3b38fb13ddb743a3da8af20ab246702f4f8f7dec16",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_help.so": "d765dadf5b0d9a436f8251ffda5a0e71bf95290062580c07e789cb6857506027",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_http.so": "6b2ca125750627a4de703d6e81140e0c0cb7c45a59bd6ebc74c2cc666746f8a5",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_remote.so": "37f36014a40d8a62f1c2922d269b4a6257745df59fcdbdbd6dd3abb24f92b744",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_trash.so": "43de7e2acb8ffcd97bde45400174a906f2bea6070c371954cdebba933ffda6e6",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio_dnd/dropintonewfolder.so": "3f5ac7aedd5b12d3567dafc10f7a0e082f9165e51f2aca5fb797f5936740ade5",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kiod/kioexecd.so": "b9e37d8f166c0d6273b176566995156903aa8d81d143e484a1616595d9a35e83",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kiod/kpasswdserver.so": "4bcb703aeddb926e4461c647afcc7c94878be3e6511443cabfc7468053525040",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kiod/kssld.so": "1b557e7a93dda578a9dc863bb71c1f18a5f580134dfc1e6d307b5dec5fa3f858",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/urifilters/fixhosturifilter.so": "5734f9b443d96086dadbb1b831b5ad5d2bbff24f164a154af3906665b683b78d",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/urifilters/kshorturifilter.so": "1a84e6c0fc8ef0c96ed667cf43740ac6c96a26d2a8012decb74c0ec0618ac8ba",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/urifilters/kuriikwsfilter.so": "3f3d7d2fc3e6c4dc19a838213d0ae4b6bcfa9185b4286c03682787cdbc7c50c3",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/urifilters/kurisearchfilter.so": "5f5f8cad8a6a4a145f03d2ef169af1265fc9bc22ccea8546026ac67cd1723513",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/urifilters/localdomainurifilter.so": "38146d87388b4846010a4f1f1257cb830684408a05e9e8a2dbb4c2d753cb6eb2"
+      }
+    },
+    "libkf6kiocore6": {
+      "version": "6.13.0-6+linuxbr0.8.1",
+      "deb_sha256": "82e75a382ea410a06390cdcc0d0a061a086128addb213da3adcfba270d6a911c",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/libKF6KIOCore.so.6.13.0": "1739d8d49f71748470f9a681f742c1601e5573da898dd73b2468d43d7cf2b129"
+      }
+    },
+    "libkf6kiogui6": {
+      "version": "6.13.0-6+linuxbr0.8.1",
+      "deb_sha256": "72b5a921a631ddf357c002bacd23c34b124521b736354a3c39679e09c4d38fdc",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/libKF6KIOGui.so.6.13.0": "5be7596170e06e86ff85123c0e5f4016eba0b46e56e062a50caf25280c77b86e"
+      }
+    },
+    "libkf6kiowidgets6": {
+      "version": "6.13.0-6+linuxbr0.8.1",
+      "deb_sha256": "27c1a90b4f6a23d35d94b976d44e0a42d6900eadc4bb5c4be966a70dd4e1a1ca",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/libKF6KIOWidgets.so.6.13.0": "eee41332847c50fab63dc7caf5b5391bfa5b4f04c974c2f7d96f71e8cfb511a7"
+      }
+    },
+    "libkf6kiofilewidgets6": {
+      "version": "6.13.0-6+linuxbr0.8.1",
+      "deb_sha256": "ef32426fa50d05589a13a701e5db5a0a4da783a0ea049ec4c7d2cac376dcb15b",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/libKF6KIOFileWidgets.so.6.13.0": "555b2bb8bb456aaf17527b341508c80796abe1194ea25cf31cf0ec7c4a91205c"
+      }
+    },
+    "linuxbr-desktop": {
+      "version": "0.8.5~beta1",
+      "deb_sha256": "8218a6bca0891af62f99c2ceb6125c2007a887984248ec38c44098c2e6de3b29",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/styles/liblinuxbrclean.so": "323e912223d6b7f5c2042fd8d99561f93c8180879cf202cf74888a93cc7ebf75"
+      }
+    },
+    "linuxbr-drive-manager": {
+      "version": "0.8.5~beta1",
+      "deb_sha256": "752109c9663539623e5a67df7f5c1997f3a52c87e3c4b01dbafb87205bb642b0",
+      "installed_binary_sha256": {
+        "usr/lib/linuxbr-drive-manager/linuxbr-places-sync": "1e8f69036d53985cc8dd495ff273d9482a7e960696cbf7827b1f6a827adc7be0",
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/kio_linuxbr.so": "6be612dad6fd620555da82d1aab9b82bb4b0a5f5e1f08ad3adb93a0b828687d2"
+      }
+    },
+    "linuxbr-file-properties": {
+      "version": "0.8.5~beta1",
+      "deb_sha256": "d3d44c9aea4961ed7fbd2108c7482dc9f6863d54dfd859010b5e0f7c3c4fc12e",
+      "installed_binary_sha256": {
+        "usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/propertiesdialog/liblinuxbrfileproperties.so": "5be78ba915a53806294719e4d6775d2c9c221768f95b3da1778938f8062c7565"
+      }
+    }
+  },
+  "release": {
+    "version": "0.8.5~beta1",
+    "display_version": "0.8.5 Beta 1",
+    "channel": "beta",
+    "distribution": "Debian 13",
+    "codename": "trixie"
+  },
+  "user": "brasil",
+  "timezone": "America/Sao_Paulo",
+  "keyboard": {
+    "XKBLAYOUT": "br",
+    "XKBMODEL": "pc105",
+    "XKBVARIANT": "",
+    "XKBOPTIONS": ""
+  },
+  "locale": {
+    "LANG": "pt_BR.UTF-8"
+  },
+  "source_files_match": [
+    "etc/apt/apt.conf.d/80linuxbr-recovery",
+    "etc/linuxbr/recovery-policy.json",
+    "usr/lib/linuxbr-desktop/keyboard-defaults.py",
+    "usr/lib/linuxbr-desktop/plasma-layout.py",
+    "usr/lib/linuxbr-device-manager/devices.py",
+    "usr/lib/linuxbr-device-manager/firmware_admin.py",
+    "usr/lib/linuxbr-device-manager/hardware.py",
+    "usr/lib/linuxbr-device-manager/proprietary.py",
+    "usr/lib/linuxbr-drive-manager/app.py",
+    "usr/lib/linuxbr-drive-manager/backend.py",
+    "usr/lib/linuxbr-drive-manager/capacity.py",
+    "usr/lib/linuxbr-drive-manager/client.py",
+    "usr/lib/linuxbr-drive-manager/core.py",
+    "usr/lib/linuxbr-drive-manager/diskmap.py",
+    "usr/lib/linuxbr-drive-manager/network_access.py",
+    "usr/lib/linuxbr-drive-manager/partition_dialog.py",
+    "usr/lib/linuxbr-drive-manager/partition_worker.py",
+    "usr/lib/linuxbr-drive-manager/partitioning.py",
+    "usr/lib/linuxbr-drive-manager/properties.py",
+    "usr/lib/linuxbr-drive-manager/service.py",
+    "usr/lib/linuxbr-drive-manager/service_model.py",
+    "usr/lib/linuxbr-drive-manager/show_properties.py",
+    "usr/lib/linuxbr-drive-manager/terminal.py",
+    "usr/lib/linuxbr-drive-manager/terminal_settings.py",
+    "usr/lib/linuxbr-drive-manager/windows_commands.py",
+    "usr/lib/linuxbr-file-properties/backend.py",
+    "usr/lib/linuxbr-system/about.py",
+    "usr/lib/linuxbr-system/accounts.py",
+    "usr/lib/linuxbr-system/accounts_backend.py",
+    "usr/lib/linuxbr-system/action.py",
+    "usr/lib/linuxbr-system/administration.py",
+    "usr/lib/linuxbr-system/administration_backend.py",
+    "usr/lib/linuxbr-system/app_permissions.py",
+    "usr/lib/linuxbr-system/appearance.py",
+    "usr/lib/linuxbr-system/audio.py",
+    "usr/lib/linuxbr-system/catalog_sources.py",
+    "usr/lib/linuxbr-system/central.py",
+    "usr/lib/linuxbr-system/daily_use.py",
+    "usr/lib/linuxbr-system/desktop_jobs.py",
+    "usr/lib/linuxbr-system/desktop_theme.py",
+    "usr/lib/linuxbr-system/desktopflows08.py",
+    "usr/lib/linuxbr-system/desktopflows08_backend.py",
+    "usr/lib/linuxbr-system/display_backend.py",
+    "usr/lib/linuxbr-system/display_page.py",
+    "usr/lib/linuxbr-system/file_tools.py",
+    "usr/lib/linuxbr-system/firewall.py",
+    "usr/lib/linuxbr-system/firewall_backend.py",
+    "usr/lib/linuxbr-system/firmware_page.py",
+    "usr/lib/linuxbr-system/function_icons.py",
+    "usr/lib/linuxbr-system/groups.py",
+    "usr/lib/linuxbr-system/groups_backend.py",
+    "usr/lib/linuxbr-system/installer.py",
+    "usr/lib/linuxbr-system/maintenance.py",
+    "usr/lib/linuxbr-system/migration.py",
+    "usr/lib/linuxbr-system/migration_backend.py",
+    "usr/lib/linuxbr-system/network_ip.py",
+    "usr/lib/linuxbr-system/network_page.py",
+    "usr/lib/linuxbr-system/power_backend.py",
+    "usr/lib/linuxbr-system/power_page.py",
+    "usr/lib/linuxbr-system/protection_status.py",
+    "usr/lib/linuxbr-system/proxy.py",
+    "usr/lib/linuxbr-system/recovery.py",
+    "usr/lib/linuxbr-system/remote_backend.py",
+    "usr/lib/linuxbr-system/remote_page.py",
+    "usr/lib/linuxbr-system/run_dialog.py",
+    "usr/lib/linuxbr-system/session_actions.py",
+    "usr/lib/linuxbr-system/settings_catalog.py",
+    "usr/lib/linuxbr-system/settings_hub.py",
+    "usr/lib/linuxbr-system/settings_tools.py",
+    "usr/lib/linuxbr-system/setup_flow.py",
+    "usr/lib/linuxbr-system/snapshot_service.py",
+    "usr/lib/linuxbr-system/storage_cleanup.py",
+    "usr/lib/linuxbr-system/store.py",
+    "usr/lib/linuxbr-system/store_backend.py",
+    "usr/lib/linuxbr-system/store_frontend.py",
+    "usr/lib/linuxbr-system/store_operations.py",
+    "usr/lib/linuxbr-system/store_redirect.py",
+    "usr/lib/linuxbr-system/store_repository.py",
+    "usr/lib/linuxbr-system/store_source_page.py",
+    "usr/lib/linuxbr-system/store_sources.py",
+    "usr/lib/linuxbr-system/store_transactions.py",
+    "usr/lib/linuxbr-system/tasks.py",
+    "usr/lib/linuxbr-system/troubleshooting.py",
+    "usr/lib/linuxbr-system/update_status.py",
+    "usr/lib/linuxbr-system/virtualization.py",
+    "usr/lib/linuxbr-system/virtualization_backend.py",
+    "usr/lib/linuxbr-system/virtualization_preferences.py",
+    "usr/lib/linuxbr-system/virtualization_state.py",
+    "usr/lib/linuxbr-system/virtualization_transfer.py",
+    "usr/lib/linuxbr-system/visual_style.py",
+    "usr/lib/linuxbr-system/vm_firmware.py",
+    "usr/lib/linuxbr-system/webapp_icons.py",
+    "usr/lib/linuxbr-system/webapps.py",
+    "usr/lib/linuxbr-system/webapps_backend.py",
+    "usr/lib/linuxbr-system/webapps_host.py",
+    "usr/lib/linuxbr-system/welcome.py",
+    "usr/lib/linuxbr-system/windows_compat.py",
+    "usr/lib/linuxbr-system/windows_games.py",
+    "usr/lib/linuxbr-system/windows_recipes.py",
+    "usr/lib/linuxbr-system/windows_runner.py",
+    "usr/lib/linuxbr-system/windows_tools.py",
+    "usr/share/kio/servicemenus/linuxbr-batch.desktop",
+    "usr/share/linuxbr/bashrc",
+    "usr/share/linuxbr/store/catalog.json",
+    "usr/share/linuxbr/terminal.bash",
+    "usr/share/linuxbr/webapps/background.js",
+    "usr/share/linuxbr/webapps/profiles-worker.js",
+    "usr/share/linuxbr/webapps/rules.js",
+    "usr/share/linuxbr/windows/recipes-v1.json",
+    "usr/share/mime/packages/linuxbr-batch.xml"
+  ],
+  "runtime_python_modules_matched": 99,
+  "platform_085_dependencies": {
+    "virt-manager": "1:5.0.0-5+deb13u1",
+    "python3-libvirt": "11.3.0-1",
+    "libvirt-daemon-system": "11.3.0-3+deb13u3",
+    "libvirt-clients": "11.3.0-3+deb13u3",
+    "qemu-system-x86": "1:10.0.13+ds-0+deb13u1",
+    "qemu-system-modules-spice": "1:10.0.13+ds-0+deb13u1",
+    "qemu-utils": "1:10.0.13+ds-0+deb13u1",
+    "virt-viewer": "11.0-3+b1",
+    "ovmf": "2025.02-8+deb13u1",
+    "swtpm": "0.7.1-1.5",
+    "swtpm-tools": "0.7.1-1.5",
+    "python3-virt-firmware": "24.11-2",
+    "fwupd": "2.0.20-1~deb13u1"
+  },
+  "secure_boot_2023_template": true,
+  "store_redirects_and_original_preserved": true,
+  "read_only_verification": true,
+  "cleanup_completed": true,
+  "disk_sha256": "54ef5cd06b33e951767eca23eb5cd890aaa2a577d42a6a75dd4889f1bf357075"
+}

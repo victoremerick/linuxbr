@@ -1,0 +1,17 @@
+{
+  "status": "FAIL",
+  "attempt": 1,
+  "stage": "specialize",
+  "reason": "ComputerName com 16 caracteres; o limite aceito e 15.",
+  "windows_error": "0x80220005",
+  "evidence": "Log Panther identificou Microsoft-Windows-Shell-Setup /settings/ComputerName como valor invalido.",
+  "correction": {
+    "computer_name": "WIN11-REF",
+    "length": 9,
+    "preparation_now_validates_maximum_length": true,
+    "clean_reinstallation_started": true
+  },
+  "failed_logs_preserved": true,
+  "failed_generated_disk_discarded_after_native_shutdown": true,
+  "linuxbr_or_host_user_disks_changed": false
+}

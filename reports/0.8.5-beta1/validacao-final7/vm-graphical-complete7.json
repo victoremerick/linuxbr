@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "source_archive_sha256": "e122e0c8007eed44e28db52b076efa7680115040d4eca744a6325c3cd211ed5d",
+  "checks": [
+    "Lançador virtmgmt.msc e autorização nativa",
+    "Menu de criação rápida e assistente completo",
+    "Assistente completo em português e seleção gráfica de mídia",
+    "Editor completo por UUID a partir de Configurações e Avançado",
+    "Controles gráficos de memória atual/máxima e dispositivos",
+    "Seletor local de ISO na criação rápida",
+    "Cancelamento dos assistentes sem criar VM",
+    "Editor permanece habilitado ao recusar operação concorrente"
+  ],
+  "domains_before_after": 5,
+  "resolution": [
+    1280,
+    768
+  ],
+  "at": "2026-11-04T20:52:33.448101+00:00"
+}

@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "file": "SHA256SUMS",
+  "fingerprint": "E49F63315DBE5952F4CD362D642079071210D3D1",
+  "signature": "SHA256SUMS.asc",
+  "keyring": "linuxbr-archive-keyring.gpg",
+  "independent_signature_verification": true
+}

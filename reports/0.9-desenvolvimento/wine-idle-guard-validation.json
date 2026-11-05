@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "architecture": "32",
+      "actual_server_present": true,
+      "removal_blocked": true
+    },
+    {
+      "architecture": "64",
+      "actual_server_present": true,
+      "removal_blocked": true
+    }
+  ]
+}

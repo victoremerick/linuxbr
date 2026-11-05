@@ -1,0 +1,18 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "installed_plugin": true,
+  "probes": [
+    {
+      "probe": "properties-dialog-check",
+      "returncode": 0,
+      "output": "{\"applyApi\":true,\"familiarReadOnly\":true,\"location\":true,\"pages\":[\"&Geral\",\"Seguran\u00e7a\",\"Valida\u00e7\u00e3o\",\"&Detalhes\",\"Vers\u00f5es anteriores\"],\"validation\":true,\"versions\":true}\nnative-dialog-sha256-sha512-reference-match-mismatch: ok\nnative-dialog-familiar-location: read-only, initial position and copy: ok\nnative-dialog-apply: four applications, two renames, permissions unchanged, same window: ok\nkf.kio.widgets: Failed to check which JobView API is supported \"The name org.kde.kuiserver was not provided by any .service files\"\n\"applications.menu\"  not found in  QList(\"/home/brasil/.config/menus\", \"/etc/xdg/menus\")\ndbus-daemon[1175]: [session uid=1000 pid=1175 pidfd=6] Activating service name='org.linuxbr.DriveManager1' requested by ':1.1' (uid=1000 pid=1180 comm=\"/usr/bin/python3 /usr/lib/linuxbr-file-properties/\")\ndbus-daemon[1175]: [session uid=1000 pid=1175 pidfd=6] Successfully activated service 'org.linuxbr.DriveManager1'\n"
+    },
+    {
+      "probe": "properties-multiple-check",
+      "returncode": 0,
+      "output": "native-dialog-multiple: native selection preserved; recursion disabled; no first-item pages: ok\nkf.kio.widgets: Failed to check which JobView API is supported \"The name org.kde.kuiserver was not provided by any .service files\"\n"
+    }
+  ],
+  "boot_id": "e4023697-accb-4678-addc-6c8b893a67c9"
+}

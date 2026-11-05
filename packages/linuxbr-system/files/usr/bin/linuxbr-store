@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/python3 /usr/lib/linuxbr-system/store.py "$@"
+exec /usr/bin/python3 /usr/lib/linuxbr-system/store_frontend.py "$@"

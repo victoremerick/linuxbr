@@ -14,8 +14,13 @@ from PyQt6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QFileDialog,
 
 
 ALIASES = {
+    'virtmgmt.msc': ['linuxbr-virtual-machines'],
+    'services.msc': ['linuxbr-system','--page','services'],
+    'eventvwr.msc': ['linuxbr-system','--page','events'],
+    'taskschd.msc': ['linuxbr-system','--page','scheduler'],
+    'sysdm.cpl': ['linuxbr-system','--page','about'],
     'control': ['linuxbr-system'],
-    'appwiz.cpl': ['plasma-discover', '--mode', 'Installed'],
+    'appwiz.cpl': ['linuxbr-store','--installed'],
     'calc': ['kcalc'],
     'notepad': ['kate'],
     'mspaint': ['kolourpaint'],
@@ -35,12 +40,12 @@ ALIASES = {
     'desk.cpl': ['linuxbr-system', '--page', 'Telas'],
     'firewall.cpl': ['linuxbr-system', '--page', 'Firewall'],
     'netplwiz': ['linuxbr-system', '--page', 'Usuários'],
-    'msconfig': ['kcmshell6', 'kcm_autostart'],
-    'shell:startup': ['kcmshell6', 'kcm_autostart'],
+    'msconfig': ['linuxbr-msconfig'],
+    'shell:startup': ['linuxbr-system', '--page', 'startup'],
     'shell:appsfolder': ['linuxbr-store'],
     'ms-settings:': ['linuxbr-system'],
-    'ms-settings:windowsupdate': ['plasma-discover', '--mode', 'Update'],
-    'ms-settings:appsfeatures': ['plasma-discover', '--mode', 'Installed'],
+    'ms-settings:windowsupdate': ['linuxbr-store','--updates'],
+    'ms-settings:appsfeatures': ['linuxbr-store','--installed'],
     'ms-settings:display': ['linuxbr-system', '--page', 'Telas'],
     'ms-settings:sound': ['linuxbr-system', '--page', 'Áudio'],
     'ms-settings:network': ['linuxbr-system', '--page', 'Rede'],
@@ -49,6 +54,31 @@ ALIASES = {
     'ms-settings:printers': ['kcmshell6', 'kcm_printer_manager'],
     'ms-settings:defaultapps': ['kcmshell6', 'kcm_componentchooser'],
 }
+
+for uri,page in {
+    'display':'display','display-advanced':'display-advanced','display-advancedgraphics':'display-advanced',
+    'sound':'sound','sound-devices':'sound','apps-volume':'sound','notifications':'notifications',
+    'powersleep':'power','batterysaver':'power','storagesense':'storage','storagepolicies':'maintenance',
+    'multitasking':'multitasking','clipboard':'clipboard','remotedesktop':'remote','about':'about',
+    'recovery':'recovery','troubleshoot':'maintenance','bluetooth':'bluetooth','printers':'printers',
+    'mouse':'mouse','mousetouchpad':'mouse','devices-touchpad':'touchpad','devices-touch':'touch',
+    'pen':'pen','camera':'camera','usb':'usb','autoplay':'autoplay','mobile-devices':'phone',
+    'network-status':'connections','network-advancedsettings':'connections','network-ethernet':'connections',
+    'network-wifi':'wifi','network-wifisettings':'wifi','network-vpn':'vpn','network-proxy':'proxy',
+    'network-mobilehotspot':'hotspot','personalization':'desktop-layout','personalization-background':'background',
+    'personalization-colors':'colors','themes':'themes','fonts':'fonts','lockscreen':'lockscreen',
+    'taskbar':'desktop-layout','personalization-start':'desktop-layout','personalization-touchkeyboard':'virtual-keyboard',
+    'appsfeatures':'installed','defaultapps':'defaultapps','startupapps':'startup','appsforwebsites':'webapps',
+    'yourinfo':'users','signinoptions':'signin','otherusers':'users','workplace':'organization',
+    'dateandtime':'datetime','regionlanguage':'region','typing':'typing','speech':'access',
+    'gaming-gamebar':'capture','gaming-gamemode':'games','gaming-gamedvr':'capture',
+    'easeofaccess-display':'display','easeofaccess-highcontrast':'contrast','easeofaccess-keyboard':'access',
+    'easeofaccess-mousepointer':'pointer','easeofaccess-audio':'audio-access','easeofaccess-narrator':'access',
+    'privacy-webcam':'permissions','privacy-microphone':'permissions','privacy-documents':'permissions',
+    'privacy-downloadsfolder':'permissions','privacy-broadfilesystemaccess':'permissions','privacy-feedback':'diagnostics',
+    'windowsdefender':'protection','windowsupdate':'updates','windowsupdate-history':'update-recovery',
+    'windowsupdate-options':'update-recovery'
+}.items():ALIASES['ms-settings:'+uri]=['linuxbr-system','--page',page]
 
 
 def start(command):

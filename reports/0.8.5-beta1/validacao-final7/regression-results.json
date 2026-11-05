@@ -1,0 +1,273 @@
+{
+  "status": "PASS",
+  "suites": [
+    {
+      "suite": "test-accounts.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-boot-language.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-build-entrypoints.py",
+      "exit_code": 0,
+      "seconds": 11.34
+    },
+    {
+      "suite": "test-control-center-services.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-device-manager.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-dolphin-build.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-drive-capacity.py",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "suite": "test-drive-manager-backend.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-drive-manager.py",
+      "exit_code": 0,
+      "seconds": 0.56
+    },
+    {
+      "suite": "test-drive-service.py",
+      "exit_code": 0,
+      "seconds": 0.41
+    },
+    {
+      "suite": "test-embedded-display-remote.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-keyboard-defaults.py",
+      "exit_code": 0,
+      "seconds": 0.06
+    },
+    {
+      "suite": "test-launchers.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-nvidia.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-partitioning.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-plasma-layout.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-recovery-setup.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-session-actions.py",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "suite": "test-settings-integration.py",
+      "exit_code": 0,
+      "seconds": 0.26
+    },
+    {
+      "suite": "test-store.py",
+      "exit_code": 0,
+      "seconds": 0.31
+    },
+    {
+      "suite": "test-task-manager.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-terminal.py",
+      "exit_code": 0,
+      "seconds": 0.36
+    },
+    {
+      "suite": "test-version-06.py",
+      "exit_code": 0,
+      "seconds": 0.41
+    },
+    {
+      "suite": "test-webapp-icons.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-webapps-gui.py",
+      "exit_code": 0,
+      "seconds": 0.42
+    },
+    {
+      "suite": "test-webapps.py",
+      "exit_code": 0,
+      "seconds": 0.77
+    },
+    {
+      "suite": "test-welcome.py",
+      "exit_code": 0,
+      "seconds": 1.74
+    },
+    {
+      "suite": "test-windows-compat.py",
+      "exit_code": 0,
+      "seconds": 1.73
+    },
+    {
+      "suite": "test-windows-commands.py",
+      "exit_code": 0,
+      "seconds": 1.62
+    },
+    {
+      "suite": "test-desktop-inventory.py",
+      "exit_code": 0,
+      "seconds": 0.67
+    },
+    {
+      "suite": "test-webapps-07.py",
+      "exit_code": 0,
+      "seconds": 0.77
+    },
+    {
+      "suite": "test-store-windows-07.py",
+      "exit_code": 0,
+      "seconds": 1.02
+    },
+    {
+      "suite": "test-network-about.py",
+      "exit_code": 0,
+      "seconds": 0.42
+    },
+    {
+      "suite": "test-recovery-07.py",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "suite": "test-update-status.py",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "suite": "test-cleanup-mounts-08.py",
+      "exit_code": 0,
+      "seconds": 0.27
+    },
+    {
+      "suite": "test-cleanup-races-08.py",
+      "exit_code": 0,
+      "seconds": 0.27
+    },
+    {
+      "suite": "test-desktop-navigation-08.py",
+      "exit_code": 0,
+      "seconds": 3.0
+    },
+    {
+      "suite": "test-file-properties-08.py",
+      "exit_code": 0,
+      "seconds": 0.32
+    },
+    {
+      "suite": "test-file-properties-integration-08.py",
+      "exit_code": 0,
+      "seconds": 3.07
+    },
+    {
+      "suite": "test-maintenance-08.py",
+      "exit_code": 0,
+      "seconds": 0.37
+    },
+    {
+      "suite": "test-maintenance-gui-08.py",
+      "exit_code": 0,
+      "seconds": 0.51
+    },
+    {
+      "suite": "test-migration-08.py",
+      "exit_code": 0,
+      "seconds": 0.26
+    },
+    {
+      "suite": "test-migration-gui-08.py",
+      "exit_code": 0,
+      "seconds": 0.72
+    },
+    {
+      "suite": "test-repository-maintenance-08.py",
+      "exit_code": 0,
+      "seconds": 1.42
+    },
+    {
+      "suite": "test-store-windows-08.py",
+      "exit_code": 0,
+      "seconds": 0.77
+    },
+    {
+      "suite": "test-webapps-desktop-08.py",
+      "exit_code": 0,
+      "seconds": 1.32
+    },
+    {
+      "suite": "test-system-central.py",
+      "exit_code": 0,
+      "seconds": 1.22
+    },
+    {
+      "suite": "test-native-style.py",
+      "exit_code": 0,
+      "seconds": 0.31
+    },
+    {
+      "suite": "test-repository-server.php",
+      "exit_code": 0,
+      "seconds": 0.47
+    },
+    {
+      "suite": "test-firewall-gui-08.py",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "suite": "test-platform-085.py",
+      "exit_code": 0,
+      "seconds": 1.97
+    },
+    {
+      "suite": "test-platform-ui-085.py",
+      "exit_code": 0,
+      "seconds": 0.72
+    }
+  ],
+  "source_unchanged": true,
+  "files": 642,
+  "source_archive_sha256": "e122e0c8007eed44e28db52b076efa7680115040d4eca744a6325c3cd211ed5d"
+}

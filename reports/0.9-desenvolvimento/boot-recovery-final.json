@@ -1,0 +1,118 @@
+{
+  "mode": "recovery",
+  "uid": 1000,
+  "cmdline": "BOOT_IMAGE=/boot/vmlinuz-6.12.113+deb13-amd64 root=UUID=9b1fe9b0-6ed8-4c2c-a562-0e2e327e3a2c ro quiet splash resume=UUID=d08010b4-6c27-48f6-b9e8-4b66f91a0c79 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0 linuxbr.mode=recovery systemd.unit=linuxbr-safe.target",
+  "units": {
+    "sshd.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "ssh.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "smbd.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "libvirtd.socket": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "cron.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "NetworkManager.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "firewalld.service": {
+      "code": 0,
+      "out": "LoadState=loaded\nActiveState=active\nUnitFileState=enabled",
+      "err": ""
+    },
+    "linuxbr-qa09.service": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "linuxbr-qa09.socket": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "linuxbr-qa09.timer": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    },
+    "linuxbr-qa09.path": {
+      "code": 0,
+      "out": "LoadState=masked\nActiveState=inactive\nUnitFileState=masked-runtime",
+      "err": ""
+    }
+  },
+  "user_units": {
+    "code": 0,
+    "out": "UNIT                                                                                LOAD   ACTIVE SUB     DESCRIPTION\n  sys-devices-pci0000:00-0000:00:01.0-virtio0-net-enp0s1.device                       loaded active plugged Virtio network device\n  sys-devices-pci0000:00-0000:00:03.0-virtio1-block-vda-vda1.device                   loaded active plugged /sys/devices/pci0000:00/0000:00:03.0/virtio1/block/vda/vda1\n  sys-devices-pci0000:00-0000:00:03.0-virtio1-block-vda-vda2.device                   loaded active plugged /sys/devices/pci0000:00/0000:00:03.0/virtio1/block/vda/vda2\n  sys-devices-pci0000:00-0000:00:03.0-virtio1-block-vda-vda3.device                   loaded active plugged /sys/devices/pci0000:00/0000:00:03.0/virtio1/block/vda/vda3\n  sys-devices-pci0000:00-0000:00:03.0-virtio1-block-vda.device                        loaded active plugged /sys/devices/pci0000:00/0000:00:03.0/virtio1/block/vda\n  sys-devices-pci0000:00-0000:00:04.0-virtio2-block-vdb.device                        loaded active plugged /sys/devices/pci0000:00/0000:00:04.0/virtio2/block/vdb\n  sys-devices-pci0000:00-0000:00:1f.2-ata3-host2-target2:0:0-2:0:0:0-block-sr0.device loaded active plugged QEMU_DVD-ROM\n  sys-devices-platform-serial8250-serial8250:0-serial8250:0.1-tty-ttyS1.device        loaded active plugged /sys/devices/platform/serial8250/serial8250:0/serial8250:0.1/tty/ttyS1\n  sys-devices-platform-serial8250-serial8250:0-serial8250:0.2-tty-ttyS2.device        loaded active plugged /sys/devices/platform/serial8250/serial8250:0/serial8250:0.2/tty/ttyS2\n  sys-devices-platform-serial8250-serial8250:0-serial8250:0.3-tty-ttyS3.device        loaded active plugged /sys/devices/platform/serial8250/serial8250:0/serial8250:0.3/tty/ttyS3\n  sys-devices-pnp0-00:02-printer-lp0.device                                           loaded active plugged /sys/devices/pnp0/00:02/printer/lp0\n  sys-devices-pnp0-00:03-00:03:0-00:03:0.0-tty-ttyS0.device                           loaded active plugged /sys/devices/pnp0/00:03/00:03:0/00:03:0.0/tty/ttyS0\n  sys-module-configfs.device                                                          loaded active plugged /sys/module/configfs\n  sys-module-fuse.device                                                              loaded active plugged /sys/module/fuse\n  sys-subsystem-net-devices-enp0s1.device                                             loaded active plugged Virtio network device\n  -.mount                                                                             loaded active mounted Root Mount\n  boot-efi.mount                                                                      loaded active mounted /boot/efi\n  dev-hugepages.mount                                                                 loaded active mounted /dev/hugepages\n  dev-mqueue.mount                                                                    loaded active mounted /dev/mqueue\n  proc-sys-fs-binfmt_misc.mount                                                       loaded active mounted /proc/sys/fs/binfmt_misc\n  run-credentials-systemd\\x2djournald.service.mount                                   loaded active mounted /run/credentials/systemd-journald.service\n  run-lock.mount                                                                      loaded active mounted /run/lock\n  run-user-1000.mount                                                                 loaded active mounted /run/user/1000\n  sys-fs-fuse-connections.mount                                                       loaded active mounted /sys/fs/fuse/connections\n  sys-kernel-config.mount                                                             loaded active mounted /sys/kernel/config\n  sys-kernel-debug.mount                                                              loaded active mounted /sys/kernel/debug\n  sys-kernel-tracing.mount                                                            loaded active mounted /sys/kernel/tracing\n  tmp.mount                                                                           loaded active mounted /tmp\n  init.scope                                                                          loaded active running System and Service Manager\n  dbus.service                                                                        loaded active running D-Bus User Message Bus\n  -.slice                                                                             loaded active active  Root Slice\n  app.slice                                                                           loaded active active  User Application Slice\n  session.slice                                                                       loaded active active  User Core Session Slice\n  dbus.socket                                                                         loaded active running D-Bus User Message Bus Socket\n  dev-vda3.swap                                                                       loaded active active  /dev/vda3\n  basic.target                                                                        loaded active active  Basic System\n  default.target                                                                      loaded active active  Main User Target\n  paths.target                                                                        loaded active active  Paths\n  sockets.target                                                                      loaded active active  Sockets\n  timers.target                                                                       loaded active active  Timers\n\nLegend: LOAD   \u2192 Reflects whether the unit definition was properly loaded.\n        ACTIVE \u2192 The high-level unit activation state, i.e. generalization of SUB.\n        SUB    \u2192 The low-level unit activation state, values depend on unit type.\n\n40 loaded units listed. Pass --all to see loaded but inactive units, too.\nTo show all installed unit files use 'systemctl list-unit-files'.",
+    "err": ""
+  },
+  "links": [
+    {
+      "ifindex": 1,
+      "ifname": "lo",
+      "flags": [
+        "LOOPBACK",
+        "UP",
+        "LOWER_UP"
+      ],
+      "mtu": 65536,
+      "qdisc": "noqueue",
+      "operstate": "UNKNOWN",
+      "linkmode": "DEFAULT",
+      "group": "default",
+      "txqlen": 1000,
+      "link_type": "loopback",
+      "address": "00:00:00:00:00:00",
+      "broadcast": "00:00:00:00:00:00"
+    },
+    {
+      "ifindex": 2,
+      "ifname": "enp0s1",
+      "flags": [
+        "BROADCAST",
+        "MULTICAST"
+      ],
+      "mtu": 1500,
+      "qdisc": "noop",
+      "operstate": "DOWN",
+      "linkmode": "DEFAULT",
+      "group": "default",
+      "txqlen": 1000,
+      "link_type": "ether",
+      "address": "52:54:00:12:34:56",
+      "broadcast": "ff:ff:ff:ff:ff:ff",
+      "altnames": [
+        "enx525400123456"
+      ]
+    }
+  ],
+  "plasmashell": {
+    "code": 1,
+    "out": "",
+    "err": ""
+  },
+  "autostart": false,
+  "grubenv": {
+    "code": 0,
+    "out": "next_entry=",
+    "err": ""
+  }
+}

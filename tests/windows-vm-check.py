@@ -8,7 +8,7 @@ for entry in pathlib.Path('/proc',pid,'environ').read_bytes().split(b'\0'):
  if sep and key.decode() in allowed:os.environ[key.decode()]=value.decode()
 sys.path.insert(0,'/usr/lib/linuxbr-system')
 import windows_runner as runner
-identifier=runner.create_environment('Validação Windows Linux BR 0.4.2')
+identifier=runner.create_environment('Validação de compatibilidade Windows')
 results=[]
 for filename,expected in [('smoke64.exe','linuxbr-windows-64-ok.txt'),('smoke32.exe','linuxbr-windows-32-ok.txt')]:
  code=runner.run(identifier,'run',str(root/filename))

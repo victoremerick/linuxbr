@@ -3,6 +3,7 @@
 #include <QProxyStyle>
 #include <QStyleFactory>
 #include <QStyleOptionButton>
+#include <QStyleOptionFocusRect>
 #include <QPainter>
 
 class CleanStyle final : public QProxyStyle {
@@ -35,6 +36,21 @@ public:
     void drawControl(ControlElement element, const QStyleOption *option,
                      QPainter *painter, const QWidget *widget = nullptr) const override {
         const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option);
+        if (element == CE_PushButton && button) {
+            const bool flat = button->features & QStyleOptionButton::Flat;
+            if (!flat || (button->state & (State_Sunken | State_On | State_MouseOver)))
+                drawPrimitive(PE_PanelButtonCommand, button, painter, widget);
+            QStyleOptionButton label(*button);
+            label.rect = subElementRect(SE_PushButtonContents, button, widget);
+            drawControl(CE_PushButtonLabel, &label, painter, widget);
+            if (flat && (button->state & State_HasFocus)) {
+                QStyleOptionFocusRect focus;
+                focus.QStyleOption::operator=(*button);
+                focus.rect = subElementRect(SE_PushButtonFocusRect, button, widget);
+                drawPrimitive(PE_FrameFocusRect, &focus, painter, widget);
+            }
+            return;
+        }
         if (element == CE_PushButtonLabel && button && (button->features & QStyleOptionButton::DefaultButton)) {
             QStyleOptionButton copy(*button);
             copy.palette.setColor(QPalette::ButtonText, button->palette.color(QPalette::HighlightedText));

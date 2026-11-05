@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Detalhes da conexão
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page network-information
+Icon=network-workgroup
+Keywords=IP;DNS;Gateway;Rede;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

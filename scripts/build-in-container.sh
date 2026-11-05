@@ -5,7 +5,8 @@ main() {
     export DEBIAN_FRONTEND=noninteractive
     cd /src
     VERSION=$(cat VERSION)
-    [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Versao invalida' >&2; exit 1; }
+    [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(~beta[1-9][0-9]*)?$ ]] || { echo 'Versao invalida' >&2; exit 1; }
+    ISO_VOLUME=$(printf 'LINUXBR_%s' "$VERSION" | tr '[:lower:].~' '[:upper:]__')
     echo "LINUXBR_STAGE 0"
     # Unique workspaces prevent live-build stamps/cache from hiding source changes.
     mkdir -p build dist
@@ -13,8 +14,9 @@ main() {
     # Freeze package inputs and validation together before the long live-build run.
     # Edits in the checkout apply only to the next build.
     mkdir -p "$WORK/upstream" "$WORK/config" "$WORK/source"
-    cp -a VERSION packages scripts tests config "$WORK/source/"
+    cp -a VERSION README.md docs packages scripts tests config "$WORK/source/"
     cp -a "$WORK/source/config/." "$WORK/config/"
+    if [[ -d "$WORK/config/hooks" ]]; then find "$WORK/config/hooks" -type f -exec chmod 0755 {} +; fi
     # Reuse only downloaded archives, never chroot trees or live-build stamps.
     PACKAGE_CACHE=/src/.cache/build-downloads/trixie-amd64
     mkdir -p "$WORK/cache"
@@ -50,6 +52,8 @@ main() {
         --calamares-deb "$WORK"/upstream/calamares-settings-debian_*.deb \
         --breeze-deb "$WORK"/upstream/sddm-theme-breeze_*.deb
     bash "$WORK/source/scripts/build-dolphin.sh" "$WORK/config/packages.chroot"
+    bash "$WORK/source/scripts/build-kio.sh" "$WORK/config/packages.chroot"
+    python3 "$WORK/source/scripts/check-package-ownership.py" "$WORK/config/packages.chroot"
     python3 "$WORK/source/scripts/prepare-live-boot.py" "$WORK"
     cd "$WORK"
     echo "LINUXBR_STAGE 2"
@@ -61,10 +65,10 @@ main() {
       --firmware-chroot false \
       --firmware-binary false \
       --archive-areas 'main contrib non-free non-free-firmware' \
-      --bootappend-live 'boot=live components hostname=linuxbr user-fullname=LinuxBR locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=abnt2 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0' \
+      --bootappend-live 'boot=live components hostname=linuxbr user-fullname=LinuxBR locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=pc105 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0' \
       --iso-application 'Linux BR Live' \
       --iso-publisher 'Projeto Linux BR' \
-      --iso-volume "LINUXBR_${VERSION//./_}"
+      --iso-volume "${ISO_VOLUME:0:32}"
     echo "LINUXBR_STAGE 3"
     lb build
     iso=live-image-amd64.hybrid.iso

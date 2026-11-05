@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "test": "published package version and content guard",
+  "baseline": "published 0.8.5 final7",
+  "candidates": {
+    "17": {
+      "accepted": false,
+      "packages_compared": 18,
+      "errors": [
+        {
+          "package": "dolphin-data",
+          "previous": "4:25.04.3-1+deb13u1+linuxbr1",
+          "candidate": "4:25.04.3-1+deb13u1+linuxbr1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "dolphin",
+          "previous": "4:25.04.3-1+deb13u1+linuxbr1",
+          "candidate": "4:25.04.3-1+deb13u1+linuxbr1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "kio6",
+          "previous": "6.13.0-6+linuxbr0.8.1",
+          "candidate": "6.13.0-6+linuxbr0.8.1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "libdolphinvcs6",
+          "previous": "4:25.04.3-1+deb13u1+linuxbr1",
+          "candidate": "4:25.04.3-1+deb13u1+linuxbr1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "libkf6kiocore6",
+          "previous": "6.13.0-6+linuxbr0.8.1",
+          "candidate": "6.13.0-6+linuxbr0.8.1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "libkf6kiofilewidgets6",
+          "previous": "6.13.0-6+linuxbr0.8.1",
+          "candidate": "6.13.0-6+linuxbr0.8.1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "libkf6kiogui6",
+          "previous": "6.13.0-6+linuxbr0.8.1",
+          "candidate": "6.13.0-6+linuxbr0.8.1",
+          "reason": "same version with different archive"
+        },
+        {
+          "package": "libkf6kiowidgets6",
+          "previous": "6.13.0-6+linuxbr0.8.1",
+          "candidate": "6.13.0-6+linuxbr0.8.1",
+          "reason": "same version with different archive"
+        }
+      ]
+    },
+    "18": {
+      "accepted": true,
+      "packages_compared": 18,
+      "errors": []
+    }
+  }
+}

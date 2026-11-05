@@ -8,10 +8,10 @@ windowPlacement: center
 strings:
   productName: Linux BR
   shortProductName: Linux BR
-  version: 0.4.0 Alpha
-  shortVersion: 0.4.0
-  versionedName: Linux BR 0.4.0 Alpha
-  shortVersionedName: Linux BR 0.4.0 Alpha
+  version: 0.6.0 Beta 1
+  shortVersion: 0.6.0
+  versionedName: Linux BR 0.6.0 Beta 1
+  shortVersionedName: Linux BR 0.6.0 Beta 1
   bootloaderEntryName: Linux BR
 sidebar: none
 navigation: widget

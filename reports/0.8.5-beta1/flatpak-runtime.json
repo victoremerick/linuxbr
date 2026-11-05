@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "checks": [
+    "signed-source-add",
+    "install",
+    "inventory",
+    "permissions-revoke",
+    "permissions-allow",
+    "permissions-reset",
+    "remove-app-source"
+  ],
+  "isolated_data": true
+}

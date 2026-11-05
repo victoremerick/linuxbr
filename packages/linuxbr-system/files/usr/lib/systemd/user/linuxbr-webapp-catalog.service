@@ -1,0 +1,8 @@
+[Unit]
+Description=Consultar revisões assinadas de aplicativos web
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/signed_catalog.py --refresh --notify
+TimeoutStartSec=10min
+Nice=10

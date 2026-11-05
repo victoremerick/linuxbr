@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "disks": [
+    {
+      "name": "uefi.qcow2",
+      "old_bytes": 12354781184,
+      "new_bytes": 5187502080,
+      "logical_compare": "PASS",
+      "qcow2_check": "PASS",
+      "sha256": "7e065d1df0e157e1e2999e5f490ef2d6c726b62cab10c81f74cc07c3ac3c258a",
+      "compression": "zstd",
+      "virtual_bytes": 42949672960
+    },
+    {
+      "name": "bios.qcow2",
+      "old_bytes": 12571443200,
+      "new_bytes": 5265521664,
+      "logical_compare": "PASS",
+      "qcow2_check": "PASS",
+      "sha256": "d9510a6c1920251d4bc9be47465d753a9bd64f20ea2eff5fe4c3cb0232361e96",
+      "compression": "zstd",
+      "virtual_bytes": 42949672960
+    }
+  ],
+  "at": "2026-11-05T03:45:45.592443+00:00"
+}

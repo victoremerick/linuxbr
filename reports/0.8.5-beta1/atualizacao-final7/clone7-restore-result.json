@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "snapshot": "2026-11-04_14-39-22",
+  "target_uuid": "9b1fe9b0-6ed8-4c2c-a562-0e2e327e3a2c",
+  "backup_uuid": "798e1475-467f-47a0-ac8e-08d51a1a7b94",
+  "skip_grub": true,
+  "scope": "Somente overlays da c\u00f3pia descart\u00e1vel; bases originais abertas somente leitura pelo hipervisor",
+  "started_at": "2026-11-04T20:52:33.965894+00:00",
+  "exit_code": null,
+  "completion": "Estado efetivo da restaura\u00e7\u00e3o conferido ap\u00f3s rein\u00edcio autom\u00e1tico.",
+  "baseline_versions": {
+    "linuxbr-boot-theme": "0.8.0~beta1",
+    "linuxbr-branding": "0.8.0~beta1",
+    "linuxbr-desktop": "0.8.0~beta1",
+    "linuxbr-device-manager": "0.8.0~beta1",
+    "linuxbr-drive-manager": "0.8.0~beta1",
+    "linuxbr-file-properties": "0.8.0~beta1",
+    "linuxbr-release": "0.8.0~beta1",
+    "linuxbr-sddm-theme": "0.8.0~beta1",
+    "linuxbr-system": "0.8.0~beta1"
+  },
+  "baseline_python_modules": 76,
+  "profile_files": 1789,
+  "profile_changed": 0,
+  "profile_missing": 0,
+  "rootfs_check": "PASS",
+  "boot_after_restore_utc": "2026-11-04T20:53:58.993398+00:00",
+  "source_archive_sha256": "e122e0c8007eed44e28db52b076efa7680115040d4eca744a6325c3cd211ed5d"
+}

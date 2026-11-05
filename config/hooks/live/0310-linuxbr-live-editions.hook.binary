@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+python3 - <<'PY'
+from pathlib import Path
+import re
+
+modes=[('server','Linux BR Servidor — console de configuracao','linuxbr.edition=server'),
+       ('recovery','Recuperacao e manutencao','linuxbr.mode=recovery systemd.unit=linuxbr-safe.target'),
+       ('safe','Modo de seguranca sem rede','linuxbr.mode=safe systemd.unit=linuxbr-safe.target'),
+       ('safe-network','Modo de seguranca com rede','linuxbr.mode=safe-network systemd.unit=linuxbr-safe.target'),
+       ('safe-terminal','Modo de seguranca com terminal','linuxbr.mode=safe-terminal systemd.unit=linuxbr-safe.target'),
+       ('basic-video','Video basico','module_blacklist=amdgpu,radeon,nouveau,nvidia,nvidia_drm,nvidia_modeset,i915,xe linuxbr.video=basic'),
+       ('diagnostic','Diagnostico de inicializacao','systemd.log_level=debug systemd.log_target=journal-or-kmsg linuxbr.diagnostic=1')]
+for directory in ['boot/grub','EFI/boot']:
+    for path in Path(directory).rglob('*.cfg'):
+        if path.is_symlink():continue
+        text=path.read_text()
+        if 'linuxbr-live-server' in text:continue
+        match=re.search(r'^menuentry[^\n]*\{\n(?P<body>.*?)^\}\s*$',text,re.M|re.S)
+        if not match or not re.search(r'^\s*linux\s+.*\bboot=live\b',match['body'],re.M):continue
+        entries=[]
+        for ident,title,flags in modes:
+            body=re.sub(r'^(\s*linux\s+[^\n]+)$',lambda m:m[1]+' '+flags,match['body'],flags=re.M)
+            entries.append('menuentry "'+title+'" --id linuxbr-live-'+ident+' {\n'+body+'}\n')
+        additions='\n'+entries[0]+'\nsubmenu "Opcoes avancadas (F8)" --hotkey=f8 --id linuxbr-live-options {\n'+''.join(entries[1:])+'}\n'
+        path.write_text(text[:match.end()]+additions+text[match.end():])
+for directory in ['isolinux','syslinux']:
+    path=Path(directory)/'live.cfg'
+    if not path.is_file():continue
+    text=path.read_text()
+    if 'label linuxbr-live-server' in text:continue
+    match=re.search(r'^label [^\n]+\n(?P<body>.*?)(?=^label |\Z)',text,re.M|re.S)
+    if not match or 'boot=live' not in match['body']:raise SystemExit('Entrada live BIOS nao reconhecida.')
+    entries=[]
+    for ident,title,flags in modes:
+        body=re.sub(r'^\s*menu default\s*\n','',match['body'],flags=re.M)
+        body=re.sub(r'^(\s*menu label )[^\n]+',lambda m:m[1]+title,body,flags=re.M)
+        body=re.sub(r'^(\s*append [^\n]+)$',lambda m:m[1]+' '+flags,body,flags=re.M)
+        entries.append('\nlabel linuxbr-live-'+ident+'\n'+body)
+    path.write_text(text+''.join(entries))
+print('Linux BR: edicoes Desktop/Servidor e modos de manutencao adicionados ao live.')
+PY

@@ -1,0 +1,8 @@
+{
+  "status": "renewed",
+  "fingerprint": "E49F63315DBE5952F4CD362D642079071210D3D1",
+  "valid_until": "2026-11-19T05:06:20+00:00",
+  "package_indexes_preserved": true,
+  "atomic": true,
+  "package_indexes_and_trust_unchanged": true
+}

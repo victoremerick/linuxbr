@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "method": "HTTPS_RANGES",
+  "url": "https://software-static.download.prss.microsoft.com/dbazure/26300.9457.260913-1737.26h2_ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_pt-br.iso",
+  "expected_bytes": 8170147840,
+  "expected_sha256": "29bd7592e832d32073d1637ce83689de5f375700a963b2d753e437cc64d76c09",
+  "preserved_prefix_bytes": 1937768448,
+  "started_at": "2026-11-04T13:57:24.853392+00:00",
+  "downloaded_bytes": 8170147840,
+  "progress_percent": 100,
+  "bytes": 8170147840,
+  "sha256": "29bd7592e832d32073d1637ce83689de5f375700a963b2d753e437cc64d76c09",
+  "file": "windows11-enterprise-eval-pt-br.iso",
+  "finished_at": "2026-11-04T14:09:54.430215+00:00"
+}

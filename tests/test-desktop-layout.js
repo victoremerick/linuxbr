@@ -6,7 +6,8 @@ const path = require('node:path');
 const script = fs.readFileSync(path.join(__dirname, '../packages/linuxbr-desktop/files/usr/share/plasma/look-and-feel/org.linuxbr.desktop/contents/layouts/org.kde.plasma.desktop-layout.js'), 'utf8');
 function run(existing) {
     const panels = existing ? [{custom: true}] : [];
-    const context = {gridUnit: 18, panels: () => panels, Panel: function () {
+    const desktop = {config: {}, writeConfig(key, value) { this.config[key] = value; }};
+    const context = {gridUnit: 18, desktops: () => [desktop], panels: () => panels, Panel: function () {
         this.widgets = [];
         this.addWidget = name => {
             const widget = {name, config: {}, writeConfig(key, value) { this.config[key] = value; }};
@@ -17,7 +18,9 @@ function run(existing) {
     vm.runInNewContext(script, context);
     vm.runInNewContext(script, context);
     assert.equal(panels.length, 1);
-    if (existing) { assert.deepEqual(panels, [{custom: true}]); return; }
+    if (existing) { assert.deepEqual(panels, [{custom: true}]); assert.deepEqual(desktop.config, {}); return; }
+    assert.equal(desktop.config.arrangement, 1);
+    assert.equal(desktop.config.alignment, 0);
     assert.equal(panels[0].location, 'bottom');
     assert.equal(panels[0].floating, false);
     assert.equal(panels[0].opacity, 'translucent');

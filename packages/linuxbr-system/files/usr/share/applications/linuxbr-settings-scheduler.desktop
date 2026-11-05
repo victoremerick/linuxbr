@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Agendador de Tarefas
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page scheduler
+Icon=appointment-new
+Keywords=Agendamento;Tarefas;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

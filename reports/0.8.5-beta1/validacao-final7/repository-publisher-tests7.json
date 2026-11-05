@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "tests": 19,
+  "scope": "Publisher validation/rollback test suite executed after public source7 pin update; all19 passed",
+  "publisher_sha256": "ee478f56f288b352fb1dbdc0cc88e7d4263b0729441ae707d8752e64fadede7b",
+  "test_source_sha256": "c28a5c6e33e88ca19e1cd66900bac86a067fc775a8fa732458965aa7f04fd3f4",
+  "run_date": "2026-11-04"
+}

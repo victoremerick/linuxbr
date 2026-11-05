@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "scope": "Native BIOS/noTPM memory checkpoint of a new empty lab VM; not an application workload",
+  "memory_snapshot_created": true,
+  "restore_paused": true,
+  "resume_running": true,
+  "own_fixture_removed": true,
+  "at": "2026-11-04T21:38:21.684973+00:00"
+}

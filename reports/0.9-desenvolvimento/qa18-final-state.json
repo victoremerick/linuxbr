@@ -1,0 +1,27 @@
+[
+  {
+    "vm": "desktop",
+    "pid": 4105870,
+    "state": "OFF"
+  },
+  {
+    "vm": "server",
+    "pid": 4140705,
+    "state": "OFF"
+  },
+  {
+    "vm": "update",
+    "pid": 4140706,
+    "state": "OFF"
+  },
+  {
+    "vm": "bios",
+    "pid": 4111265,
+    "state": "OFF"
+  },
+  {
+    "vm": "uefi_live",
+    "pid": 4115559,
+    "state": "OFF"
+  }
+]

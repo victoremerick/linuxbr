@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "version": "Windows 11 Enterprise Evaluation 26H2 26300.9457",
+  "uefi": true,
+  "secure_boot": "Ativado observado no msinfo32",
+  "tpm": "Pronto para uso, especificação 2.0 observado no tpm.msc",
+  "lab_constraint": "VMX desativado apenas no convidado Windows deste laboratório de virtualização aninhada; Hyper-V no terceiro nível não homologado",
+  "source": "Disco original exportado somente leitura; gravação em overlay separado",
+  "at": "2026-11-04T19:19:49.127803+00:00",
+  "end_state": "Após as capturas, a escrita do overlay ocupou o espaço livre da VM de laboratório; libvirt pausou por I/O. O convidado descartável foi encerrado sem desligamento limpo. O disco original permaneceu somente leitura.",
+  "clean_shutdown_validated": false
+}

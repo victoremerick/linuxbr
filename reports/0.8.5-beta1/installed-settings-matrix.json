@@ -1,0 +1,1073 @@
+[
+  {
+    "id": "display",
+    "title": "Tela",
+    "route": [
+      "embedded",
+      "Telas"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "sound",
+    "title": "Som",
+    "route": [
+      "embedded",
+      "Áudio"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "power",
+    "title": "Energia e bateria",
+    "route": [
+      "embedded",
+      "Energia e bateria"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "storage",
+    "title": "Armazenamento",
+    "route": [
+      "embedded",
+      "Armazenamento"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "remote",
+    "title": "Área de trabalho remota",
+    "route": [
+      "embedded",
+      "Acesso remoto"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "recovery",
+    "title": "Recuperação",
+    "route": [
+      "embedded",
+      "Backup e recuperação"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "about",
+    "title": "Sobre",
+    "route": [
+      "embedded",
+      "Sistema"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "maintenance",
+    "title": "Cuidados com o computador",
+    "route": [
+      "embedded",
+      "Cuidados com o computador"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "display-advanced",
+    "title": "Tela avançada",
+    "route": [
+      "kcm",
+      "kcm_kscreen"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "nightlight",
+    "title": "Luz noturna",
+    "route": [
+      "kcm",
+      "kcm_nightlight"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "notifications",
+    "title": "Notificações",
+    "route": [
+      "kcm",
+      "kcm_notifications"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "multitasking",
+    "title": "Multitarefas",
+    "route": [
+      "kcm",
+      "kcm_kwinoptions"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "switcher",
+    "title": "Alt+Tab",
+    "route": [
+      "kcm",
+      "kcm_kwintabbox"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "desktops",
+    "title": "Áreas de trabalho virtuais",
+    "route": [
+      "kcm",
+      "kcm_kwin_virtualdesktops"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "window-rules",
+    "title": "Regras por janela",
+    "route": [
+      "kcm",
+      "kcm_kwinrules"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "session",
+    "title": "Entrada e saída da sessão",
+    "route": [
+      "kcm",
+      "kcm_smserver"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "energy-history",
+    "title": "Uso de energia",
+    "route": [
+      "kcm",
+      "kcm_energyinfo"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "clipboard",
+    "title": "Área de transferência",
+    "route": [
+      "tool",
+      "clipboard"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "virtualization",
+    "title": "Máquinas virtuais",
+    "route": [
+      "app",
+      "linuxbr-virtual-machines"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "administration",
+    "title": "Ferramentas administrativas",
+    "route": [
+      "tool",
+      "administration"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "services",
+    "title": "Serviços",
+    "route": [
+      "tool",
+      "administration",
+      "0"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "events",
+    "title": "Visualizador de eventos",
+    "route": [
+      "tool",
+      "administration",
+      "1"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "environment",
+    "title": "Variáveis de ambiente",
+    "route": [
+      "tool",
+      "administration",
+      "2"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "scheduler",
+    "title": "Agendador de Tarefas",
+    "route": [
+      "tool",
+      "administration",
+      "3"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "bluetooth",
+    "title": "Bluetooth",
+    "route": [
+      "kcm",
+      "kcm_bluetooth"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "printers",
+    "title": "Impressoras e scanners",
+    "route": [
+      "kcm",
+      "kcm_printer_manager"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "mouse",
+    "title": "Mouse",
+    "route": [
+      "kcm",
+      "kcm_mouse"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "touchpad",
+    "title": "Touchpad",
+    "route": [
+      "kcm",
+      "kcm_touchpad"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "keyboard",
+    "title": "Teclado",
+    "route": [
+      "kcm",
+      "kcm_keyboard"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "touch",
+    "title": "Tela sensível ao toque",
+    "route": [
+      "kcm",
+      "kcm_touchscreen"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "gestures",
+    "title": "Gestos e bordas da tela",
+    "route": [
+      "kcm",
+      "kcm_kwintouchscreen"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "pen",
+    "title": "Caneta e mesa digitalizadora",
+    "route": [
+      "kcm",
+      "kcm_tablet"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "autoplay",
+    "title": "Reprodução automática",
+    "route": [
+      "kcm",
+      "kcm_solid_actions"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "automount",
+    "title": "Montagem automática",
+    "route": [
+      "kcm",
+      "kcm_device_automounter"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "usb",
+    "title": "Dispositivos USB",
+    "route": [
+      "kcm",
+      "kcm_usb"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "thunderbolt",
+    "title": "Thunderbolt",
+    "route": [
+      "kcm",
+      "kcm_bolt"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "phone",
+    "title": "Celular e dispositivos próximos",
+    "route": [
+      "kcm",
+      "kcm_kdeconnect"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "device-manager",
+    "title": "Gerenciador de Dispositivos",
+    "route": [
+      "embedded",
+      "Dispositivos"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "scan",
+    "title": "Digitalizar documento",
+    "route": [
+      "app",
+      "skanpage"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "camera",
+    "title": "Câmera e permissões",
+    "route": [
+      "tool",
+      "permissions"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "connections",
+    "title": "Conexões e adaptadores",
+    "route": [
+      "kcm",
+      "kcm_networkmanagement"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "wifi",
+    "title": "Wi-Fi e redes salvas",
+    "route": [
+      "kcm",
+      "kcm_networkmanagement"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "vpn",
+    "title": "VPN",
+    "route": [
+      "kcm",
+      "kcm_networkmanagement"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "hotspot",
+    "title": "Compartilhar conexão",
+    "route": [
+      "kcm",
+      "kcm_networkmanagement"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "network-information",
+    "title": "Informações de rede",
+    "route": [
+      "kcm",
+      "kcm_network"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "ip",
+    "title": "Endereços IP e DNS",
+    "route": [
+      "embedded",
+      "Endereços IP e DNS"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "proxy",
+    "title": "Proxy",
+    "route": [
+      "embedded",
+      "Proxy"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "firewall",
+    "title": "Firewall",
+    "route": [
+      "embedded",
+      "Firewall"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "network-drives",
+    "title": "Unidades e compartilhamentos",
+    "route": [
+      "embedded",
+      "Arquivos e atalhos"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "background",
+    "title": "Plano de fundo",
+    "route": [
+      "kcm",
+      "kcm_wallpaper"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "colors",
+    "title": "Cores e modo claro/escuro",
+    "route": [
+      "kcm",
+      "kcm_colors"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "themes",
+    "title": "Temas",
+    "route": [
+      "kcm",
+      "kcm_lookandfeel"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "icons",
+    "title": "Ícones",
+    "route": [
+      "kcm",
+      "kcm_icons"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "cursor",
+    "title": "Ponteiro do mouse",
+    "route": [
+      "kcm",
+      "kcm_cursortheme"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "fonts",
+    "title": "Fontes",
+    "route": [
+      "kcm",
+      "kcm_fonts"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "install-fonts",
+    "title": "Instalar e gerenciar fontes",
+    "route": [
+      "kcm",
+      "kcm_fontinst"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "lockscreen",
+    "title": "Tela de bloqueio",
+    "route": [
+      "kcm",
+      "kcm_screenlocker"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "window-decoration",
+    "title": "Barras de título",
+    "route": [
+      "kcm",
+      "kcm_kwindecoration"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "effects",
+    "title": "Animações e efeitos",
+    "route": [
+      "kcm",
+      "kcm_kwin_effects"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "virtual-keyboard",
+    "title": "Teclado virtual",
+    "route": [
+      "kcm",
+      "kcm_virtualkeyboard"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "desktop-sounds",
+    "title": "Sons do sistema",
+    "route": [
+      "kcm",
+      "kcm_soundtheme"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "desktop-layout",
+    "title": "Menu Iniciar e barra de tarefas",
+    "route": [
+      "embedded",
+      "Personalização"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "store",
+    "title": "Loja de aplicativos",
+    "route": [
+      "app",
+      "linuxbr-store"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "installed",
+    "title": "Aplicativos instalados",
+    "route": [
+      "app",
+      "linuxbr-store",
+      "--installed"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "sources",
+    "title": "Fontes de aplicativos",
+    "route": [
+      "app",
+      "linuxbr-store",
+      "--sources"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "defaultapps",
+    "title": "Aplicativos padrão",
+    "route": [
+      "kcm",
+      "kcm_componentchooser"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "filetypes",
+    "title": "Tipos de arquivo e protocolos",
+    "route": [
+      "kcm",
+      "kcm_filetypes"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "startup",
+    "title": "Inicialização de aplicativos",
+    "route": [
+      "kcm",
+      "kcm_autostart"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "search-index",
+    "title": "Pesquisa e indexação",
+    "route": [
+      "kcm",
+      "kcm_baloofile"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "search-system",
+    "title": "Pesquisa do sistema",
+    "route": [
+      "kcm",
+      "kcm_plasmasearch"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "personal-folders",
+    "title": "Localização das pastas pessoais",
+    "route": [
+      "kcm",
+      "kcm_desktoppaths"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "webapps",
+    "title": "Aplicativos web e perfis",
+    "route": [
+      "app",
+      "linuxbr-webapps"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "windows-apps",
+    "title": "Programas Windows",
+    "route": [
+      "app",
+      "linuxbr-windows"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "install-file",
+    "title": "Instalar a partir de arquivo",
+    "route": [
+      "app",
+      "linuxbr-install-package"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "users",
+    "title": "Usuários",
+    "route": [
+      "embedded",
+      "Usuários"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "organization",
+    "title": "Trabalho, escola e domínio",
+    "route": [
+      "embedded",
+      "Organização"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "signin",
+    "title": "Opções de entrada",
+    "route": [
+      "kcm",
+      "kcm_users"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "login-screen",
+    "title": "Tela de entrada",
+    "route": [
+      "kcm",
+      "kcm_sddm"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "credentials",
+    "title": "Credenciais e senhas salvas",
+    "route": [
+      "kcm",
+      "kcm_kwallet5"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "backup-preferences",
+    "title": "Backup pessoal",
+    "route": [
+      "kcm",
+      "kcm_kup"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "datetime",
+    "title": "Data e hora",
+    "route": [
+      "kcm",
+      "kcm_clock"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "region",
+    "title": "Idioma e região",
+    "route": [
+      "kcm",
+      "kcm_regionandlang"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "typing",
+    "title": "Digitação e layouts",
+    "route": [
+      "kcm",
+      "kcm_keyboard"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "spelling",
+    "title": "Ortografia",
+    "route": [
+      "kcm",
+      "kcmspellchecking"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "shortcuts",
+    "title": "Atalhos de teclado",
+    "route": [
+      "kcm",
+      "kcm_keys"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "games",
+    "title": "Programas Windows e jogos",
+    "route": [
+      "app",
+      "linuxbr-windows",
+      "--page",
+      "games"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "controllers",
+    "title": "Controles de jogos",
+    "route": [
+      "kcm",
+      "kcm_gamecontroller"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "capture",
+    "title": "Capturas de tela",
+    "route": [
+      "app",
+      "spectacle"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "access",
+    "title": "Visão, audição e interação",
+    "route": [
+      "kcm",
+      "kcm_access"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "text-size",
+    "title": "Tamanho do texto",
+    "route": [
+      "kcm",
+      "kcm_fonts"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "visual-effects",
+    "title": "Efeitos visuais",
+    "route": [
+      "kcm",
+      "kcm_kwin_effects"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "pointer",
+    "title": "Ponteiro e cursor",
+    "route": [
+      "kcm",
+      "kcm_cursortheme"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "keyboard-access",
+    "title": "Teclado acessível",
+    "route": [
+      "kcm",
+      "kcm_keyboard"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "contrast",
+    "title": "Contraste e cores",
+    "route": [
+      "kcm",
+      "kcm_colors"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "audio-access",
+    "title": "Áudio e dispositivos",
+    "route": [
+      "kcm",
+      "kcm_pulseaudio"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "permissions",
+    "title": "Permissões de aplicativos",
+    "route": [
+      "tool",
+      "permissions"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "recent-files",
+    "title": "Histórico de arquivos",
+    "route": [
+      "kcm",
+      "kcm_recentFiles"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "diagnostics",
+    "title": "Dados de uso e diagnósticos",
+    "route": [
+      "kcm",
+      "kcm_feedback"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "firmware-security",
+    "title": "Segurança do firmware",
+    "route": [
+      "kcm",
+      "kcm_firmware_security"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "screenlock",
+    "title": "Bloqueio da sessão",
+    "route": [
+      "kcm",
+      "kcm_screenlocker"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "protection",
+    "title": "Proteção e integridade",
+    "route": [
+      "embedded",
+      "Cuidados com o computador"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "web-permissions",
+    "title": "Permissões dos sites",
+    "route": [
+      "app",
+      "linuxbr-webapps"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "updates",
+    "title": "Atualizações do sistema e aplicativos",
+    "route": [
+      "app",
+      "linuxbr-store",
+      "--updates"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "firmware",
+    "title": "Atualizações de firmware",
+    "route": [
+      "app",
+      "linuxbr-store",
+      "--firmware"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "update-recovery",
+    "title": "Proteção antes de atualizar",
+    "route": [
+      "embedded",
+      "Atualizações"
+    ],
+    "available": true,
+    "reason": ""
+  },
+  {
+    "id": "update-sources",
+    "title": "Fontes e canais",
+    "route": [
+      "app",
+      "linuxbr-store",
+      "--sources"
+    ],
+    "available": true,
+    "reason": ""
+  }
+]

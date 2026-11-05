@@ -2,6 +2,7 @@
 """Read-only checks for an assembled live or installed root filesystem."""
 import argparse
 import configparser
+import json
 from pathlib import Path
 import shlex
 import yaml
@@ -65,9 +66,19 @@ plymouth_config = configparser.ConfigParser(interpolation=None)
 plymouth_config.read_string(read('etc/plymouth/plymouthd.conf'))
 require(plymouth_config.get('Daemon', 'Theme', fallback='') == 'linuxbr', 'tema Plymouth ativo')
 status = read('var/lib/dpkg/status')
-for package in ('chromium','chromium-l10n','chromium-sandbox'):
+for package in ('chromium','chromium-l10n','chromium-sandbox','kup-backup','bup','rsync'):
     require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
                 for stanza in status.split('\n\n')), 'aplicativos web: '+package)
+metadata=json.loads(read('usr/share/linuxbr/release-info.json'))
+require(metadata['version']==version,'metadados da distribuição')
+for path in ('usr/bin/linuxbr-recovery','usr/bin/linuxbr-setup','usr/bin/linuxbr-session-actions',
+             'usr/lib/linuxbr-system/recovery.py','usr/lib/linuxbr-system/setup_flow.py',
+             'usr/lib/linuxbr-system/session_actions.py','usr/lib/linuxbr-system/webapp_icons.py',
+             'usr/share/applications/linuxbr-recovery.desktop','usr/share/applications/linuxbr-setup.desktop',
+             'usr/share/applications/linuxbr-session-actions.desktop','usr/bin/kup-filedigger'):
+    require((root/path).is_file(),'integração da distribuição: '+path)
+require('[services][linuxbr-session-actions.desktop]\n_launch=Ctrl+Alt+Del' in read('etc/skel/.config/kglobalshortcutsrc'),
+        'Ctrl+Alt+Del na nova conta')
 for path in ('usr/bin/linuxbr-store', 'usr/lib/linuxbr-system/store.py',
              'usr/lib/linuxbr-system/store_backend.py', 'usr/share/linuxbr/store/catalog.json',
              'usr/share/applications/linuxbr-store.desktop',
@@ -97,7 +108,7 @@ for path in ('usr/bin/linuxbr-windows','usr/lib/linuxbr-system/windows_compat.py
 require(any('Package: dolphin\n' in stanza and 'Status: install ok installed' in stanza
             and any(line.startswith('Version: ') and '+linuxbr' in line for line in stanza.splitlines())
             for stanza in status.split('\n\n')), 'Dolphin com cartoes Linux BR instalado')
-packages = ['linuxbr-release', 'linuxbr-branding', 'linuxbr-desktop', 'linuxbr-sddm-theme', 'linuxbr-boot-theme', 'linuxbr-drive-manager', 'linuxbr-system', 'linuxbr-device-manager']
+packages = ['linuxbr-release', 'linuxbr-branding', 'linuxbr-desktop', 'linuxbr-sddm-theme', 'linuxbr-boot-theme', 'linuxbr-drive-manager', 'linuxbr-system', 'linuxbr-device-manager', 'linuxbr-file-properties']
 if args.mode == 'live':
     packages.append('linuxbr-calamares-settings')
 for package in packages:
@@ -114,7 +125,7 @@ if args.mode == 'live':
         if tokens and '=' in tokens[0]:
             key, value = tokens[0].split('=', 1)
             keyboard[key] = value
-    require(keyboard.get('XKBLAYOUT') == 'br' and keyboard.get('XKBMODEL') == 'abnt2', 'teclado brasileiro ABNT2 com cedilha')
+    require(keyboard.get('XKBLAYOUT') == 'br' and keyboard.get('XKBMODEL') == 'pc105', 'teclado brasileiro ABNT2 com cedilha')
     require(yaml.safe_load(read('etc/calamares/modules/plymouthcfg.conf'))['plymouth_theme'] == 'linuxbr', 'tema Plymouth no destino Calamares')
     settings = yaml.safe_load(read('etc/calamares/settings.conf'))
     require(settings['branding'] == 'linuxbr', 'branding Calamares')
@@ -164,3 +175,33 @@ require('Name=Explorador de arquivos' in (root / 'usr/share/applications/org.kde
         'nome Explorador de arquivos')
 
 print(f'PASS: identidade e configuracoes {args.mode} Linux BR {version}; nao valida boot ou GUI.')
+
+require((root/'usr/lib/linuxbr-system/daily_use.py').is_file(),'orientações de uso diário')
+if args.mode=='live':
+    require((root/'usr/share/calamares/lang/calamares_pt_BR.qm').is_file(),'tradução local do instalador')
+    xorg=read('/etc/X11/xorg.conf.d/00-keyboard.conf')
+    require('"XkbModel" "pc105"' in xorg and '"XkbLayout" "br"' in xorg,'ABNT2 no serviço de teclado')
+print('PASS: integração de uso diário e teclado')
+
+for path in ('usr/bin/timeshift', 'usr/bin/wrestool',
+             'usr/lib/linuxbr-system/snapshot_service.py',
+             'usr/lib/linuxbr-system/update_status.py',
+             'usr/lib/linuxbr-system/function_icons.py',
+             'usr/share/doc/linuxbr-system/README.md',
+             'etc/apt/apt.conf.d/80linuxbr-recovery'):
+    require((root/path).is_file(), 'integração 0.7: '+path)
+require('## Histórico de versões' in read('usr/share/doc/linuxbr-system/README.md'), 'histórico de versões na imagem')
+print('PASS: integração da versão 0.7')
+
+for path in ('usr/bin/linuxbr-migration', 'usr/bin/linuxbr-maintenance', 'usr/bin/linuxbr-desktop-flows',
+             'usr/lib/linuxbr-system/migration.py', 'usr/lib/linuxbr-system/migration_backend.py',
+             'usr/lib/linuxbr-system/maintenance.py', 'usr/lib/linuxbr-system/protection_status.py',
+             'usr/lib/linuxbr-system/storage_cleanup.py', 'usr/lib/linuxbr-system/troubleshooting.py',
+             'usr/lib/linuxbr-system/desktopflows08.py', 'usr/lib/linuxbr-system/desktopflows08_backend.py',
+             'usr/lib/linuxbr-system/store_transactions.py', 'usr/lib/linuxbr-system/windows_recipes.py',
+             'usr/lib/linuxbr-file-properties/backend.py'):
+    require((root/path).is_file(), 'integração 0.8: '+path)
+require(bool(list((root/'usr/lib').glob('*/qt6/plugins/kf6/propertiesdialog/liblinuxbrfileproperties.so'))), 'plugin nativo das propriedades')
+require(any(b'_ZN17KPropertiesDialog5applyEv' in library.read_bytes()
+            for library in (root/'usr/lib').glob('*/libKF6KIOWidgets.so.6*')), 'KIO com Aplicar nativo nas propriedades')
+print('PASS: integração da versão 0.8')

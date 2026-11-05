@@ -3,8 +3,10 @@ import os
 import shutil
 import sys
 
+from function_icons import SESSION_ICONS
+
 import dbus
-from PyQt6.QtCore import QLockFile, QProcess, QStandardPaths, Qt
+from PyQt6.QtCore import QLockFile, QProcess, QStandardPaths, QSize, Qt
 from PyQt6.QtGui import QCursor, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QPushButton,
                             QVBoxLayout, QWidget)
@@ -26,9 +28,9 @@ class SessionActions(QWidget):
             QWidget { background: #075a9b; color: white; font-size: 16px; }
             QPushButton { border: 1px solid transparent; text-align: left;
                           padding: 12px 16px; background: transparent; }
-            QPushButton:hover { background: #ffffff20; }
-            QPushButton:focus { border: 1px solid white; background: #ffffff20; }
-            QPushButton#cancel { background: #ffffff30; text-align: center; }
+            QPushButton:hover { background: rgba(255, 255, 255, 32); }
+            QPushButton:focus { border: 1px solid white; background: rgba(255, 255, 255, 32); }
+            QPushButton#cancel { background: rgba(255, 255, 255, 48); text-align: center; }
         ''')
         outer = QVBoxLayout(self); outer.addStretch()
         row = QHBoxLayout(); row.addStretch()
@@ -38,6 +40,7 @@ class SessionActions(QWidget):
         self.buttons = []
         for title, action in actions:
             button = QPushButton(title); button.setMinimumWidth(320)
+            button.setIcon(QIcon.fromTheme(SESSION_ICONS[action])); button.setIconSize(QSize(24, 24))
             button.clicked.connect(lambda checked=False, key=action: self.activate(key))
             column.addWidget(button); self.buttons.append(button)
         self.error = QLabel(); self.error.setWordWrap(True)
@@ -45,6 +48,7 @@ class SessionActions(QWidget):
         self.error.hide(); column.addWidget(self.error)
         column.addSpacing(32)
         cancel = QPushButton('Cancelar'); cancel.setObjectName('cancel')
+        cancel.setIcon(QIcon.fromTheme('dialog-cancel'))
         cancel.clicked.connect(self.close); column.addWidget(cancel)
         row.addLayout(column); row.addStretch(); outer.addLayout(row); outer.addStretch()
         self.cancel_shortcut = QShortcut(QKeySequence('Escape'), self, activated=self.close)

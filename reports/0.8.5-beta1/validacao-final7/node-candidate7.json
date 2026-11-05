@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "suites": [
+    {
+      "suite": "test-webapps-rules.mjs",
+      "exit_code": 0
+    },
+    {
+      "suite": "test-webapps-events.mjs",
+      "exit_code": 0
+    },
+    {
+      "suite": "test-webapps-settings-08.mjs",
+      "exit_code": 0
+    }
+  ]
+}

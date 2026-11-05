@@ -1,0 +1,450 @@
+[
+  {
+    "test": "test-accounts.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.24
+  },
+  {
+    "test": "test-boot-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.13
+  },
+  {
+    "test": "test-boot-language.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.17
+  },
+  {
+    "test": "test-branding-logo.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.09,
+    "retry": "test dependencies installed"
+  },
+  {
+    "test": "test-build-entrypoints.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 11.42
+  },
+  {
+    "test": "test-clean-layout.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 1.06
+  },
+  {
+    "test": "test-cleanup-mounts-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.19
+  },
+  {
+    "test": "test-cleanup-races-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.15
+  },
+  {
+    "test": "test-control-center-services.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.09
+  },
+  {
+    "test": "test-desktop-inventory.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.22
+  },
+  {
+    "test": "test-desktop-navigation-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 1.12
+  },
+  {
+    "test": "test-device-manager-gui.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.24
+  },
+  {
+    "test": "test-device-manager.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.1
+  },
+  {
+    "test": "test-disk-map.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.23
+  },
+  {
+    "test": "test-dolphin-build.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-drive-capacity.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.16
+  },
+  {
+    "test": "test-drive-icons-qt.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.07,
+    "retry": "test dependencies installed"
+  },
+  {
+    "test": "test-drive-manager-backend.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-drive-manager-gui.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.22
+  },
+  {
+    "test": "test-drive-manager.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.07
+  },
+  {
+    "test": "test-drive-service.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.07
+  },
+  {
+    "test": "test-drive-session.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11,
+    "retry": "independent D-Bus without installed automatic activation"
+  },
+  {
+    "test": "test-embedded-display-remote.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.12
+  },
+  {
+    "test": "test-file-properties-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.16
+  },
+  {
+    "test": "test-file-properties-integration-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 3.57
+  },
+  {
+    "test": "test-firewall-gui-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.18
+  },
+  {
+    "test": "test-keyboard-defaults.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.12
+  },
+  {
+    "test": "test-launchers.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.39
+  },
+  {
+    "test": "test-live-editions-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.15
+  },
+  {
+    "test": "test-maintenance-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.27
+  },
+  {
+    "test": "test-maintenance-gui-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.54
+  },
+  {
+    "test": "test-migration-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.13
+  },
+  {
+    "test": "test-migration-gui-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.52
+  },
+  {
+    "test": "test-native-style.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.31
+  },
+  {
+    "test": "test-network-about.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.28
+  },
+  {
+    "test": "test-network-details.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.08
+  },
+  {
+    "test": "test-nvidia.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-package-dependencies-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.13,
+    "retry": "test dependencies installed"
+  },
+  {
+    "test": "test-packages.py",
+    "status": "SEPARATE",
+    "reason": "Requires generated package workspace"
+  },
+  {
+    "test": "test-partition-dialog.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.32
+  },
+  {
+    "test": "test-partitioning.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.13
+  },
+  {
+    "test": "test-plasma-layout.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-platform-085.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 2.34
+  },
+  {
+    "test": "test-platform-ui-085.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.8
+  },
+  {
+    "test": "test-quick-controls-native.py",
+    "status": "SEPARATE",
+    "reason": "Requires virtual radios and an active audio stream"
+  },
+  {
+    "test": "test-quick-controls.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.07,
+    "retry": "test dependencies installed"
+  },
+  {
+    "test": "test-quick-selection.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.06,
+    "retry": "test dependencies installed"
+  },
+  {
+    "test": "test-recovery-07.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.13
+  },
+  {
+    "test": "test-recovery-setup.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.2
+  },
+  {
+    "test": "test-repository-maintenance-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 1.67
+  },
+  {
+    "test": "test-server-host-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.09
+  },
+  {
+    "test": "test-services-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-session-actions.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.19
+  },
+  {
+    "test": "test-settings-integration.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.22
+  },
+  {
+    "test": "test-signed-catalog-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.14
+  },
+  {
+    "test": "test-startup-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-store-windows-07.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.49
+  },
+  {
+    "test": "test-store-windows-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.37
+  },
+  {
+    "test": "test-store.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.28
+  },
+  {
+    "test": "test-system-central.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 1.46
+  },
+  {
+    "test": "test-task-manager.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.21
+  },
+  {
+    "test": "test-terminal-settings.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.07
+  },
+  {
+    "test": "test-terminal.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.47
+  },
+  {
+    "test": "test-update-status.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.12
+  },
+  {
+    "test": "test-user-environment-09.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.11
+  },
+  {
+    "test": "test-version-06.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.44
+  },
+  {
+    "test": "test-webapp-icons.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.19
+  },
+  {
+    "test": "test-webapps-07.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.32
+  },
+  {
+    "test": "test-webapps-desktop-08.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 1.36
+  },
+  {
+    "test": "test-webapps-gui.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.39
+  },
+  {
+    "test": "test-webapps.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.28
+  },
+  {
+    "test": "test-welcome.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.42
+  },
+  {
+    "test": "test-windows-commands.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.49
+  },
+  {
+    "test": "test-windows-compat.py",
+    "status": "PASS",
+    "exit_code": 0,
+    "seconds": 0.43
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "candidate": "source18",
+  "publication": "https://10.0.2.2:8443",
+  "changed": [
+    "/etc/apt/sources.list.d/linuxbr-local.sources"
+  ],
+  "apt_update": 0,
+  "trust": "previous certificate and keyring preserved"
+}

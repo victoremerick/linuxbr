@@ -1,0 +1,15 @@
+[Unit]
+Description=Linux BR one-boot maintenance request
+
+[Service]
+Type=dbus
+BusName=org.linuxbr.Boot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-boot/boot_broker.py
+StateDirectory=linuxbr/boot
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/boot/grub /var/lib/linuxbr/boot
+RestrictAddressFamilies=AF_UNIX

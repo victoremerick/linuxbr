@@ -50,6 +50,12 @@ def network_api():
     return ServiceStore, smb_url
 
 
+def network_connector(parent):
+    network_api()
+    from network_access import NetworkAccess
+    return NetworkAccess(parent)
+
+
 def validated_target(text):
     """Return a normalized link URL and friendly suggestion without opening it."""
     text = text.strip()
@@ -279,6 +285,8 @@ class MapNetworkDialog(QDialog):
         self.setWindowTitle('Mapear unidade de rede — Linux BR')
         self.setWindowIcon(QIcon.fromTheme('folder-network'))
         self.resize(640, 350)
+        self.connection = network_connector(self)
+        self.connection.finished.connect(self.network_finished)
         layout = QVBoxLayout(self)
         heading = plain_label('Adicionar uma pasta compartilhada')
         heading.setStyleSheet('font-size:23px;font-weight:600')
@@ -294,7 +302,7 @@ class MapNetworkDialog(QDialog):
         self.name.setPlaceholderText('Ex.: Documentos do escritório')
         form.addRow('Nome para exibição:', self.name)
         layout.addLayout(form)
-        layout.addWidget(plain_label('Também aceita smb://servidor/compartilhamento. Usuário e senha serão solicitados pelo sistema ao abrir, quando necessários. A letra é escolhida entre as disponíveis e pode ser alterada em Gerenciamento de discos.'))
+        layout.addWidget(plain_label('Também aceita smb://servidor/compartilhamento. O sistema solicita a conta ao conectar. Para lembrar a senha, use a opção de salvar no Cofre de senhas do KDE quando oferecida. A senha não faz parte do endereço nem do cadastro da unidade. A letra pode ser alterada em Gerenciamento de discos.'))
         self.open_now = QCheckBox('Abrir a pasta após adicionar')
         self.open_now.setChecked(True)
         layout.addWidget(self.open_now)
@@ -309,6 +317,8 @@ class MapNetworkDialog(QDialog):
         layout.addWidget(buttons)
 
     def map_share(self):
+        if self.connection.busy:
+            return
         try:
             store_type, smb_url = network_api()
             url = smb_url(self.location.text())
@@ -323,12 +333,32 @@ class MapNetworkDialog(QDialog):
             self.error.setText('Não foi possível adicionar a unidade. ' + str(error))
             return
         if self.open_now.isChecked():
-            if not QDesktopServices.openUrl(QUrl('linuxbr:/' + letter if letter else url)):
-                message(self, 'Unidade adicionada', 'A unidade foi salva. Abra Este computador para acessá-la.')
+            try:
+                self.connection.start(url)
+            except ValueError as error:
+                self.map_button.setEnabled(True)
+                self.error.setText('A unidade foi salva. ' + str(error))
+                return
+            self.error.setText('Unidade salva. Conectando… Informe a conta na janela do sistema, se solicitado.')
+            return
         else:
             label = name + (f' ({letter}:)' if letter else '')
             message(self, 'Unidade adicionada', label + ' aparecerá em Este computador.')
         self.accept()
+
+    def network_finished(self, url, success, text):
+        self.map_button.setEnabled(True)
+        if success:
+            if not QDesktopServices.openUrl(QUrl(url)):
+                message(self, 'Unidade adicionada', 'O acesso foi confirmado. Abra Este computador para acessar a unidade.')
+            self.accept()
+        else:
+            self.error.setText('A unidade já está salva. ' + text)
+            self.map_button.setText('Reconectar')
+
+    def reject(self):
+        self.connection.cancel()
+        super().reject()
 
 
 class Window(QMainWindow):

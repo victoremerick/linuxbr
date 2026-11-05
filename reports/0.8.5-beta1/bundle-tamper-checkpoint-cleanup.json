@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "checks": [
+    "tampered-definition-refused",
+    "existing-domains-unchanged",
+    "combined-checkpoint-create",
+    "checkpoint-state-cleanup"
+  ]
+}

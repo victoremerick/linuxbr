@@ -1,4 +1,7 @@
-# Konsole interactive Bash profile. Keep system/user startup files and scripts intact.
-[[ -f ~/.bashrc ]] && source ~/.bashrc
+# Shared interactive profile for desktop, server and maintenance terminals.
+case " $(</proc/cmdline) " in
+    *" linuxbr.mode=safe "*|*" linuxbr.mode=safe-network "*|*" linuxbr.mode=safe-terminal "*|*" linuxbr.mode=recovery "*) ;;
+    *) [[ -f ~/.bashrc ]] && source ~/.bashrc ;;
+esac
 [[ $- == *i* ]] || return
 source /usr/share/linuxbr/terminal.bash

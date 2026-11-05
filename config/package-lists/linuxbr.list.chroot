@@ -8,6 +8,9 @@ plasma-nm
 partitionmanager
 udisks2
 kio-extras
+kdenetwork-filesharing
+acl
+linuxbr-file-properties
 kde-zeroconf
 avahi-daemon
 samba
@@ -74,7 +77,7 @@ fonts-liberation
 ipp-usb
 sane-airscan
 cups-browsed
-# Atualizacoes de firmware com confirmacao no Discover.
+# Atualizacoes de firmware pela Loja Linux BR.
 fwupd
 plasma-discover-backend-fwupd
 # Formatos multimidia nos aplicativos GStreamer.
@@ -86,3 +89,31 @@ gstreamer1.0-plugins-ugly
 kimageformat6-plugins
 qt6-image-formats-plugins
 ffmpegthumbs
+
+# Copias com versoes e restauracao grafica integrada ao Plasma.
+kup-backup
+bup
+rsync
+
+# Pontos do sistema e integracao de aplicativos e rede.
+timeshift
+icoutils
+kde-cli-tools
+kwalletmanager
+
+# Gerenciamento grafico de maquinas virtuais.
+python3-libvirt
+libvirt-daemon-system
+libvirt-clients
+qemu-system-x86
+qemu-system-modules-spice
+qemu-utils
+virtinst
+virt-viewer
+ovmf
+swtpm
+swtpm-tools
+ksshaskpass
+gpg
+python3-virt-firmware
+virt-manager

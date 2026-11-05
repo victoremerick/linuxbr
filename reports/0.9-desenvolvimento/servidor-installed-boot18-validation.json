@@ -1,0 +1,13 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "edition": "server",
+  "boot_id": "45a12fc8-f85a-4d5a-8bae-fd438448f5ce",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "authenticated": true,
+  "uid": 1000,
+  "console": "1280 /usr/bin/python3 /usr/lib/linuxbr-boot/console.py\n",
+  "plasma": false,
+  "failed_units": [],
+  "dpkg_audit": ""
+}

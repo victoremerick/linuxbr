@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.linuxbr.Boot
+Exec=/usr/bin/python3 /usr/lib/linuxbr-boot/boot_broker.py
+User=root
+SystemdService=linuxbr-boot-broker.service

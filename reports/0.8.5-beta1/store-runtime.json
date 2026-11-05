@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "checks": [
+    "source-create",
+    "source-disable",
+    "source-enable",
+    "source-edit",
+    "source-remove",
+    "key-fingerprint",
+    "local-deb-install",
+    "changed-hash-refused",
+    "fixture-removed"
+  ],
+  "fingerprint": "41587F7DB8C774BCCF131416762F67A0B2C39DE4",
+  "scope": "Backend administrativo e gerenciadores nativos; autoriza\u00e7\u00e3o interativa da sess\u00e3o ser\u00e1 conferida na instala\u00e7\u00e3o integrada."
+}

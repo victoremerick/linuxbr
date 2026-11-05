@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "firmware": "BIOS",
+  "boot": "Installed disk, ISO detached",
+  "resolution": [
+    1280,
+    768
+  ],
+  "first_login": true,
+  "desktop_portuguese": true,
+  "at": "2026-11-04T22:00:48.569Z"
+}

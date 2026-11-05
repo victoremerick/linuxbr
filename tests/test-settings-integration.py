@@ -27,8 +27,9 @@ class Settings(unittest.TestCase):
    file=root/'name with spaces.deb'
    subprocess.run(['dpkg-deb','--build',str(package),str(file)],check=True,stdout=subprocess.DEVNULL)
    self.assertTrue(inspect_package(file)[1]);window.load(str(file));self.assertTrue(window.install.isEnabled())
-   with patch('installer.QProcess.startDetached',return_value=(True,1)) as start:
-    window.start();self.assertEqual(start.call_args.args,('plasma-discover',['--local-filename',str(file)]))
+   import hashlib
+   with patch('store_operations.Operations') as operations,patch('installer.QProcess.startDetached') as start:
+    window.start();operations.return_value.install_file.assert_called_once_with(file,hashlib.sha256(file.read_bytes()).hexdigest());start.assert_not_called()
  def test_appearance_restricted(self):
   with patch('appearance.subprocess.check_output',return_value='LinuxBRDarkBlue\n'):
    page=Appearance()

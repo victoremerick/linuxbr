@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "real_grub_regeneration": true,
+  "backup_verified": true,
+  "failure_rollback_verified": true,
+  "scope": "isolated QA VM installed source16"
+}

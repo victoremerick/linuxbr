@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "boot_id_before": "311bb24c-c6fc-4f2d-b6f1-51cd1637fbda",
+  "at": "2026-11-04T21:08:20.451028+00:00",
+  "boot_id_after": "de45116a-3651-47f5-9d53-c279bd73e97b",
+  "reboot_verified": true,
+  "runtime_files_identical_to_final_iso": 1390,
+  "profile_files_checked": 1789,
+  "profile_missing": 0,
+  "profile_changed": 0,
+  "services_active": [
+    "sddm",
+    "NetworkManager",
+    "firewalld",
+    "libvirtd.socket"
+  ],
+  "libvirt_connection": "qemu:///system",
+  "virt_manager_installed": true,
+  "firmware_2023_template": true
+}

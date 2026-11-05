@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Configurações de inicialização
+Comment=Modos de segurança, diagnóstico e próxima inicialização
+Exec=linuxbr-boot-options
+Icon=system-reboot
+Terminal=false
+Categories=System;Settings;
+Keywords=boot;F8;segurança;recuperação;inicialização;

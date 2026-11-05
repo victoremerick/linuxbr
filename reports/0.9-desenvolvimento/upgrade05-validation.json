@@ -1,0 +1,27 @@
+{
+  "upgrade": {
+    "returncode": 0,
+    "finished": 1793854346.455769,
+    "packages": 12
+  },
+  "personal_files": 1793,
+  "changed_files": 0,
+  "dpkg_audit": "",
+  "snapshot": {
+    "status": "created",
+    "packages": [
+      "linuxbr-boot-theme",
+      "linuxbr-branding",
+      "linuxbr-desktop",
+      "linuxbr-device-manager",
+      "linuxbr-drive-manager",
+      "linuxbr-file-properties",
+      "linuxbr-release",
+      "linuxbr-sddm-theme",
+      "linuxbr-system"
+    ],
+    "time": "2026-11-05T04:51:57.076133+00:00"
+  },
+  "release": "NAME=\"Linux BR\"\nVERSION=\"0.9.0 Beta 1\"\nVERSION_ID=\"0.9.0~beta1\"\nBASE=\"Debian 13 (trixie)\"\n",
+  "common_owner": "linuxbr-boot-tools: /usr/lib/linuxbr-system/snapshot_service.py\nlinuxbr-boot-tools: /etc/apt/apt.conf.d/80linuxbr-recovery\nlinuxbr-boot-tools: /etc/linuxbr/recovery-policy.json\n"
+}

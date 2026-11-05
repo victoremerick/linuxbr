@@ -1,0 +1,10 @@
+[Unit]
+Description=Verificação diária dos catálogos de aplicativos web
+
+[Timer]
+OnStartupSec=5min
+OnUnitActiveSec=1d
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target

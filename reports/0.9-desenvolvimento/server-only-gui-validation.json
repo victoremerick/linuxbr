@@ -1,0 +1,30 @@
+{
+  "network": {
+    "loaded": true,
+    "jobs_remaining": 0,
+    "adapters": 2
+  },
+  "services": {
+    "loaded": true,
+    "jobs_remaining": 0,
+    "services": 69
+  },
+  "features": {
+    "loaded": true,
+    "jobs_remaining": 0
+  },
+  "firewall": {
+    "loaded": true,
+    "jobs_remaining": 0
+  },
+  "host": {
+    "loaded": true,
+    "jobs_remaining": 0
+  },
+  "buttons": [
+    "Cancelar",
+    "&Sim"
+  ],
+  "edition": "server",
+  "plasma_installed": false
+}

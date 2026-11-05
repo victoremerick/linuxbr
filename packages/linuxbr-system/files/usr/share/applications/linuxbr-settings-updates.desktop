@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Atualizações do sistema
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page updates
+Icon=system-software-update
+Keywords=Windows Update;Atualizar;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

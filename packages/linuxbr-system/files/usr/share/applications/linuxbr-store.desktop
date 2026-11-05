@@ -8,3 +8,13 @@ Terminal=false
 Categories=System;PackageManager;
 Keywords=loja;instalar;programas;aplicativos;Windows;Wine;web;baixar;
 StartupWMClass=linuxbr-store
+
+Actions=Installed;Updates;
+
+[Desktop Action Installed]
+Name=Meus aplicativos
+Exec=linuxbr-store --installed
+
+[Desktop Action Updates]
+Name=Atualizações
+Exec=linuxbr-store --updates

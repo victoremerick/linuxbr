@@ -56,7 +56,9 @@ async function popup(message) {
     await chrome.storage.local.set({enabled:message.enabled===true});
     if (!message.enabled) {
       for(const open of await chrome.tabs.query({}))await decorate(open.id,null);
-      await chrome.storage.session.clear();
+      const suggestions=Object.keys(await chrome.storage.session.get(null)).filter(name=>
+        /^tab-\d+$/.test(name)||/^offer-[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(name));
+      if(suggestions.length)await chrome.storage.session.remove(suggestions);
       for(const id of Object.keys(await chrome.notifications.getAll()))await chrome.notifications.clear(id);
     } else if(tab)await chrome.tabs.sendMessage(tab.id,{action:'inspect'}).catch(()=>{});
     return {ok:true};
@@ -75,8 +77,8 @@ chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   // Profile controls only open confirmation UI for the browser's own profile.
   const trustedPopup=sender.url===chrome.runtime.getURL('popup.html');
   const profileAction=sender.tab && sender.frameId===0 && !sender.tab.incognito &&
-    ['profile-context','new-profile'].includes(message.action);
-  const task=profileAction?native({action:message.action}):trustedPopup?popup(message):(message.action==='metadata'?metadata(message,sender):Promise.reject(new Error('Ação indisponível.')));
+    ['profile-context','new-profile','profile-preferences','external-link'].includes(message.action);
+  const task=profileAction?native({action:message.action,...(message.action==='external-link'?{url:message.url}:{})}):trustedPopup?popup(message):(message.action==='metadata'?metadata(message,sender):Promise.reject(new Error('Ação indisponível.')));
   task.then(value=>respond(value||{})).catch(error=>respond({error:error.message}));return true;
 });
 chrome.tabs.onRemoved.addListener(id=>chrome.storage.session.remove(key(id)));

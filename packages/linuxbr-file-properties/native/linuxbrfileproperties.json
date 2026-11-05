@@ -1,0 +1,10 @@
+{
+    "KPlugin": {
+        "Name": "Propriedades de arquivos Linux BR",
+        "Description": "Validação, compatibilidade e cópias pessoais na janela de propriedades",
+        "Icon": "document-properties",
+        "License": "GPL-3.0-or-later",
+        "Version": "0.8"
+    },
+    "X-KDE-SupportsMultipleFiles": true
+}

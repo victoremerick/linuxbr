@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "candidate": "source18",
+  "publication": "https://10.0.2.2:8443",
+  "apt_update": 0,
+  "downloaded_packages": 21,
+  "package_hashes": "all match final manifest",
+  "ca_sha256": "4ab4976353779358ae9d3254e0577ba8423a8344f925542e238a24a27788bb8b",
+  "keyring_sha256": "917144681117b6d087840cd996f2a7d5d4499a52328f18f78119cffb2b99c3a5",
+  "tls_verification": "enabled",
+  "apt_signature_verification": "enabled",
+  "daily_metadata_renewal": "client fetched after successful service execution"
+}

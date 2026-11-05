@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "candidate": "source17",
+  "ctrl_alt_del": "actual shortcut opens full-screen session actions",
+  "separate_task_manager": true,
+  "taskbar_context_task_manager": true,
+  "evidence": [
+    "desktop17-ctrl-alt-del.png",
+    "desktop17-gerenciador-tarefas.png",
+    "desktop17-contexto-barra-tarefas.png"
+  ]
+}

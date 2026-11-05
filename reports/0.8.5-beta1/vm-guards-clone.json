@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "checks": [
+    "boot-with-cpu-limit",
+    "saved-state-edit-refused",
+    "saved-state-resume",
+    "pool-redefinition-refused",
+    "shared-writable-disk-refused",
+    "clone-with-firmware-tpm",
+    "clone-boot"
+  ],
+  "clone": {
+    "id": "ea6cc74e-3f6e-4e99-aff2-bfd96607faee",
+    "name": "QA085 clone 1793813731",
+    "disks": 1,
+    "state": "Desligada"
+  }
+}

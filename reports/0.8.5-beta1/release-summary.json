@@ -1,0 +1,51 @@
+{
+  "version": "0.8.5~beta1",
+  "status": "PASS_WITH_KNOWN_LIMITATIONS",
+  "release_date": "2026-11-04",
+  "iso": {
+    "file": "linuxbr-0.8.5~beta1-amd64.iso",
+    "bytes": 3637100544,
+    "sha256": "c952c0b6db28c5df2a618eb157b2e2524a6c9cd5c46b3692a64d3add488f0d2e",
+    "local_path": "D:/LinuxBR/0.8.5/linuxbr-0.8.5~beta1-amd64.iso"
+  },
+  "source_archive_sha256": "e122e0c8007eed44e28db52b076efa7680115040d4eca744a6325c3cd211ed5d",
+  "regression_suites": 53,
+  "platform_tests": 23,
+  "webapps_suites": 3,
+  "publisher_tests": 19,
+  "source_deb_iso_regular_usr_files": 1410,
+  "updated_runtime_files": 1390,
+  "preserved_profile_files": 1789,
+  "clean_install": {
+    "uefi": "PASS",
+    "bios": "PASS",
+    "resolution": [
+      1280,
+      768
+    ],
+    "diagnostic_ssh_absent": true
+  },
+  "upgrade_from_08": "PASS_ON_DISPOSABLE_COPY_WITH_REBOOT",
+  "original_validation_vm": "FINAL_PACKAGES_INSTALLED_REBOOT_PASS",
+  "repository": {
+    "status": "PASS",
+    "version": "0.8.5~beta1",
+    "signed_packages": 18,
+    "https_files": 32,
+    "apt_candidates": 18,
+    "previous_preserved": true,
+    "metadata_validity_days": 14,
+    "bind": "127.0.0.1",
+    "port": 8443
+  },
+  "integration_files": 55,
+  "bios_memory_checkpoint": "PASS_CREATE_RESTORE_PAUSED_RESUME",
+  "known_limitations": [
+    "Properties Windows-form path and title may require reopening after Apply rename.",
+    "Physical hardware and remote migration not homologated.",
+    "No continuous replication, clustering or automatic failover.",
+    "Wine/Proton compatibility varies by application.",
+    "Windows nested-lab boot, Secure Boot and TPM verified; clean Windows shutdown not validated after overlay storage exhaustion."
+  ],
+  "evidence_scopes": "Earlier laboratory functional records retained with provenance; 96 runtime Python modules unchanged from candidate5, three UI modules revalidated. Final7 suites, exact update, clean installs and repository use delivered final artifacts."
+}

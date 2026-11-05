@@ -1,0 +1,13 @@
+{
+  "apt_returncode": 0,
+  "snapshot": {
+    "status": "created",
+    "packages": [
+      "linuxbr-qa-update-probe"
+    ],
+    "time": "2026-11-05T05:36:30.493976+00:00"
+  },
+  "edition": "server",
+  "status": "PASS",
+  "probe_removed": true
+}

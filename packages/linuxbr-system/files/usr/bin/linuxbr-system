@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/python3 /usr/lib/linuxbr-system/central.py "$@"
+exec /usr/bin/python3 /usr/lib/linuxbr-system/settings_hub.py "$@"

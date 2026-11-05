@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-linuxbr-batch">
+    <comment>Script de comandos Windows</comment>
+    <sub-class-of type="text/plain"/>
+    <glob pattern="*.bat" weight="80"/><glob pattern="*.cmd" weight="80"/>
+    <icon name="text-x-script"/>
+  </mime-type>
+</mime-info>

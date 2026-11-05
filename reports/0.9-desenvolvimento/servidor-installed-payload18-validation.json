@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "candidate": "source18",
+  "checked": 916,
+  "unexpected_payload_changes": [],
+  "preserved_configuration_differences": [],
+  "versions": {
+    "dolphin-data": "4:25.04.3-1+deb13u1+linuxbr2",
+    "kio6": "6.13.0-6+linuxbr0.9.1",
+    "libdolphinvcs6": "4:25.04.3-1+deb13u1+linuxbr2",
+    "libkf6kiocore6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiofilewidgets6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiogui6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiowidgets6": "6.13.0-6+linuxbr0.9.1",
+    "linuxbr-boot-theme": "0.9.0~beta1",
+    "linuxbr-boot-tools": "0.9.0~beta1",
+    "linuxbr-branding": "0.9.0~beta1",
+    "linuxbr-release": "0.9.0~beta1",
+    "linuxbr-server": "0.9.0~beta1"
+  },
+  "dpkg_audit": "",
+  "context": "final cohort after clean UEFI installation of previous candidate",
+  "edition": "server"
+}

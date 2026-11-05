@@ -1,5 +1,6 @@
 """Offline introduction and recovery help, shared with the system settings hub."""
 import json
+import argparse
 import os
 import platform
 import shutil
@@ -30,7 +31,7 @@ ACTIONS = {
     'power': ['linuxbr-system', '--page', 'Energia e bateria'],
     'files': ['dolphin', 'linuxbr:/'],
     'store': ['linuxbr-store'],
-    'updates': ['plasma-discover', '--mode', 'Update'],
+    'updates': ['linuxbr-store','--updates'],
     'install': ['linuxbr-install-package'],
     'windows': ['linuxbr-windows'],
     'webapps': ['linuxbr-webapps'],
@@ -38,6 +39,8 @@ ACTIONS = {
     'run': ['linuxbr-run'],
     'quick-access': ['linuxbr-quick-access'],
     'scanner': ['skanpage'],
+    'backup': ['linuxbr-recovery'],
+    'recovery': ['linuxbr-recovery','--section','help'],
 }
 
 TOPICS = {
@@ -223,6 +226,8 @@ TOPICS = {
         apague o arquivo de hibernação para contornar o aviso.</p>
         <p>Mantenha uma cópia dos documentos em outro disco ou serviço escolhido
         por você. Letras de unidade não substituem uma cópia de segurança.</p>
+        <p><a href="action:backup">Configurar backup ou restaurar arquivos</a> ·
+        <a href="action:recovery">Abrir recuperação e suporte</a></p>
         <p>Se o sistema não iniciar, use o pendrive Live do Linux BR para inspecionar
         e copiar arquivos para outro dispositivo. Não formate nem reinstale antes
         de confirmar a cópia dos dados. No menu de boot, remover <b>quiet splash</b>
@@ -334,6 +339,9 @@ class Welcome(QMainWindow):
         header = QLabel('Linux BR  ·  Seu computador, em português')
         header.setStyleSheet('font-size:20px;font-weight:600;padding:12px')
         layout.addWidget(header)
+        prepare=QPushButton('Preparar meu computador…')
+        prepare.clicked.connect(lambda:self.launch(['linuxbr-setup']))
+        layout.addWidget(prepare,0,Qt.AlignmentFlag.AlignLeft)
         self.live_install = None
         if is_live_session():
             live = QHBoxLayout()
@@ -376,11 +384,14 @@ class Welcome(QMainWindow):
 
 
 def main():
-    if '--autostart' in sys.argv and not should_autostart(load_preferences()):
+    parser=argparse.ArgumentParser();parser.add_argument('--autostart',action='store_true')
+    parser.add_argument('--topic',choices=list(TOPICS));args=parser.parse_args()
+    if args.autostart and not should_autostart(load_preferences()):
         return 0
     application = QApplication(sys.argv)
     application.setDesktopFileName('linuxbr-welcome')
     window = Welcome(); window.show()
+    if args.topic:window.nav.setCurrentRow(list(TOPICS).index(args.topic))
     return application.exec()
 
 

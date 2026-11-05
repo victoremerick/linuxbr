@@ -1,0 +1,66 @@
+{
+  "existing_vms": 8,
+  "remove_plan": [
+    {
+      "action": "Remv",
+      "package": "libvirt-daemon-system"
+    },
+    {
+      "action": "Remv",
+      "package": "libvirt-clients"
+    },
+    {
+      "action": "Remv",
+      "package": "libvirt-daemon-driver-qemu"
+    },
+    {
+      "action": "Remv",
+      "package": "ovmf"
+    },
+    {
+      "action": "Remv",
+      "package": "qemu-system-modules-spice"
+    },
+    {
+      "action": "Remv",
+      "package": "qemu-system-modules-opengl"
+    },
+    {
+      "action": "Remv",
+      "package": "qemu-system-x86"
+    },
+    {
+      "action": "Remv",
+      "package": "qemu-utils"
+    },
+    {
+      "action": "Remv",
+      "package": "swtpm-tools"
+    },
+    {
+      "action": "Remv",
+      "package": "swtpm"
+    },
+    {
+      "action": "Remv",
+      "package": "virt-manager"
+    },
+    {
+      "action": "Remv",
+      "package": "virt-viewer"
+    },
+    {
+      "action": "Remv",
+      "package": "virtinst"
+    }
+  ],
+  "remove": {
+    "message": "Pacotes alterados. Configurações e dados pessoais não foram purgados. Para reinstalar, use Instalar recurso; versões antigas podem não estar disponíveis."
+  },
+  "install": {
+    "message": "Pacotes alterados. Configurações e dados pessoais não foram purgados. Para reinstalar, use Instalar recurso; versões antigas podem não estar disponíveis."
+  },
+  "existing_vm_definitions_preserved": true,
+  "audit": "",
+  "status": "PASS"
+}

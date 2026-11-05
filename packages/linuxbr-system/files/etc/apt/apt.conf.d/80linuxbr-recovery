@@ -1,0 +1,1 @@
+DPkg::Pre-Install-Pkgs { "/usr/bin/python3 /usr/lib/linuxbr-system/snapshot_service.py apt"; };

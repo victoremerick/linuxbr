@@ -2,11 +2,17 @@
 import argparse
 import fcntl
 import json
+import ntpath
 import os
 from pathlib import Path
+import re
+import selectors
+import shlex
+import shutil
 import struct
 import subprocess
 import tempfile
+import time
 import uuid
 
 
@@ -107,6 +113,98 @@ def program_desktop(identifier):
     return data_root().parent.parent/'applications'/('linuxbr-windows-'+identifier+'.desktop')
 
 
+def program_icon_path(identifier):
+    program_path(identifier)
+    directory=data_root()/'icons'
+    if directory.is_symlink():raise ValueError('A pasta de ícones não pode ser um link simbólico.')
+    path=directory/(identifier+'.ico')
+    if path.is_symlink():raise ValueError('O ícone não pode ser um link simbólico.')
+    return path
+
+
+def program_icon(identifier):
+    try:
+        path=program_icon_path(identifier)
+        return str(path) if path.is_file() else 'wine'
+    except ValueError:return 'wine'
+
+
+def valid_icon(value):
+    """Reject truncated or oversized extracted ICO files before registering them."""
+    if len(value)<22 or len(value)>16*1024*1024 or value[:4]!=b'\0\0\1\0':return False
+    count=struct.unpack_from('<H',value,4)[0]
+    if not 1<=count<=256 or len(value)<6+16*count:return False
+    for index in range(count):
+        size,offset=struct.unpack_from('<II',value,6+16*index+8)
+        if not size or offset<6+16*count or offset+size>len(value):return False
+    return True
+
+
+def bounded_tool_output(argv,limit,timeout):
+    """Read one local tool with bounded output and elapsed time."""
+    process=subprocess.Popen(argv,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL)
+    output=bytearray();deadline=time.monotonic()+timeout
+    try:
+        with selectors.DefaultSelector() as selector:
+            selector.register(process.stdout,selectors.EVENT_READ)
+            while True:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:return None
+                for _key,_events in selector.select(remaining):
+                    value=os.read(process.stdout.fileno(),min(8192,limit+1-len(output)))
+                    if not value:
+                        return bytes(output) if process.wait(timeout=max(.01,deadline-time.monotonic()))==0 else None
+                    output.extend(value)
+                    if len(output)>limit:return None
+    except (OSError,subprocess.TimeoutExpired):return None
+    finally:
+        if process.poll() is None:process.kill()
+        process.wait();process.stdout.close()
+
+
+def primary_icon_resource(path):
+    listing=bounded_tool_output(['/usr/bin/wrestool','--list','--type=14','--',str(path)],65536,4)
+    if listing is None:return None
+    candidates=[]
+    for line in listing.decode('utf-8',errors='replace').splitlines():
+        try:tokens=shlex.split(line)
+        except ValueError:continue
+        names=[value.removeprefix('--name=') for value in tokens if value.startswith('--name=')]
+        languages=[value.split('=',1)[1] for value in tokens if value.startswith(('--language=','--lang='))]
+        if '--type=14' not in tokens or len(names)!=1 or len(languages)!=1:continue
+        name=names[0];language=languages[0]
+        if not name or len(name)>256 or any(ord(value)<32 or ord(value)==127 for value in name):continue
+        if not language.isdecimal() or not 0<=int(language)<=65535:continue
+        # Windows application icons conventionally start with numeric resource 1.
+        # Explicit names and languages prevent a later group replacing that icon.
+        numeric=name.isdecimal()
+        rank=(0 if name=='1' else 1 if numeric else 2,int(name) if numeric else name.casefold(),int(language))
+        candidates.append((rank,'--name='+name,'--language='+language))
+    if not candidates:return None
+    _rank,name,language=min(candidates,key=lambda item:item[0])
+    return [name,language]
+
+
+def extract_program_icon(identifier,filename):
+    """Read PE icon resources with local icoutils; never run the executable."""
+    destination=program_icon_path(identifier)
+    try:
+        path,kind=inspect_windows_file(filename)
+        if kind not in ('x64','x86') or path.stat().st_size>256*1024*1024:return program_icon(identifier)
+        resource=primary_icon_resource(path)
+        if not resource:return program_icon(identifier)
+        value=bounded_tool_output(['/usr/bin/wrestool','--extract','--type=14',*resource,'--',str(path)],16*1024*1024,8)
+        if value is None or not valid_icon(value):return program_icon(identifier)
+        destination.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+        with tempfile.TemporaryDirectory(prefix='.extract-',dir=destination.parent) as temporary:
+            output=Path(temporary)/'program.ico'
+            output.write_bytes(value)
+            os.chmod(output,0o600);os.replace(output,destination)
+    except (OSError,ValueError,subprocess.TimeoutExpired):pass
+    return program_icon(identifier)
+
+
 def read_program(identifier):
     item=json.loads(program_path(identifier).read_text(encoding='utf-8'))
     if not isinstance(item,dict):raise ValueError('Atalho inválido.')
@@ -131,12 +229,13 @@ def programs(identifier=None):
 def register_program(environment,filename,name):
     if os.geteuid()==0:raise ValueError('Execute sem sudo.')
     item=read_environment(environment);path,kind=inspect_windows_file(filename)
-    if kind=='MSI':raise ValueError('Escolha o EXE do programa instalado; MSI é um instalador.')
+    if kind in ('MSI','BAT','CMD'):raise ValueError('Escolha o EXE do programa instalado para criar um atalho.')
     if kind=='x64' and item['architecture']=='win32':raise ValueError('Este programa exige um ambiente de 64 bits.')
     name=clean_name(name)
     existing=next((entry for entry in programs(environment) if entry['file']==str(path)),None)
     identifier=existing['id'] if existing else str(uuid.uuid4())
     write_json(program_path(identifier),{'name':name,'environment':environment,'file':str(path)})
+    icon=extract_program_icon(identifier,path)
     desktop=program_desktop(identifier)
     desktop.parent.mkdir(parents=True,exist_ok=True)
     if desktop.is_symlink():raise ValueError('O arquivo de atalho não pode ser um link simbólico.')
@@ -145,7 +244,7 @@ def register_program(environment,filename,name):
     content=('[Desktop Entry]\nType=Application\nName='+escaped+'\n'
              'Comment=Programa Windows no ambiente Linux BR\n'
              'Exec=/usr/bin/linuxbr-windows --launch '+identifier+'\n'
-             'Icon=application-x-executable\nTerminal=false\nCategories=Utility;\n'
+             'Icon='+icon.replace('\\','\\\\').replace('\n','\\n').replace('\r','\\r').replace('\t','\\t')+'\nTerminal=false\nCategories=Utility;\n'
              'Keywords=Windows;Wine;\nStartupNotify=false\n')
     desktop.write_text(content,encoding='utf-8')
     return identifier
@@ -156,6 +255,53 @@ def forget_program(identifier):
     desktop=program_desktop(identifier)
     if desktop.is_symlink():raise ValueError('O arquivo de atalho não pode ser um link simbólico.')
     desktop.unlink(missing_ok=True);program_path(identifier).unlink()
+    program_icon_path(identifier).unlink(missing_ok=True)
+
+
+def compatibility_guidance(filename):
+    basename=Path(filename).name.casefold() if filename else ''
+    if basename in ('7z.exe','7zfm.exe','7zg.exe') or re.fullmatch(r'7z\d+[^/]*\.exe',basename):
+        return ('7-Zip: teste compactar, extrair e abrir os formatos de que precisa. '
+                'O Ark já oferece compactação no Linux. Associações de arquivos do Wine não substituem '
+                'automaticamente as do gerenciador de arquivos. Versão e documentação: https://www.7-zip.org/')
+    if basename.startswith('openttd'):
+        return ('OpenTTD: existe edição Linux. Confira a versão e os arquivos gráficos, de som e música '
+                'do jogo. Uma partida iniciada não comprova áudio, rede ou desempenho gráfico. '
+                'Downloads e documentação: https://www.openttd.org/')
+    return ('Confira os requisitos e a edição do programa no site do fornecedor. Prefira Linux ou web '
+            'quando disponíveis. Use um ambiente separado para bibliotecas específicas. '
+            'Drivers Windows, DRM e antitrapaças podem impedir a execução. '
+            'Relatos por versão: https://appdb.winehq.org/')
+
+
+def diagnose_program(environment,filename=None,code=None,error='',log=''):
+    """Create a local, read-only diagnosis without executing the selected EXE."""
+    item=read_environment(environment);directory=environment_path(environment)
+    lines=['Diagnóstico do programa Windows','Ambiente: '+item['name'],
+        'Arquitetura do ambiente: '+item['architecture'],
+        'Wine: '+('encontrado' if shutil.which('wine') else 'não instalado'),
+        'Ambiente preparado: '+('sim' if (directory/'prefix/system.reg').is_file() else 'ainda não')]
+    if filename:
+        lines.append('Programa: '+str(Path(filename)))
+        try:
+            _path,kind=inspect_windows_file(filename);lines.append('Formato: '+kind)
+            if item['architecture']=='win32' and kind=='x64':lines.append('Ação: use um ambiente de 64 bits para este EXE.')
+        except (OSError,ValueError) as failure:lines.append('Arquivo: '+str(failure))
+    if code is not None:
+        lines.append('Código de saída: '+str(code))
+        if code==0:lines.append('O processo retornou sucesso; isso não confirma todas as funções do programa.')
+        elif code in (3010,1641):lines.append('O instalador solicitou reinicialização; salve o trabalho e reabra este ambiente.')
+    if error:lines.append('Erro registrado: '+str(error)[:2000])
+    sample=(str(error)+'\n'+str(log)).casefold()
+    if any(marker in sample for marker in ('import_dll','c0000135','module not found','msvcp','vcruntime')):
+        lines.append('Indício de biblioteca ausente. Consulte os requisitos do fornecedor e Dependências neste ambiente; evite DLLs avulsas.')
+    if any(marker in sample for marker in ('c000007b','bad exe format','wrong architecture')):
+        lines.append('Indício de mistura de arquiteturas. Confira EXE, bibliotecas e ambiente x86/x64.')
+    if any(marker in sample for marker in ('vulkan','dxvk','d3d11','d3d12')):
+        lines.append('O registro menciona gráficos. Confira o driver, o suporte Vulkan e as bibliotecas de 32 bits; a menção isolada não prova a causa.')
+    lines.extend(['',compatibility_guidance(filename),
+        '', 'Este diagnóstico lê a configuração e o registro local. Nenhuma biblioteca foi instalada ou ajuste alterado.'])
+    return '\n'.join(lines)
 
 
 def discover_programs(identifier,limit=250):
@@ -197,8 +343,17 @@ def discover_programs(identifier,limit=250):
 def inspect_windows_file(filename):
     try:path=Path(filename).expanduser().resolve(strict=True)
     except FileNotFoundError:raise ValueError('Arquivo não encontrado. Selecione o programa novamente.') from None
-    if not path.is_file() or path.suffix.lower() not in ('.exe','.msi'):
-        raise ValueError('Selecione um arquivo EXE ou MSI local.')
+    if not path.is_file() or path.suffix.lower() not in ('.exe','.msi','.bat','.cmd'):
+        raise ValueError('Selecione um arquivo EXE, MSI, BAT ou CMD local.')
+    if path.suffix.lower() in ('.bat','.cmd'):
+        # CMD expands percent expressions even inside quotes. Reject ambiguous
+        # path characters rather than interpolating a filename as instructions.
+        if any(c in str(path) for c in '%"\r\n\0'):
+            raise ValueError('Renomeie o arquivo e as pastas: o caminho não pode conter %, aspas ou quebras de linha.')
+        with path.open('rb') as stream:sample=stream.read(8192)
+        if b'\0' in sample:
+            raise ValueError('O BAT/CMD precisa ser texto sem caracteres nulos.')
+        return path,path.suffix[1:].upper()
     with path.open('rb') as stream:
         header=stream.read(64)
         if path.suffix.lower()=='.msi':
@@ -222,6 +377,8 @@ def inspect_windows_file(filename):
 def command_for(action,filename=None):
     if action=='run':
         path,kind=inspect_windows_file(filename)
+        if kind in ('BAT','CMD'):
+            return ['wine','cmd','/d','/v:off','/c','linuxbr-script.cmd']
         return ['wine','msiexec','/i',str(path)] if kind=='MSI' else ['wine',str(path)]
     if action=='configure':return ['winecfg']
     if action=='uninstall':return ['wine','uninstaller']
@@ -230,7 +387,7 @@ def command_for(action,filename=None):
     raise ValueError('Ação desconhecida.')
 
 
-def run(identifier,action,filename=None):
+def _run(identifier,action,filename=None):
     if os.geteuid()==0:raise ValueError('Execute como usuário normal, sem sudo.')
     item=read_environment(identifier); path=environment_path(identifier)
     command=command_for(action,filename)
@@ -240,7 +397,7 @@ def run(identifier,action,filename=None):
     # Do not inherit DLL overrides or an unrelated Wine prefix from the launcher.
     for key in ('WINEPREFIX','WINEARCH','WINEDLLOVERRIDES','WINESERVER','WINELOADER'):
         env.pop(key,None)
-    env.update(WINEPREFIX=str(path/'prefix'),WINEARCH=item['architecture'],WINEDEBUG='-all')
+    env.update(WINEPREFIX=str(path/'prefix'),WINEARCH=item['architecture'],WINEDEBUG='-all,err+module,err+seh')
     if action=='stop':return subprocess.call(command,env=env,cwd=str(path))
     with (path/'initialization.lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX)
@@ -248,7 +405,32 @@ def run(identifier,action,filename=None):
             subprocess.run(['wineboot','--init'],env=env,check=True)
             subprocess.run(['wineserver','--wait'],env=env,check=True)
     cwd=str(Path(filename).resolve().parent) if action=='run' else str(path)
+    if action=='run' and inspect_windows_file(filename)[1] in ('BAT','CMD'):
+        converted=subprocess.check_output(['winepath','-w',str(Path(filename).resolve())],env=env,text=True).strip()
+        if not converted or any(c in converted for c in '%"\r\n'):
+            raise ValueError('Não foi possível converter o caminho do script com segurança.')
+        # Wine reconstructs a Windows command line from Unix argv. A private
+        # dispatcher avoids quoting a user filename through that extra layer.
+        with tempfile.TemporaryDirectory(prefix='batch-',dir=path) as temporary:
+            wrapper=Path(temporary)/'linuxbr-script.cmd'
+            # Unicode values enter through the process environment, avoiding
+            # the OEM encoding used when CMD reads a batch file.
+            env.update(LINUXBR_BATCH_FILE=converted,LINUXBR_BATCH_DIR=ntpath.dirname(converted))
+            wrapper.write_bytes(b'@echo off\r\ncd /d "%LINUXBR_BATCH_DIR%" || exit /b 12\r\n"%LINUXBR_BATCH_FILE%"\r\n')
+            return subprocess.call(command,env=env,cwd=temporary)
     return subprocess.call(command,env=env,cwd=cwd)
+
+
+def run(identifier,action,filename=None):
+    if os.geteuid()==0:raise ValueError('Execute como usuário normal, sem sudo.')
+    path=environment_path(identifier);read_environment(identifier)
+    if action=='stop':return _run(identifier,action,filename)
+    lock_path=path/'maintenance.lock'
+    if lock_path.is_symlink():raise ValueError('Registro de bloqueio inválido.')
+    with lock_path.open('a') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_SH|fcntl.LOCK_NB)
+        except BlockingIOError:raise ValueError('Este ambiente está em manutenção. Aguarde a conclusão.') from None
+        return _run(identifier,action,filename)
 
 
 def start_job(identifier,action,filename=None):
@@ -259,6 +441,8 @@ def start_job(identifier,action,filename=None):
     job=str(uuid.uuid4())
     args=['/usr/bin/python3',str(Path(__file__).resolve()),identifier,action,'--job',job]
     if filename:args+=['--file',str(inspect_windows_file(filename)[0])]
+    if action=='run' and inspect_windows_file(filename)[1] in ('BAT','CMD'):
+        args=['konsole','--hold','-e',*args,'--interactive']
     subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,
                      stderr=subprocess.DEVNULL,start_new_session=True)
     return job
@@ -268,11 +452,22 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('environment');parser.add_argument('action',choices=['run','configure','uninstall','dependencies','stop'])
     parser.add_argument('--file');parser.add_argument('--job',required=True)
+    parser.add_argument('--interactive',action='store_true')
     args=parser.parse_args()
     # A job id is a basename, never an arbitrary log/status path.
     if str(uuid.UUID(args.job))!=args.job:raise SystemExit('Job inválido.')
     root=data_root()/'jobs';root.mkdir(parents=True,exist_ok=True,mode=0o700)
     result={'finished':True,'code':1,'error':''}
+    if args.interactive:
+        (root/(args.job+'.log')).write_text('Script aberto em uma janela de terminal para permitir entrada pelo teclado.\n',encoding='utf-8')
+        try:result['code']=run(args.environment,args.action,args.file)
+        except (OSError,ValueError,subprocess.SubprocessError) as error:result['error']=str(error)
+        with (root/(args.job+'.log')).open('a',encoding='utf-8') as log:
+            log.write('Código de saída: '+str(result['code'])+'\n'+result['error']+'\n')
+        write_json(root/(args.job+'.json'),result)
+        print('\nScript concluído. Código de saída:',result['code'])
+        if result['error']:print(result['error'])
+        raise SystemExit(result['code'])
     with (root/(args.job+'.log')).open('w',encoding='utf-8') as log:
         os.dup2(log.fileno(),1);os.dup2(log.fileno(),2)
         try:result['code']=run(args.environment,args.action,args.file)

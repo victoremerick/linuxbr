@@ -35,7 +35,7 @@ class WelcomeTests(unittest.TestCase):
                 self.assertFalse(shortcut.isEmpty())
                 self.assertEqual(shortcut.count(), 1)
             count += 1
-        self.assertEqual(count, 5)
+        self.assertEqual(count, 8)
 
     def test_first_login_and_explicit_opt_in(self):
         self.assertTrue(welcome.should_autostart({}))

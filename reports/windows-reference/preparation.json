@@ -1,0 +1,68 @@
+{
+  "status": "INSTALLED_REFERENCE_REVIEW_COMPLETE",
+  "checked_at": "2026-11-04T14:02:22.996Z",
+  "purpose": "Ambiente Windows real para observar interface, navegacao e comportamento antes da evolucao 0.8.5.",
+  "windows": {
+    "edition": "Windows 11 Enterprise Evaluation",
+    "language": "pt-BR",
+    "evaluation_days": 90,
+    "iso_bytes": 8170147840,
+    "expected_sha256": "29bd7592e832d32073d1637ce83689de5f375700a963b2d753e437cc64d76c09"
+  },
+  "vm": {
+    "ram_mib": 8192,
+    "vcpus": 4,
+    "disk_gib": 96,
+    "firmware": "UEFI Secure Boot",
+    "tpm": "2.0",
+    "network": "NAT separado; console restrito ao computador hospedeiro"
+  },
+  "preservation": {
+    "removed_authorized_old_test_disks": [
+      "vm-0.4.1/bios.qcow2",
+      "vm-0.4.1/uefi.qcow2",
+      "vm-0.5-beta1/uefi.qcow2",
+      "vm-0.6-upgrade/uefi.qcow2"
+    ],
+    "dependency_order_checked": true,
+    "active_vms_preserved": 2,
+    "other_disks_examined": 16,
+    "host_free_bytes_after_removal": 58682687488,
+    "linuxbr_08_artifacts_unchanged": true
+  },
+  "scope_085": {
+    "status": "PLANNED_NOT_IMPLEMENTED",
+    "store": [
+      "Interface propria como loja principal, substituindo os fluxos encaminhados ao Discover",
+      "Inicio, categorias, pesquisa, filtros e pagina de aplicativo",
+      "Biblioteca, downloads, atualizacoes e historico",
+      "Configuracoes e fontes de aplicativos com origem e capacidades reais"
+    ],
+    "virtualization": [
+      "Criacao guiada e configuracao depois de criada",
+      "Processador, memoria, armazenamento, firmware, TPM e dispositivos",
+      "Adaptadores multiplos, redes externas, internas, privadas, NAT e VLAN",
+      "Snapshots, clonagem, importacao e exportacao",
+      "Comparacao funcional com Hyper-V, separando recursos Windows cliente e Windows Server",
+      "Administracao remota, migracao e replicacao conforme as capacidades reais e validacao necessaria"
+    ],
+    "settings": {
+      "status": "REVIEW_RECORDED",
+      "scope": "Todas as categorias, páginas internas e diálogos relacionados; equivalentes, lacunas e dependências de hardware/serviço",
+      "requirements": "linuxbr-source/docs/VERSAO-0.8.5.md",
+      "attempted_routes": 182,
+      "distinct_observed_paths": 125
+    }
+  },
+  "references": [
+    "https://www.microsoft.com/en-us/evalcenter/download-windows-11-enterprise",
+    "https://support.microsoft.com/en-us/servicing/os/windows/docs/2026/09/verify-the-authenticity-of-a-windows-11-enterprise-evaluation-iso-file",
+    "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/hyper-v-overview?pivots=windows",
+    "https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/replication-overview"
+  ],
+  "iso_verified": true,
+  "updated_at": "2026-11-04T15:39:51.610Z",
+  "hyperv_reference": "Configurado; definição vazia criada e diálogos observados, sem inicialização de sistema aninhado",
+  "windows_current_state": "SHUT_DOWN",
+  "desktop_launcher": "/home/emericv/Desktop/windows11-referencia.desktop"
+}

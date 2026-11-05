@@ -1,0 +1,25 @@
+{
+  "final": {
+    "status": "PASS",
+    "windows_shutdown": true,
+    "qemu_pid_exited": 1767920,
+    "disk_check": "No errors were found on the image.\n373677/1572864 = 23.76% allocated, 41.65% fragmented, 0.00% compressed clusters\nImage end offset: 25367150592\n",
+    "disk_allocated_bytes": 25366966272,
+    "host_free_bytes": 22618841088,
+    "old_linux_vms_preserved": true
+  },
+  "inhibitor": {
+    "status": "RELEASED",
+    "pid": 1731276,
+    "started_at": "2026-11-04T14:00:01.735963+00:00",
+    "persistent_settings_changed": false,
+    "finished_at": "2026-11-04T15:39:32.001634+00:00"
+  },
+  "inhibitor_process_present": false,
+  "launcher": {
+    "status": "PASS",
+    "path": "/home/emericv/Desktop/windows11-referencia.desktop",
+    "network": "NAT; console apenas no hospedeiro",
+    "start_guard": "Memória e espaço conferidos antes de iniciar"
+  }
+}

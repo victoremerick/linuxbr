@@ -1,0 +1,5 @@
+Origem: Calamares v3.3.14, lang/calamares_pt_BR.ts
+https://github.com/calamares/calamares/blob/v3.3.14/lang/calamares_pt_BR.ts
+SHA256 original: b0401d0022eedb935696f2c0dc6a04ebdc6f0f49ecc0dbd501057b53aeed38d1
+Licença: GPL-3.0-or-later, conforme o projeto Calamares.
+O arquivo original é preservado. O build corrige dois marcadores de substituição e compila a tradução local do instalador.

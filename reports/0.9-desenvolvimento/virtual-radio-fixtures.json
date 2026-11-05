@@ -1,0 +1,8 @@
+{
+  "btvirt_pid": 10116,
+  "modules_previously_loaded": {
+    "mac80211_hwsim": false,
+    "hci_vhci": false
+  },
+  "scope": "simulated Wi-Fi and Bluetooth controllers"
+}

@@ -1,0 +1,405 @@
+{
+  "version": "0.8.5~beta1",
+  "files": [
+    {
+      "path": "admin-system-runtime.json",
+      "bytes": 215,
+      "sha256": "c4a436be7e86e5a8a0ed93518206d0ee53c471f6b715ab4c28f06d42fd6d0064"
+    },
+    {
+      "path": "atualizacao-final7/clone7-final-upgrade.json",
+      "bytes": 3863,
+      "sha256": "b8ac5b04593a346d2f306f442850fcc513b7d2f9e110772739422eb79b31d237"
+    },
+    {
+      "path": "atualizacao-final7/clone7-final-verification.json",
+      "bytes": 552,
+      "sha256": "ff6e047a917f8a0d0705da0dd8a5d233f73da565c20de811a8fbbda60b18aed2"
+    },
+    {
+      "path": "atualizacao-final7/clone7-restore-result.json",
+      "bytes": 1185,
+      "sha256": "9e1407e10a3042ef3bf6b133c11e9c1a3586085b7a4cfc7cf41756eeefe6d9aa"
+    },
+    {
+      "path": "atualizacao-final7/original-final7-install.json",
+      "bytes": 145,
+      "sha256": "61c824f82b04cff1e41ea84b190dfe42e21a649349259b6bd44e96102eaedaac"
+    },
+    {
+      "path": "atualizacao-final7/original-final7-verification.json",
+      "bytes": 330,
+      "sha256": "cb4c2a3fe5303ea7c1d9949d7b2fe32849ccbbd0a1740e131aa548804e258fa4"
+    },
+    {
+      "path": "bundle-tamper-checkpoint-cleanup.json",
+      "bytes": 175,
+      "sha256": "73348362e951c768ad0c9fc4570189df96e27d86feb242be24d97b1928d7adcc"
+    },
+    {
+      "path": "bundle-validation.json",
+      "bytes": 455,
+      "sha256": "f9fe56662c6880e31ef53c45502ebd5e5f3351219022e1c68e59c547756c5ede"
+    },
+    {
+      "path": "checkpoint-full-state.json",
+      "bytes": 608,
+      "sha256": "74b0598f230e2b338139c5a2b37c6358e05279761f75d38706a5d6a1619203cf"
+    },
+    {
+      "path": "firmware-fresh-daemon-ascii.json",
+      "bytes": 137,
+      "sha256": "305fd5babc41d7242c92689e6033cbbdb92c7b8a7c181fa29c2cc0a89db3ab10"
+    },
+    {
+      "path": "firmware-topology-hardware-final.json",
+      "bytes": 214,
+      "sha256": "ddc8e2fb0ab6ed29ee9fabccb05027708a4d87317ff86a87c881eec12686eb1d"
+    },
+    {
+      "path": "flatpak-runtime.json",
+      "bytes": 223,
+      "sha256": "528b6c30fd92e8526ffdd8e3cae60a2403e8032cdcf976a543f308eef600f7ab"
+    },
+    {
+      "path": "frozen-candidate5-manifest.json",
+      "bytes": 117811,
+      "sha256": "382422a58c7ee2c1f7fed8070afea382ca037400d34b1989f518d7e1cd164e28"
+    },
+    {
+      "path": "instalacao-final7/bios-clean-facts.json",
+      "bytes": 14261,
+      "sha256": "87de25a09d09f834b33586104185051783995900d33e2b9fa472beee6c75445e"
+    },
+    {
+      "path": "instalacao-final7/bios-clean-rootfs.log",
+      "bytes": 2212,
+      "sha256": "336ba2a204c41dfaa403116f115f3b42998f4870ccf6acefdd162c8a2723d233"
+    },
+    {
+      "path": "instalacao-final7/bios-desktop-instalado-1280x768.png",
+      "bytes": 124618,
+      "sha256": "5d1c3d0d82f44984efe69628c3f8ff2dba9f7d06d326e6ecbb79b31061903a4c"
+    },
+    {
+      "path": "instalacao-final7/bios-gui-result.json",
+      "bytes": 216,
+      "sha256": "5a4a3c724ea76766d265fe67f74db41e83007857c88be75913246382176f338a"
+    },
+    {
+      "path": "instalacao-final7/bios-instalacao-concluida.png",
+      "bytes": 45799,
+      "sha256": "75578600386e63ca3d80a2ad0fcef7a47478e3e798ae85262f845ca288070fd7"
+    },
+    {
+      "path": "instalacao-final7/bios-primeiro-login.png",
+      "bytes": 87607,
+      "sha256": "9fa054a956e3a34a07bc6ae4e6aa94f58013eb197a0b382585e619121f1a0c58"
+    },
+    {
+      "path": "instalacao-final7/bios-resumo-mbr.png",
+      "bytes": 117933,
+      "sha256": "c06e19163438cdfa633dbe2a5b8812b97bb3ab8a189707290c305ab30333908e"
+    },
+    {
+      "path": "instalacao-final7/uefi-clean-facts.json",
+      "bytes": 14492,
+      "sha256": "d23684396539039519bb3e3aa8fa4f9051cb892d854f32575add5056fb2e3ab4"
+    },
+    {
+      "path": "instalacao-final7/uefi-clean-rootfs.log",
+      "bytes": 2686,
+      "sha256": "bbc4c821eda3af8eb66dc7dc1510fd1d1d568bd8676d88bdb31152e3ed0231f8"
+    },
+    {
+      "path": "instalacao-final7/uefi-configuracoes.png",
+      "bytes": 134336,
+      "sha256": "db68d805170cdda37f640f5c3a7cfe9af382f1b44607c0be84db08c342500407"
+    },
+    {
+      "path": "instalacao-final7/uefi-desktop-instalado-1280x768.png",
+      "bytes": 124860,
+      "sha256": "612dcbffde6f0c325be5764152325b76236766efd61e55fbb3d445e51055194e"
+    },
+    {
+      "path": "instalacao-final7/uefi-disco-vazio-40gb.png",
+      "bytes": 77084,
+      "sha256": "6bed001ede18aebd947d3d9a2d2dc2fcb79bd06509e247934b98411fcabd21d3"
+    },
+    {
+      "path": "instalacao-final7/uefi-gui-result.json",
+      "bytes": 586,
+      "sha256": "b7772d32629859fe2416e9653f45af17d7450a9f2630e67382d6f37c88a8956a"
+    },
+    {
+      "path": "instalacao-final7/uefi-instalacao-concluida.png",
+      "bytes": 49577,
+      "sha256": "ecdd258fdeab75ab366189db04528a0413bf8ad0b22e2c4c4043695e8db220b9"
+    },
+    {
+      "path": "instalacao-final7/uefi-localidade.png",
+      "bytes": 229353,
+      "sha256": "4ad1740e606f3d7ee62b17a4cda32acd4d636ef25c7500c5c6ec10a12da7e2ca"
+    },
+    {
+      "path": "instalacao-final7/uefi-loja.png",
+      "bytes": 172045,
+      "sha256": "60f5fafc0008cb065504386bbccae01d94639f7d25fe18690fb0b843ac8254fd"
+    },
+    {
+      "path": "instalacao-final7/uefi-maquinas-virtuais-kvm.png",
+      "bytes": 92833,
+      "sha256": "61b0d57a1821dfad37cee587c6ae8e441aaa6c1180f95c9a9aa3d45f92d464a2"
+    },
+    {
+      "path": "instalacao-final7/uefi-primeiro-login.png",
+      "bytes": 87818,
+      "sha256": "c427b18e64117e87200acac0a901fc8a1b42c3839f430c0b9d22ad868b2abe7e"
+    },
+    {
+      "path": "instalacao-final7/uefi-propriedades-aplicar.png",
+      "bytes": 130102,
+      "sha256": "2c0ade597e2cef611b18e6ad595cd68f54b0d148e9e51b28757dcf6e8f30ffbc"
+    },
+    {
+      "path": "instalacao-final7/uefi-propriedades-hash.png",
+      "bytes": 126984,
+      "sha256": "e8fdeca1a9ebcb437897480ba0768b1049bf8d36021468b922a94d2c607ddf08"
+    },
+    {
+      "path": "instalacao-final7/uefi-propriedades-nativas.png",
+      "bytes": 126853,
+      "sha256": "98d87ded5da47fcda0e3f3b09062af7d547d80f83f3067e8bc92ebad45c376ae"
+    },
+    {
+      "path": "instalacao-final7/uefi-propriedades-reabertas.png",
+      "bytes": 131055,
+      "sha256": "9ce8b8abdc08121847f2eee6788cbf3539702766379cb9223b89681f73bfeeb4"
+    },
+    {
+      "path": "instalacao-final7/uefi-resumo-gpt.png",
+      "bytes": 125442,
+      "sha256": "019382afc8a0303217680f04472f4cc1d25294e505448a9aace0605154f1bd21"
+    },
+    {
+      "path": "instalacao-final7/uefi-teclado.png",
+      "bytes": 105455,
+      "sha256": "c98bc80f00983274fc31e49f6beb0c4a59fb0c5b54a36012df6c50e220bc8fd0"
+    },
+    {
+      "path": "installed-gui-validation.json",
+      "bytes": 160,
+      "sha256": "c3a0c5708ca78cbf7b42d2ff92c383c008be3a84b832a2dd88cdcb81e2a098c3"
+    },
+    {
+      "path": "installed-settings-matrix.json",
+      "bytes": 17867,
+      "sha256": "8bfcb9b96c1303fd05af2d222ebc0ceebf5f098dc38e109008e637a8c386ad00"
+    },
+    {
+      "path": "MATRIZ-CONFIGURACOES.md",
+      "bytes": 15115,
+      "sha256": "7f66b7e7ffa4a3c9f4f260f110fc867949b100650452c89c395fd1961b9d2b01"
+    },
+    {
+      "path": "nat-dhcp-dns-https.json",
+      "bytes": 397,
+      "sha256": "bce630d36cd78083170e99df7d9393f303a721ddbb9466581c3e23fcaf97944d"
+    },
+    {
+      "path": "new-vm-firmware-2023.json",
+      "bytes": 160,
+      "sha256": "d81fc96ab528d646823fd149a62a0fc5cc1103b8a7aa6668a0c72cb9f2c1d634"
+    },
+    {
+      "path": "RELATORIO.md",
+      "bytes": 7831,
+      "sha256": "a937e3091e7987b3b4c03f9972099e023e31fd33a21dad163e33a3ce4bf503c9"
+    },
+    {
+      "path": "release-summary.json",
+      "bytes": 1972,
+      "sha256": "ca5e7a1fa6cd29f77f09dc0215c8ce3458954ecf72949f8fbe73005ddd2ab717"
+    },
+    {
+      "path": "repositorio-final7/repository-service-result.json",
+      "bytes": 7986,
+      "sha256": "46612c102952db12223668001da7823a49c2b03a268ed9d5ea1d5cd9d474ddba"
+    },
+    {
+      "path": "scheduler-runtime.json",
+      "bytes": 141,
+      "sha256": "d667b88f3d278ce05c149e48659868b4d945e055067c39da2d3fd02e6843c373"
+    },
+    {
+      "path": "secureboot-certificates-2023.json",
+      "bytes": 304,
+      "sha256": "ed8b67f4e6ac4956e36be5fd260edaf2a2e53e69a38eaa4b1082449ecb273c47"
+    },
+    {
+      "path": "settings-catalog.json",
+      "bytes": 25414,
+      "sha256": "b9c7419baf9baa9bd3bee6640985139f32264ac11bda7bd7f3c686027d9d75b4"
+    },
+    {
+      "path": "store-runtime.json",
+      "bytes": 469,
+      "sha256": "99ea93538194438eecab3f1ec3875cae14d972440256d71b75254d8dc7bdb9e7"
+    },
+    {
+      "path": "validacao-final7/bios-memory-final7.json",
+      "bytes": 285,
+      "sha256": "71f4778b038719d46555a3bc0f247a361cd83e7fcd540c95898c5471a8fa3db2"
+    },
+    {
+      "path": "validacao-final7/boot-entries7.log",
+      "bytes": 1179,
+      "sha256": "87228ed7ff9a42bc4633dfef9c2ad6ca060d49a66c597ddfde8d3fddd2f91276"
+    },
+    {
+      "path": "validacao-final7/candidate7-system-install.json",
+      "bytes": 84,
+      "sha256": "d5237a0a6a336f2ba0b83f80ac387e4b42913096321ee07921c27959f5f18989"
+    },
+    {
+      "path": "validacao-final7/editor-busy-race7.json",
+      "bytes": 164,
+      "sha256": "4c4f3a798f9ed545be704a218f9d9661fb27b884310c0209370c9e8511f43a94"
+    },
+    {
+      "path": "validacao-final7/final7-build-result.json",
+      "bytes": 6240,
+      "sha256": "3d537d29e10623b3ab0177d266d9913a6e944f246ca3cef74b532d49582c2a92"
+    },
+    {
+      "path": "validacao-final7/final7-integration-verification.json",
+      "bytes": 4048,
+      "sha256": "22df6c367bbc6b4f12a77a74734002f8806ae5c79634ded25e9a7a7422faae5d"
+    },
+    {
+      "path": "validacao-final7/final7-source-hashes.json",
+      "bytes": 86248,
+      "sha256": "ac6b7649976d61a1efe1995d7ca204625ceb01b748ee7e1e748f2a4e7614e19b"
+    },
+    {
+      "path": "validacao-final7/final7-vm-assistente-completo.png",
+      "bytes": 128287,
+      "sha256": "f5a138cb3a4fc645da216552f85a17c5942e304538c8118eb2eec1a1e67fc474"
+    },
+    {
+      "path": "validacao-final7/final7-vm-criacao-menu.png",
+      "bytes": 119011,
+      "sha256": "956c29e93ec2bdcd73c3995114a20f2f670c3bb92189b625fc7e23960772afa1"
+    },
+    {
+      "path": "validacao-final7/final7-vm-criacao-rapida.png",
+      "bytes": 134960,
+      "sha256": "64c5be7a260eed5dd6cb9f9eb44b818d8e6688686205bdd8f77d6dd31dffe324"
+    },
+    {
+      "path": "validacao-final7/final7-vm-editor-avancado.png",
+      "bytes": 163692,
+      "sha256": "410821cc3f1e4d896c91ef4e6a942dbae42bff475fdfde08ced90682427fb652"
+    },
+    {
+      "path": "validacao-final7/final7-vm-editor-completo.png",
+      "bytes": 101485,
+      "sha256": "ac3bb2c30ccad65fd203d7b2f86be6edfb778d99ea777aed5b8fdbad970837f3"
+    },
+    {
+      "path": "validacao-final7/final7-vm-escolher-iso.png",
+      "bytes": 152488,
+      "sha256": "3938b35a16f91f3682cfd958c279b5128e1ab9f63f65ae42c677b1eb3bbba71c"
+    },
+    {
+      "path": "validacao-final7/final7-vm-memoria-grafica.png",
+      "bytes": 92373,
+      "sha256": "93ea876d553a4aeaf81d5cebd415e8a26b5509cc4e87f31b7570789a285702f7"
+    },
+    {
+      "path": "validacao-final7/final7-vm-selecionar-midia.png",
+      "bytes": 124398,
+      "sha256": "dd43d24a24e68475e9ca99bbd5bc779103a3879c836990b0081619fa4747a226"
+    },
+    {
+      "path": "validacao-final7/loja-no-desktop-atualizado.png",
+      "bytes": 171862,
+      "sha256": "15113195c3a4afa8a7b06791b6f4f1ed92f2457a09bcbbaed794166bd249c600"
+    },
+    {
+      "path": "validacao-final7/node-candidate7.json",
+      "bytes": 272,
+      "sha256": "b7c911a585b29a7490fcbb67cc7999eb753ef783fca4a37af3ea2f37d0527345"
+    },
+    {
+      "path": "validacao-final7/platform-final7-root.log",
+      "bytes": 3259,
+      "sha256": "0677ab24f92be427fbf282cbc5e8c82db6b2b6dea509d96e2a087fba91ad82e6"
+    },
+    {
+      "path": "validacao-final7/regression-results.json",
+      "bytes": 5398,
+      "sha256": "58a58908f715d92869895674ce2dcd5790ad6fd0ab32d74cb001791358f3058b"
+    },
+    {
+      "path": "validacao-final7/repository-publisher-tests7.json",
+      "bytes": 357,
+      "sha256": "8da7d3556efb0946173da3b20680cf9afdd06b30111cb6e176fcd02665431a1d"
+    },
+    {
+      "path": "validacao-final7/runtime-equivalence.json",
+      "bytes": 21889,
+      "sha256": "35b5d57915286c14a323e97d9b535214ea28896a4fd8de2f0d9ea4d08305406c"
+    },
+    {
+      "path": "validacao-final7/runtime-payload7-manifest.json",
+      "bytes": 268006,
+      "sha256": "385ab8a1ddad9d12f621fc60b8a1a2b9ab90b1d34f06de0349de1c969efdaacb"
+    },
+    {
+      "path": "validacao-final7/update-bundle-final7.json",
+      "bytes": 288,
+      "sha256": "ef997c7a568ed50263bdee4c0d2542f239523699e496e1066d36fb8703fbfedc"
+    },
+    {
+      "path": "validacao-final7/vm-graphical-complete7.json",
+      "bytes": 736,
+      "sha256": "04ce763d1178b548730ead196fa527ba7ed193d573bf43d95c368ed890f2bda6"
+    },
+    {
+      "path": "virtualization-runtime.json",
+      "bytes": 167,
+      "sha256": "11fef46c105df840d12b289b4ed3c6d4cde112c7523adbe760e1a5efdbd7a7ff"
+    },
+    {
+      "path": "virtualization-tpm.json",
+      "bytes": 1169,
+      "sha256": "e9212c73155327c1acac83a97ac65a6718d667dc141dc16fceb429bb5383194d"
+    },
+    {
+      "path": "vm-guards-clone.json",
+      "bytes": 390,
+      "sha256": "d17991fcd47768492086b34e7135079aec0bff8ac4e278db578d4e8c6aa1e347"
+    },
+    {
+      "path": "windows-runtime-result.json",
+      "bytes": 785,
+      "sha256": "8316d8bc5343be45fd61aa4aacd5d3863ac41e9cc772750bce32d3f3ac453bf9"
+    },
+    {
+      "path": "windows11-26h2-no-linuxbr.png",
+      "bytes": 2068694,
+      "sha256": "a957d5fb188c3c1cc8ec536c5887e92d3894aecab6fa359a8784fee20eb0aeb2"
+    },
+    {
+      "path": "windows11-secureboot-no-linuxbr.png",
+      "bytes": 75655,
+      "sha256": "50f6451e4d04f0867efc84b79f45f21035b425ad16f31a85ade4110393a08580"
+    },
+    {
+      "path": "windows11-tpm2-no-linuxbr.png",
+      "bytes": 61045,
+      "sha256": "1a2bf258b2a7850124ee9210b9547095d2d2327dde374126f3421767362a21ae"
+    }
+  ]
+}

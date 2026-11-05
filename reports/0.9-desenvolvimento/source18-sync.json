@@ -1,0 +1,12 @@
+{
+  "candidate": "source18",
+  "files_verified": 728,
+  "updated": [
+    "README.md",
+    "scripts/build-dolphin.sh",
+    "scripts/build-kio.sh",
+    "scripts/build-packages.py",
+    "tests/test-packages.py"
+  ],
+  "backup": "/home/emericv/.local/state/linuxbr-dev-ssh/0.9/source-sync18/before.tar.gz"
+}

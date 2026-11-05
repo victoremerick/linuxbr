@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Pesquisa, inicialização e arquivos
+Comment=Pesquisar, gerenciar inicialização e escolher aplicativos padrão
+Exec=linuxbr-desktop-flows
+Icon=system-search
+Terminal=false
+Categories=System;Settings;
+Keywords=pesquisa;iniciar;programas;padrão;abrir com;cópias;

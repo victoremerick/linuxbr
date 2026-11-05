@@ -1,0 +1,8 @@
+{
+  "public_catalog": true,
+  "login": true,
+  "create_draft_through_form": true,
+  "audit_visible": true,
+  "javascript_errors": 0,
+  "angular_production_build": true
+}

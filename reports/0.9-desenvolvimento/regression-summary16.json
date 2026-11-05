@@ -1,0 +1,13 @@
+{
+  "source": "source16",
+  "scripts": 76,
+  "passed": 76,
+  "failed": [],
+  "logs_with_skipped_cases": [
+    "test-platform-085.py.log",
+    "test-drive-service.py.log"
+  ],
+  "booted_media": "source12, source16 components and generated package structures validated separately",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "physical_hardware_homologation": false
+}

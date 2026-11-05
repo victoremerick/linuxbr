@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "checks": [
+    "system-environment-apply",
+    "stale-environment-refused",
+    "system-environment-restored",
+    "system-task-create",
+    "system-task-run",
+    "system-task-remove"
+  ]
+}

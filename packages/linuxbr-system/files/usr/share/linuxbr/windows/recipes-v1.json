@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "revision": "2026-11-03.1",
+  "recipes": [
+    {
+      "id": "7zip-26.05-x64",
+      "name": "7-Zip 26.05 x64",
+      "application_version": "26.05",
+      "architecture": "win64",
+      "windows_version": "win10",
+      "dpi": 96,
+      "status": "tested",
+      "evidence": "Base anterior: instalação, compactação, teste de integridade e extração com comparação de conteúdo em laboratório. Revalidação completa na 0.8 pendente.",
+      "limits": "Associações de arquivo e integração de menu do Windows não substituem as do Linux. Outras versões e hardware físico não foram homologados.",
+      "source": "https://www.7-zip.org/download.html",
+      "alternative": "Ark, disponível na Loja para Linux.",
+      "dependencies": []
+    },
+    {
+      "id": "supertux-0.7.0-x64",
+      "name": "SuperTux 0.7.0 x64",
+      "application_version": "0.7.0",
+      "architecture": "win64",
+      "windows_version": "win10",
+      "dpi": 96,
+      "status": "partial",
+      "evidence": "Base anterior: instalador MSI, interface, introdução, mapa e abertura da primeira fase com teclado em laboratório.",
+      "limits": "Campanha completa, controles físicos, áudio contínuo e desempenho em GPU real não validados. Revalidação na 0.8 pendente.",
+      "source": "https://www.supertux.org/download.html",
+      "alternative": "SuperTux para Linux, disponível na Loja.",
+      "dependencies": []
+    },
+    {
+      "id": "windows10-vc2022-x64",
+      "name": "Aplicativo x64 com Visual C++ 2015–2022",
+      "application_version": "Definida pelo fornecedor do aplicativo",
+      "architecture": "win64",
+      "windows_version": "win10",
+      "dpi": 96,
+      "status": "untested",
+      "evidence": "Receita inicial de configuração; nenhum aplicativo específico foi validado por esta receita.",
+      "limits": "Instalar a dependência somente se ela for exigida pelo fornecedor. A presença da biblioteca não garante funcionamento.",
+      "source": "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist",
+      "alternative": "Consulte a edição Linux ou web oferecida pelo fornecedor.",
+      "dependencies": [
+        {
+          "id": "vcredist-2022-x64",
+          "name": "Microsoft Visual C++ Redistributable 2015–2022 x64",
+          "source": "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist",
+          "filename": "vc_redist.x64.exe",
+          "note": "Obtenha o instalador pelo link oficial da Microsoft. A licença e a instalação serão confirmadas na janela do instalador."
+        }
+      ]
+    }
+  ],
+  "games": [
+    {"name":"Steam / Proton", "version":"Escolhida por jogo nas propriedades da Steam", "status":"untested", "evidence":"Integração de abertura da biblioteca. Nenhum título recebe aprovação por este registro.", "limits":"Antitrapaça, DRM, driver, áudio, controles e desempenho dependem do título e do equipamento.", "source":"https://partner.steamgames.com/doc/steamhardware/proton", "alternative":"Prefira a edição Linux quando oferecida."}
+  ]
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Conexões e adaptadores
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page connections
+Icon=network-wired
+Keywords=Rede;Wi-Fi;Ethernet;VPN;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

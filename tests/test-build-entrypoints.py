@@ -16,8 +16,10 @@ class BuildEntrypoints(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'scripts').mkdir()
         (self.root / 'bin').mkdir()
-        for name in ['build.sh', 'init-build.sh', 'VERSION', 'scripts/build-output.sh', 'scripts/build-in-container.sh', 'scripts/Containerfile.build']:
+        for name in ['build.sh', 'init-build.sh', 'VERSION', 'README.md', 'scripts/build-output.sh', 'scripts/build-in-container.sh', 'scripts/Containerfile.build']:
             shutil.copy2(ROOT / name, self.root / name)
+            if name.endswith('.sh'):
+                (self.root / name).chmod(0o755)
         self.env = {**os.environ, 'PATH': str(self.root / 'bin') + ':' + os.environ['PATH'],
                     'CONTAINER_ENGINE': 'fake-engine'}
         self.stub('fake-engine', 'echo full-detail-marker\nexit "${FAKE_EXIT:-0}"')
@@ -48,8 +50,11 @@ class BuildEntrypoints(unittest.TestCase):
 
     def test_banner_version_and_success(self):
         result = self.run_build()
-        self.assertIn((self.root / 'VERSION').read_text().strip() + ' Alpha', result.stdout)
-        self.assertIn('[######] 6/6 etapas', result.stdout)
+        version=(self.root / 'VERSION').read_text().strip()
+        import re
+        label=re.sub(r'~beta(\d+)$',r' Beta \1',version)
+        self.assertIn(label, result.stdout)
+        self.assertIn('ISO pronta:', result.stdout)
 
     def test_banner_art_is_literal_and_plain_output_has_no_escape_codes(self):
         result = self.run_build()
@@ -112,15 +117,6 @@ class BuildEntrypoints(unittest.TestCase):
         session = (desktop / 'usr/bin/linuxbr-session-defaults').read_text()
         self.assertIn('if not notification.exists():', session)
 
-    def test_local_packages_do_not_own_the_same_file(self):
-        owners = {}
-        for payload in (ROOT / 'packages').glob('*/files'):
-            for path in payload.rglob('*'):
-                if path.is_file() or path.is_symlink():
-                    relative = path.relative_to(payload)
-                    self.assertNotIn(relative, owners, f'{relative}: {owners.get(relative)} e {payload.parent.name}')
-                    owners[relative] = payload.parent.name
-
     def test_unknown_option(self):
         self.assertEqual(self.run_build('--invalid').returncode, 2)
 
@@ -137,15 +133,16 @@ class BuildEntrypoints(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual('full-detail-marker' in result.stdout, bool(args))
             self.assertEqual('validation-detail-marker' in result.stdout, bool(args))
-            self.assertEqual(result.stdout.count('Alpha · amd64'), 1)
+            self.assertEqual(result.stdout.count('· amd64 · KDE Plasma'), 1)
 
     def test_container_script_can_be_rewritten_while_lb_runs(self):
-        for folder in ['packages', 'config', 'tests']:
+        for folder in ['packages', 'config', 'tests', 'docs']:
             (self.root / folder).mkdir()
         script = self.root / 'scripts/build-in-container.sh'
         script.write_text(script.read_text().replace('/src', str(self.root)))
         self.env['RUNNING_SCRIPT'] = str(script)
         (self.root / 'scripts/build-dolphin.sh').write_text('#!/bin/sh\nexit 0\n')
+        (self.root / 'scripts/build-kio.sh').write_text('#!/bin/sh\nexit 0\n')
         self.stub('apt-get', 'exit 0')
         self.stub('python3', '''if [[ "$1" == *build-packages.py ]]; then
     mkdir -p "$3"

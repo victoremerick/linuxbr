@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "mode": "diagnostic",
+  "cmdline": "BOOT_IMAGE=/boot/vmlinuz-6.12.113+deb13-amd64 root=UUID=9b1fe9b0-6ed8-4c2c-a562-0e2e327e3a2c ro quiet splash resume=UUID=d08010b4-6c27-48f6-b9e8-4b66f91a0c79 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0 systemd.log_level=debug systemd.log_target=journal-or-kmsg linuxbr.diagnostic=1",
+  "log_level": "debug",
+  "basic_video_runtime_removed": true,
+  "one_boot_consumed": true,
+  "display_manager": "active"
+}

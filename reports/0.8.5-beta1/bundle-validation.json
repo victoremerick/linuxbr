@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "checks": [
+    "export",
+    "integrity",
+    "import",
+    "firmware-tpm-identical",
+    "boot-clone",
+    "existing-preserved"
+  ],
+  "export": {
+    "path": "/root/linuxbr-085/bundle-1793812757",
+    "disks": 1,
+    "hardware_files": 2,
+    "contains_private_state": true
+  },
+  "imported": {
+    "id": "f2571bdd-5c9e-434a-8c24-063986460c6f",
+    "name": "QA085 copia 1793812757",
+    "disks": 1,
+    "state": "Desligada"
+  }
+}

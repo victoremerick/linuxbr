@@ -1,0 +1,55 @@
+{
+  "returncode": 0,
+  "packages": [
+    "linuxbr-release",
+    "linuxbr-boot-theme",
+    "linuxbr-boot-tools",
+    "linuxbr-branding",
+    "linuxbr-calamares-settings",
+    "linuxbr-desktop-edition",
+    "linuxbr-desktop",
+    "linuxbr-device-manager",
+    "linuxbr-drive-manager",
+    "linuxbr-file-properties",
+    "linuxbr-sddm-theme",
+    "linuxbr-system"
+  ],
+  "version": "0.9.0~beta1",
+  "source": "HTTPS APT candidate16 port8444",
+  "natural_version_upgrade": true,
+  "status": "PASS",
+  "personal_files": 1793,
+  "personal_changed": 0,
+  "versions": {
+    "linuxbr-release": "0.9.0~beta1",
+    "linuxbr-boot-theme": "0.9.0~beta1",
+    "linuxbr-boot-tools": "0.9.0~beta1",
+    "linuxbr-branding": "0.9.0~beta1",
+    "linuxbr-calamares-settings": "0.9.0~beta1",
+    "linuxbr-desktop-edition": "0.9.0~beta1",
+    "linuxbr-desktop": "0.9.0~beta1",
+    "linuxbr-device-manager": "0.9.0~beta1",
+    "linuxbr-drive-manager": "0.9.0~beta1",
+    "linuxbr-file-properties": "0.9.0~beta1",
+    "linuxbr-sddm-theme": "0.9.0~beta1",
+    "linuxbr-system": "0.9.0~beta1"
+  },
+  "dpkg_audit": "clean",
+  "reboot": "PASS normal authenticated Plasma session",
+  "failed_units": "",
+  "automatic_snapshot": {
+    "status": "created",
+    "packages": [
+      "linuxbr-boot-theme",
+      "linuxbr-branding",
+      "linuxbr-desktop",
+      "linuxbr-device-manager",
+      "linuxbr-drive-manager",
+      "linuxbr-file-properties",
+      "linuxbr-release",
+      "linuxbr-sddm-theme",
+      "linuxbr-system"
+    ],
+    "time": "2026-11-05T06:44:40.331422+00:00"
+  }
+}

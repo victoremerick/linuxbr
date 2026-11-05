@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Trazer meus arquivos do Windows
+Comment=Copiar pastas pessoais com conferência de integridade
+Exec=linuxbr-migration
+Icon=folder-import
+Terminal=false
+Categories=System;FileTools;
+Keywords=Windows;importar;migrar;documentos;copiar;

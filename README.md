@@ -1,17 +1,200 @@
-# Linux BR 0.4.4 Alpha
+# Linux BR 0.9 Beta 1
 
-Atualização em desenvolvimento 0.4.8: ícones dos sites nos aplicativos web,
-Gerenciador de Tarefas independente com acesso pela barra, tela de Ctrl+Alt+Del
-e localização no prompt do terminal com letras de unidade e barras invertidas.
-Inclui as melhorias da 0.4.7: área de trabalho e atalhos familiares,
-Executar, ferramentas de arquivos, biblioteca de programas Windows, loja ampliada,
-aplicativos e formatos de uso diário. Este lote está somente em código-fonte,
-sem testes, pacotes ou ISO novos, conforme solicitado. A última ISO gerada
-continua sendo a 0.4.4; o último pacote de sistema validado em UEFI é o 0.4.6.
-Os perfis web de 0.4.6 foram preservados. Veja [sessões e contas](docs/APLICATIVOS-WEB.md)
-e [implementação de 30/10](docs/IMPLEMENTACAO-SESSAO-2026-10-30.md).
+Distribuição experimental baseada em Debian 13, KDE Plasma 6 e Calamares, com interface em português e uso familiar para quem vem do Windows.
 
-Distribuição experimental baseada em Debian 13 (Trixie), KDE Plasma 6 e Calamares. A versão atual acrescenta uma loja unificada para programas Linux, aplicativos web no Chromium e programas Windows com Wine. Inclui Steam/Proton e ferramentas em português para facilitar a migração do Windows. A sequência de instalação Debian é preservada.
+A 0.9 acrescenta recursos opcionais, controle de inicialização, criação e administração gráfica de serviços, modos de segurança e recuperação e uma edição Servidor com console próprio. O catálogo público de webapps usa PHP, MySQL e painel Angular, com publicações assinadas e atualizações de metadados que preservam os perfis locais.
+
+A Loja Linux BR, o gerenciador gráfico de máquinas virtuais, as propriedades de arquivos e as ferramentas de migração continuam integrados ao sistema. O histórico abaixo reúne as alterações de cada versão.
+
+A versão permanece Beta. A validação em máquinas virtuais não substitui homologação de vídeo, Wi-Fi, Bluetooth, áudio, periféricos ou suspensão em equipamentos físicos. Compatibilidade com programas e jogos Windows varia por aplicativo.
+
+Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperação](docs/SERVIDOR-RECUPERACAO-0.9.md), as [máquinas virtuais](docs/MAQUINAS-VIRTUAIS-0.8.5.md), as [propriedades de arquivos](docs/PROPRIEDADES-0.8.md) e o [catálogo de webapps](server/webapps/README.md). As evidências e checksums entregues com os artefatos identificam os cenários efetivamente executados.
+
+## Histórico de versões — notas de lançamento
+
+As entradas abaixo distinguem imagens ISO, revisões de código e atualizações por pacote. As revisões incrementais não alteram retroativamente uma ISO já construída. Este histórico reúne os registros disponíveis; a ausência de uma validação não equivale à aprovação daquele recurso.
+
+### 0.9 Beta 1 — 0.9.0~beta1
+
+- Recursos opcionais com prévia de pacotes, controle separado de serviços e reversão; central de configuração do sistema com programas de inicialização, serviços e opções de boot.
+- Criação e edição gráfica de serviços, dependências, recuperação após falhas, limites, logs, importação/exportação e personalização de unidades de pacotes por overrides.
+- Modos de segurança, rede restrita, terminal, vídeo básico, diagnóstico e manutenção; seleção por um boot, configuração persistente e integração Shift + Reiniciar.
+- Edição Servidor com sessão mínima autenticada, terminal com caminho por letra, controles de host, contas, horário, SSH, rede, serviços, firewall e máquinas virtuais.
+- Catálogo de webapps PHP/MySQL/Angular com publicação assinada, fontes confiáveis, revisões, cron e backup cifrado. Integração do cliente preserva os perfis ao aplicar alterações de metadados.
+- Manutenção diária do repositório APT com renovação atômica dos metadados assinados, preservando índices, chave de confiança e pacotes publicados.
+- Seleção ilustrada de Desktop ou Servidor no instalador, com identificação própria para cada edição. Inventário de recursos preserva a arquitetura dos pacotes e recusa substituições inesperadas durante remoções.
+- Revisões próprias de Dolphin e KIO, com dependências que exigem os binários nativos corrigidos durante a atualização de versões anteriores.
+- A distribuição permanece Beta. Consulte o [escopo e critérios da 0.9](docs/VERSAO-0.9.md) e o [guia de Servidor e recuperação](docs/SERVIDOR-RECUPERACAO-0.9.md). Os resultados de validação acompanham os artefatos, identificados por checksum; homologação física e compatibilidade de aplicativos devem ser conferidas por cenário.
+
+### 0.8.5 Beta 1 — 0.8.5~beta1
+
+- Configurações com 12 categorias, 106 destinos, pesquisa por nomes familiares, caminho da página, retorno e detecção dos módulos instalados. Integra páginas próprias e controles nativos do Plasma.
+- Loja com início, cartões por aplicativo, categorias, biblioteca, favoritos, fontes APT/Flatpak e catálogos web/Windows. Pesquisa nas fontes, detalhes, licenças locais, fila e histórico de operações.
+- Instalação de arquivos DEB e Flatpak integrada às transações da Loja, com integridade conferida. Atalhos antigos do Discover encaminhados para a Loja; serviços nativos de instalação preservados.
+- Aplicação Máquinas Virtuais: criação, console, recursos, firmware UEFI/Secure Boot/TPM, dispositivos, discos, adaptadores, redes, armazenamento, estados salvos, checkpoints e hospedeiros por SSH.
+- Preferências de criação por hospedeiro, histórico de conexões sem senhas, prioridade de boot e limite de CPU. Na Loja, a ação de instalar ou abrir permanece visível ao rolar descrições longas.
+- CPU com recursos do hospedeiro em KVM, modelo Secure Boot com autoridades Microsoft de 2023 e atualização de certificados de VMs desligadas com checkpoint. PK, revogações e variáveis de outros namespaces são preservados.
+- Cópias completas de VM desligada com discos, firmware e TPM, integridade SHA-256, importação com nova identidade e proteção contra substituição de VMs existentes. Checkpoints combinam disco e estado persistente de firmware/TPM.
+- Área de transferência, permissões por aplicativo isolado, serviços, eventos, variáveis de ambiente e agendador gráfico. Alterações de sistema usam autorização administrativa nativa.
+- Os resultados de compilação, instalação e regressão acompanham a imagem e os pacotes. Migração entre hospedeiros, alta disponibilidade e recursos de hardware exigem cenários próprios; a presença de um controle não comprova sua homologação.
+
+### 0.8 Beta 1 — 0.8.0~beta1
+
+- Propriedades integradas ao diálogo nativo do Explorador e da área de trabalho, com OK, Cancelar e Aplicar. Segurança e ACL com alcance explícito, SHA-256/SHA-512 com comparação e cancelamento, identificação de executáveis Windows, acesso às configurações do ambiente e histórico pessoal de versões.
+- Compartilhamento de pastas pela extensão nativa do Samba, com estado do serviço e do firewall, endereços de rede e verificação de acesso. A publicação e a autenticação dependem das permissões reais da conta; acesso convidado exige escolha explícita.
+- Importação de pastas de um disco ou backup, prévia de espaço e conflitos, cancelamento, conferência SHA-256 e relatório. A substituição preserva a versão anterior do destino; a origem permanece no lugar.
+- Loja com instalação, atualização e remoção de pacotes DEB e Flatpak pelos gerenciadores nativos, confirmação de componentes e permissões, fila, progresso e histórico. A atualização de `linuxbr-release` seleciona as versões correspondentes dos componentes da edição.
+- Receitas versionadas de compatibilidade, reparação de ambiente Wine com cópia de segurança e inventário Steam/Proton. Resultados são registrados por aplicativo; a presença de um mecanismo de compatibilidade não comprova funcionamento de todos os jogos.
+- Perfis web com preferências próprias de downloads e permissões do Chromium, inicialização por perfil e tratamento de links externos. Favicons, contas salvas e seleção de múltiplos perfis são preservados.
+- Páginas de pesquisa, programas na inicialização, aplicativos padrão e transferências, com agrupamentos, caminho da página e navegação por teclado. Alterações de inicialização e associação de arquivos podem ser desfeitas.
+- Cuidados com o computador reúne estado do backup pessoal e da proteção do sistema, verificações antes de atualizar, diagnósticos guiados e limpeza conferida de cache ou lixeira. Perfis web, ambientes Windows, documentos e backups não entram na limpeza genérica.
+- Manutenção do repositório PHP com verificação de assinatura, índices e certificado e renovação usando a mesma autoridade local. As entregas anteriores e seus registros permanecem preservados.
+
+### 0.7 Beta 3 — 0.7.0~beta3
+
+- Correção da proteção APT no ambiente de instalação: a inclusão de novos pacotes do carregador de boot não deve exigir um ponto de recuperação nem um diretório de lock previamente criado.
+- Remoção da entrada duplicada do Gerenciador de Tarefas no menu da barra, preservando o acesso pelo fundo da barra e pelo menu dos programas.
+- Reconexão SMB passa a abrir a listagem com autenticação nativa, permitindo solicitar credenciais já na primeira conexão e lembrar a conta no KWallet.
+- Compilação, integridade da ISO, 35 suítes de componentes, instalações limpas UEFI/BIOS e primeiros logins em 1280×768 aprovados. A restauração pelo Live final retornou ao ponto 0.6, preservou 1.807 arquivos pessoais conferidos e permitiu atualizar novamente para a Beta 3 pela fonte HTTPS assinada, com reinicialização e login aprovados. Veja [validação da Beta 3](docs/VALIDACAO-0.7-BETA3.md).
+- O 7-Zip 26.05 para Windows criou e verificou arquivos pelo Wine na instalação UEFI nova; ícone principal e preservação de metadados conferidos.
+- A imagem Beta 2 foi reprovada para novas instalações e substituída pela Beta 3; os resultados anteriores de atualização e recuperação permanecem registrados.
+
+### 0.7 Beta 2 — 0.7.0~beta2
+
+- Correção da integração do menu da barra: a identificação do componente não confunde tasks com tasksModel.
+- Ícone de recuperação compatível com o tema instalado.
+- Documentação do servidor PHP e validação TLS ajustadas ao comportamento real do APT e do OpenSSL.
+- Atualização pela fonte HTTPS assinada, proteção automática e reinicialização aprovadas. A instalação limpa UEFI revelou bloqueio do hook APT antes de instalar o GRUB no chroot; imagem reprovada para instalação e substituída pela Beta 3.
+
+### 0.7 Beta 1 — 0.7.0~beta1
+
+- Pontos de restauração RSYNC com Timeshift, separados das cópias de documentos. Após configurar um destino, a proteção APT cria um ponto antes de atualizações importantes e interrompe a atualização se a criação falhar.
+- Central com versão instalada, candidata nos índices locais, fontes de atualização e indicação de reinicialização recomendada.
+- Servidor local HTTPS em PHP para o repositório APT assinado, com chave e certificado fora do conteúdo servido.
+- Loja com tipo, origem e metadados locais disponíveis; gerenciamento Linux pelo Discover.
+- Extração de ícones dos executáveis Windows e diagnóstico de falhas.
+- Perfis web com busca, indicação de padrão e de processo Chromium em execução.
+- Reconexão explícita de unidades SMB pelo KIO/KWallet e notas de lançamento e diagnóstico na página Sobre.
+- Consolidação dos ícones funcionais na imagem. Validações e limites ficam em [escopo da 0.7](docs/VERSAO-0.7.md).
+
+### 0.6 Beta 2 + ícones — pacote 0.6.0~beta2+icons1
+
+- Ícones por função nas 30 categorias da Central do Sistema e nos atalhos, substituindo a repetição do ícone de configurações e da seta genérica.
+- Ícones nas ações de Ctrl+Alt+Del: bloquear, trocar usuário, sair, alterar senha, Gerenciador de Tarefas e cancelar.
+- Diferenciação dos lançadores da Central, acesso rápido, preparação e boas-vindas. Favicons dos webapps preservados.
+- Pacote instalado na VM de testes da 0.6 Beta 2; arquivos conferidos, ícones disponíveis no tema e seis testes de sessão aprovados. Central aberta e conferida visualmente.
+- **Distribuição:** atualização por pacote; a ISO da Beta 2 permanece inalterada.
+
+### 0.6 Beta 2 — 0.6.0~beta2
+
+- Consolidação dos comandos familiares ao Windows e da execução interativa de BAT/CMD na ISO.
+- Loja com inventário dos aplicativos registrados no desktop, incluindo componentes separados do LibreOffice, além de perfis web e atalhos Windows.
+- Atualização por pacotes com conferência de hashes e seleção dos componentes já instalados.
+- Validação de 30 suítes de componentes, instalação limpa UEFI, primeiro login e atualização preservando perfis e preferências; inicialização Live em BIOS conferida ao final.
+- Instalação e uso do 7-Zip para Windows; criação, salvamento e reabertura de partida do OpenTTD para Windows pelo Wine.
+- Verificação de documentos ODT/DOCX/PDF, isolamento e persistência dos perfis Chromium, restauração de arquivos e assinaturas do repositório APT em ambiente local.
+- **Distribuição:** ISO e pacotes. Permanecem pendentes a publicação HTTPS, a homologação física e os testes de jogos Steam/Proton. Detalhes em [validação da Beta 2](docs/VALIDACAO-0.6-BETA2.md) e [fechamento da 0.6](docs/FECHAMENTO-0.6.md).
+
+### 0.6 Beta 1 + terminal — pacotes 0.6.0~beta1+terminal1
+
+- Comandos familiares como dir, cls, copy, move, del, md, rd, type, explorer, ipconfig e tasklist, com tradução de caminhos e opções documentadas.
+- Execução de arquivos BAT/CMD pelo CMD do Wine, com escolha de ambiente, confirmação, entrada interativa e código de saída.
+- Clique duplo para editar scripts; ações separadas de edição e execução no Dolphin.
+- **Distribuição:** pacotes incrementais instalados e validados na VM UEFI, preservando a ISO original da Beta 1. Recursos posteriormente consolidados na Beta 2. Veja [terminal e BAT/CMD](docs/TERMINAL-WINDOWS-BAT.md).
+
+### 0.6 Beta 1 — 0.6.0~beta1
+
+- Loja com Explorar catálogo e Meus aplicativos, busca, filtros e abertura dos perfis web e atalhos Windows registrados.
+- Instalação Windows com detecção de arquitetura, escolha de ambiente e descoberta de executáveis para adicionar à biblioteca.
+- Perfil web preferido, seleção múltipla centralizada e exclusão confirmada de dados, separada da remoção do atalho.
+- Página Uso diário e configuração inicial ampliada para oito etapas, incluindo campo para experimentar o teclado.
+- Correção dos marcadores de tradução do resumo do Calamares e configuração brasileira br/pc105.
+- Preparação do repositório APT assinado, sem publicação pública nem ativação automática nos clientes.
+- **Distribuição:** ISO e pacotes, com testes virtuais de instalação UEFI, BIOS, atualização da 0.5, EXE/MSI e perfis Chromium. Veja [escopo](docs/VERSAO-0.6.md) e [validação](docs/VALIDACAO-0.6-BETA1.md).
+
+### 0.5 Beta 1 — 0.5.0~beta1
+
+- Consolidação da experiência familiar ao Windows: desktop, atalhos, ferramentas de arquivos, terminal com caminho no prompt e letras de unidade.
+- Gerenciador de Tarefas independente, acesso pelo menu da barra e tela de ações de Ctrl+Alt+Del.
+- Loja integrada a aplicativos Linux, programas Windows e webapps com favicon e perfis separados.
+- Preparar meu computador com sete etapas opcionais e progresso pessoal persistente.
+- Backup com Kup, Bup e rsync, acesso ao histórico de versões, restauração, recuperação e atualizações pelo Discover.
+- **Distribuição:** ISO e pacotes; instalação UEFI, inicialização BIOS, atualização e restauração de arquivos verificadas em VMs. Veja [escopo](docs/VERSAO-0.5.md) e [validação](docs/VALIDACAO-0.5-BETA1.md).
+
+### 0.4.8 — sessão, terminal e personalização
+
+- Favicons dos webapps, Gerenciador de Tarefas independente, entrada na barra e tela de Ctrl+Alt+Del.
+- Localização dentro do prompt do terminal, com letras de unidade, barras invertidas e navegação correspondente ao gerenciador de arquivos.
+- Integração das melhorias de desktop, Executar, acesso rápido, arquivos, biblioteca Windows e ampliação do catálogo e dos aplicativos da imagem.
+- **Distribuição:** a implementação inicial foi registrada como código-fonte com testes adiados; há posteriormente uma ISO 0.4.8 preservada em dist/. A consolidação e as validações posteriores estão documentadas nas versões 0.5 e 0.6. Veja [sessão, terminal e ícones](docs/IMPLEMENTACAO-SESSAO-2026-10-30.md).
+
+### 0.4.7 — revisão intermediária
+
+- Não há notas individuais suficientes para atribuir mudanças ou validações exclusivamente a esta revisão.
+- As melhorias desse período foram consolidadas na 0.4.8. O registro da etapa informa que não havia pacote ou ISO 0.4.7 produzido naquele momento.
+
+### 0.4.6 — múltiplos perfis de webapps
+
+- Um perfil abre diretamente; vários perfis apresentam seleção de um ou mais para abrir.
+- Novo perfil cria outra janela na página inicial com dados de sessão separados.
+- Atualização da extensão Chromium para perfis persistentes, preservando os dados existentes.
+- **Distribuição:** pacote de sistema instalado e verificado na VM UEFI; isolamento e persistência de cookies e armazenamento local testados em site HTTPS de laboratório. A ISO 0.4.4 não foi regenerada nessa etapa. Veja [aplicativos web](docs/APLICATIVOS-WEB.md).
+
+### 0.4.5 — revisão intermediária
+
+- Não há notas individuais suficientes nos registros consultados para descrever uma entrega própria desta revisão. As próximas mudanças documentadas são as dos perfis web da 0.4.6.
+
+### 0.4.4 — loja de aplicativos
+
+- Catálogo inicial de 27 opções: 18 aplicativos Linux, sete sites instaláveis e duas opções Windows testadas pelo Wine.
+- Busca sem distinção de acentos e filtros por tipo e categoria.
+- Encaminhamento ao Discover, instalação de webapps, acesso a sites oficiais e instalação Windows com confirmação.
+- **Distribuição:** ISO e pacotes; atualizações posteriores ampliaram o catálogo. Veja [loja de aplicativos](docs/LOJA-DE-APLICATIVOS.md).
+
+### 0.4.3 — aplicativos web no Chromium
+
+- Reconhecimento de sites do catálogo e oferta de instalação como aplicativo com janela própria.
+- Identificação de alternativas Linux no catálogo, controles de preferências e privacidade e integração com o menu.
+- **Distribuição:** ISO e pacotes; verificação de compilação, configuração do sistema de arquivos, checksum e entradas de boot. O fluxo ampliado de múltiplos perfis pertence à 0.4.6. Veja [aplicativos web](docs/APLICATIVOS-WEB.md).
+
+### 0.4.2 — programas Windows e jogos
+
+- Central de compatibilidade para EXE/MSI com escolha de ambiente Wine e confirmação antes da execução.
+- Wine de 32/64 bits, iniciador Steam, suporte Vulkan/Mesa nas duas arquiteturas e acesso à instalação do Bottles pelo Flathub.
+- **Distribuição:** ISO e instalação UEFI verificadas em VM. A inclusão dos componentes não garante compatibilidade universal nem equivale a testes de todos os jogos. Veja [programas Windows](docs/PROGRAMAS-WINDOWS.md).
+
+### 0.4.1 — experiência brasileira
+
+- Primeiros passos offline, equivalências com Windows, ajuda de recuperação e exportação voluntária de informações de suporte.
+- Busca da Central sem distinção de acentos, termos familiares e atalhos para arquivos, configurações, execução, tarefas e captura.
+- Padrões brasileiros de idioma, teclado, corretor e fuso, além de associações Office/OpenDocument para contas novas.
+- Emulador configurado para desktop de 1280×768. Veja [experiência brasileira](docs/EXPERIENCIA-BRASILEIRA.md).
+
+### 0.4.0 Alpha — dispositivos e drivers
+
+- Inventário PCI/USB e demais dispositivos, identificação de drivers e módulos, consulta de firmware e exportação de diagnóstico.
+- Instalação e atualização de firmware e kernel pelas ferramentas Debian, com autenticação administrativa.
+- Orientação para NVIDIA proprietário, headers/DKMS e verificação das condições de Secure Boot, sem trocar o driver em uso.
+- **Distribuição:** ISO preservada; detalhes e limites em [dispositivos e drivers](docs/ETAPA4-DISPOSITIVOS.md).
+
+### 0.3.0 Alpha — Central do Sistema e unidades
+
+- Central reunindo sistema, dispositivos, armazenamento, rede, usuários e administração.
+- Gerenciador de unidades com montagem pelo UDisks2, letras persistentes por usuário e atalhos de rede SMB.
+- Integração Este computador no Dolphin, com agrupamento de unidades locais, removíveis e rede.
+- Correção documentada da transição Plymouth para SDDM após diagnóstico de tela preta na instalação BIOS.
+- Veja [Central e unidades](docs/ETAPA3-DRIVE-MANAGER.md) e [correção da tela preta](docs/CORRECAO-TELA-PRETA.md).
+
+### 0.2 — personalização do desktop
+
+- Etapa de personalização do Plasma: tema Linux BR, painel inferior, favoritos, padrões de interação e identidade visual no desktop e instalador.
+- ISO histórica mantida como referência. Os registros atuais não isolam todas as alterações e validações dessa imagem; os detalhes de desktop e identidade foram ampliados nas versões seguintes.
+
+### 0.1 — protótipo inicial
+
+- Estrutura inicial de distribuição Live amd64 baseada em Debian 13, KDE Plasma e Calamares.
+- Construção via Podman/live-build, geração de checksum e scripts de teste em QEMU para BIOS e UEFI.
+- O README histórico classificava a construção e a instalação como experimentais e ainda pendentes de validação naquele estágio.
 
 ## Construir no Fedora
 
@@ -22,13 +205,13 @@ sudo dnf install podman qemu-system-x86 qemu-img edk2-ovmf xorriso
 ./init-build.sh
 ```
 
-O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-0.4.4.XXXXXX`, sem apagar a compilação anterior. Reserve espaço para múltiplos chroots. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
+O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-0.7.0~beta3.XXXXXX`, sem apagar a compilação anterior. Reserve espaço para múltiplos chroots. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
 
 Saídas:
 
-- `dist/linuxbr-0.4.4-amd64.iso`
-- `dist/linuxbr-0.4.4-amd64.iso.sha256`
-- `dist/linuxbr-0.4.4-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
+- `dist/linuxbr-0.7.0~beta3-amd64.iso`
+- `dist/linuxbr-0.7.0~beta3-amd64.iso.sha256`
+- `dist/linuxbr-0.7.0~beta3-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
 - `dist/SHA256SUMS`, preservando entradas das outras versões
 
 A ISO 0.2 existente permanece como referência. `apply-stage2.sh` é histórico e recusa execução no projeto atual.
@@ -61,7 +244,7 @@ O emulador usa VGA com EDID de 1280×768 como padrão, inclusive no diagnóstico
 
 Instale pelo Calamares antes de executar a variante `installed`. Encerre a VM anterior antes de reutilizar seu disco. O modo `installed` não conecta a ISO.
 
-Os discos padrão são separados: `vm/linuxbr-0.4.4-bios.qcow2` e `vm/linuxbr-0.4.4-uefi.qcow2`. A NVRAM UEFI é copiada uma vez e preservada ao reiniciar. O script procura pares OVMF sem Secure Boot; se necessário, informe `OVMF_CODE` e `OVMF_VARS_TEMPLATE`. Outros ajustes: `ISO`, `DISK_IMAGE`, `OVMF_VARS`, `RAM_MB`, `CPUS`, `DISK_SIZE` e `QEMU_DISPLAY`.
+Os discos padrão são separados: `vm/linuxbr-0.5.0~beta1-bios.qcow2` e `vm/linuxbr-0.5.0~beta1-uefi.qcow2`. A NVRAM UEFI é copiada uma vez e preservada ao reiniciar. O script procura pares OVMF sem Secure Boot; se necessário, informe `OVMF_CODE` e `OVMF_VARS_TEMPLATE`. Outros ajustes: `ISO`, `DISK_IMAGE`, `OVMF_VARS`, `RAM_MB`, `CPUS`, `DISK_SIZE` e `QEMU_DISPLAY`.
 
 Verificar hash e entradas El Torito não prova que o sistema inicia ou instala. Execute ambos os modos e acompanhe a matriz em [Experiência brasileira](docs/EXPERIENCIA-BRASILEIRA.md).
 
@@ -307,7 +490,7 @@ A Central reúne a lista de usuários locais e o acesso ao gerenciamento de cont
 
 Consulte [Configurações e janelas](docs/CONFIGURACOES-E-JANELAS.md) para a Central ampliada, instaladores e validação visual.
 
-A Central também reúne **Firewall**, **Gerenciador de Tarefas**, **Áudio**, **Endereços IP e DNS** e o gerenciamento de grupos locais em **Usuários**. O clique direito no botão Iniciar oferece as ações principais do sistema e o diálogo **Executar**. Consulte [escopo e validação dessas páginas](docs/CENTRAL-FIREWALL-REDE-AUDIO.md).
+A Central reúne **Firewall**, **Áudio**, **Endereços IP e DNS**, gerenciamento de grupos locais em **Usuários** e um atalho para o aplicativo independente **Gerenciador de Tarefas**. Ele também pode ser aberto pelo menu de contexto da barra e pela tela Ctrl+Alt+Del. O clique direito no botão Iniciar oferece as ações principais do sistema e o diálogo **Executar**. Consulte [escopo e validação dessas páginas](docs/CENTRAL-FIREWALL-REDE-AUDIO.md).
 
 ## Aplicativos web
 

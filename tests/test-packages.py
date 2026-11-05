@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 import yaml
 work = Path(sys.argv[1])
@@ -9,7 +10,19 @@ subprocess.run(['dpkg-deb', '-x', str(next((work / 'upstream').glob('calamares-s
 modified = work / 'work/linuxbr-calamares-settings'
 a = yaml.safe_load((original / 'etc/calamares/settings.conf').read_text())
 b = yaml.safe_load((modified / 'etc/calamares/settings.conf').read_text())
-assert a['sequence'] == b['sequence'], 'Installation sequence changed'
+expected=a['sequence']
+for stage in expected:
+    if 'show' in stage and 'welcome' in stage['show']:stage['show'].insert(stage['show'].index('welcome')+1,'packagechooser')
+    if 'exec' in stage and 'packages' in stage['exec']:stage['exec'].insert(stage['exec'].index('packages')+1,'linuxbr_edition')
+assert expected == b['sequence'], 'Unexpected installation sequence change'
+assert '/etc/calamares/modules' in b['modules-search']
+chooser=yaml.safe_load((modified/'etc/calamares/modules/packagechooser.conf').read_text())
+assert chooser['mode']=='required' and chooser['method']=='legacy' and chooser['default']=='desktop'
+assert [item['id'] for item in chooser['items']]==['desktop','server']
+assert len({item['screenshot'] for item in chooser['items']})==2
+for item in chooser['items']:
+    assert (modified/item['screenshot'].lstrip('/')).is_file(),item['screenshot']
+assert (modified/'etc/calamares/modules/linuxbr_edition/main.py').is_file()
 for path in (original / 'usr/share/calamares/helpers').iterdir():
     assert path.read_bytes() == (modified / path.relative_to(original)).read_bytes(), path
 for package in (work / 'debs').glob('*.deb'):
@@ -23,13 +36,24 @@ print('PASS: pacotes, sequencia Calamares e helpers preservados')
 branding = yaml.safe_load((modified / 'etc/calamares/branding/linuxbr/branding.desc').read_text())
 assert branding['sidebar'] == 'none'
 assert branding['images']['productWelcome'] == 'logo.svg'
-assert (modified / 'etc/calamares/branding/linuxbr/logo.svg').read_bytes() == (work / 'work/linuxbr-branding/usr/share/linuxbr/identity/symbol-color.svg').read_bytes()
+installer_logo=ET.parse(modified/'etc/calamares/branding/linuxbr/logo.svg').getroot()
+original_logo=ET.parse(work/'work/linuxbr-branding/usr/share/linuxbr/identity/symbol-color.svg').getroot()
+assert installer_logo.get('width')==installer_logo.get('height')=='128'
+assert installer_logo.get('viewBox')==original_logo.get('viewBox')
+assert [ET.tostring(child) for child in installer_logo]==[ET.tostring(child) for child in original_logo]
 locale = yaml.safe_load((modified / 'etc/calamares/modules/locale.conf').read_text())
 assert (locale['region'], locale['zone']) == ('America', 'Sao_Paulo')
 assert locale['geoip']['style'] == 'none' and locale['useSystemTimezone'] is False
 keyboard = yaml.safe_load((modified / 'etc/calamares/modules/keyboard.conf').read_text())
 assert keyboard['guessLayout'] is False and keyboard['configure']['kwin'] is True
 assert keyboard['useLocale1'] is True
+from PyQt6.QtCore import QTranslator
+translator=QTranslator()
+assert translator.load(str(modified/'usr/share/calamares/lang/calamares_pt_BR.qm'))
+assert translator.translate('Config','Set timezone to %1.','@action')=='Definir o fuso horário como %1.'
+assert translator.translate('Config','Keyboard model has been set to %1.',
+    '@label, %1 is keyboard model, as in Apple Magic Keyboard')=='O modelo de teclado será definido como %1.'
+print('PASS: tradução compilada preserva modelo de teclado e fuso horário')
 assert 'anchors.centerIn: parent' in (modified / 'etc/calamares/branding/linuxbr/show.qml').read_text()
 print('PASS: fuso, teclado e logo centralizada do instalador')
 
@@ -76,10 +100,24 @@ assert 'linuxbr-device-manager' in (work / 'work/linuxbr-system/DEBIAN/control')
 print('PASS: dispositivos, helper isolado, política polkit e integração da Central')
 
 version = (Path(__file__).resolve().parents[1] / 'VERSION').read_text().strip()
-assert branding['strings']['shortVersion'] == version
-assert f'Linux BR {version} Alpha' in (work / 'work/linuxbr-release/usr/share/linuxbr/release/issue').read_text()
+release_control=(work/'work/linuxbr-release/DEBIAN/control').read_text()
+edition_control=(work/'work/linuxbr-desktop-edition/DEBIAN/control').read_text()
+assert f'linuxbr-desktop-edition (= {version}) | linuxbr-server (= {version})' in release_control
+assert f'linuxbr-boot-tools (= {version})' in (work/'work/linuxbr-desktop/DEBIAN/control').read_text()
+for name in ('branding','desktop','sddm-theme','boot-theme','drive-manager','system','device-manager','file-properties'):
+    assert f'linuxbr-{name} (= {version})' in (release_control if name in ('branding','boot-theme') else edition_control), name
+assert 'linuxbr-calamares-settings' not in release_control
+assert f'linuxbr-file-properties (= {version})' in (work/'work/linuxbr-system/DEBIAN/control').read_text()
+for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6kiofilewidgets6'):
+    assert name+' (>= 6.13.0-6+linuxbr0.9.1)' in (work/'work/linuxbr-file-properties/DEBIAN/control').read_text()
+assert 'dolphin (>= 4:25.04.3-1+deb13u1+linuxbr2)' in (work/'work/linuxbr-drive-manager/DEBIAN/control').read_text()
+print('PASS: atualização da edição seleciona os componentes exatos e o KIO com Aplicar')
+import re
+display_version=re.sub(r'~beta(\d+)$',r' Beta \1',version)
+assert branding['strings']['shortVersion'] == version.split('~')[0]
+assert f'Linux BR {display_version}' in (work / 'work/linuxbr-release/usr/share/linuxbr/release/issue').read_text()
 assert f'VERSION_ID="{version}"' in (work / 'work/linuxbr-release/etc/linuxbr-release').read_text()
-assert f'Linux BR {version} Alpha' in (modified / 'usr/share/applications/calamares-install-linuxbr.desktop').read_text()
+assert f'Linux BR {display_version}' in (modified / 'usr/share/applications/calamares-install-linuxbr.desktop').read_text()
 print('PASS: versão única no release, banner e instalador')
 
 assert 'nvidia-detect' in (devices / 'DEBIAN/control').read_text()
@@ -104,7 +142,7 @@ assert 'kio-fuse' in (drive / 'DEBIAN/control').read_text()
 assert 'DefaultProfile=LinuxBR.profile' in (drive / 'etc/xdg/konsolerc').read_text()
 assert '--rcfile /usr/share/linuxbr/bashrc -i' in (drive / 'usr/share/konsole/LinuxBR.profile').read_text()
 assert (drive / 'usr/bin/linuxbr-terminal-settings').stat().st_mode & 0o111
-assert (drive / 'usr/lib/linuxbr-drive-manager/terminal.py').is_file()
+assert (work/'work/linuxbr-boot-tools/usr/lib/linuxbr-drive-manager/terminal.py').is_file()
 print('PASS: perfil interativo, configuracao de terminal e KIO FUSE empacotados')
 
 # Window theme payload must survive packaging alongside the desktop defaults.
@@ -123,3 +161,29 @@ assert list(desktop.glob('usr/lib/*/qt6/plugins/styles/liblinuxbrclean.so'))
 assert (desktop / 'usr/lib/linuxbr-desktop/plasma-layout.py').is_file()
 assert (desktop / 'DEBIAN/triggers').is_file()
 print('PASS: estilo nativo e manutenção dos layouts Plasma empacotados')
+
+owners={}
+for package in (work/'work').iterdir():
+    if not (package/'DEBIAN/control').is_file():continue
+    for path in package.rglob('*'):
+        relative=path.relative_to(package)
+        if relative.parts[0]=='DEBIAN' or not (path.is_file() or path.is_symlink()):continue
+        assert str(relative) not in owners, f'Arquivo duplicado: {relative}: {owners.get(str(relative))} e {package.name}'
+        owners[str(relative)]=package.name
+assert owners['etc/xdg/dolphinrc']=='linuxbr-drive-manager'
+for path in ['usr/share/linuxbr/bashrc','usr/lib/linuxbr-system/snapshot_service.py',
+             'etc/apt/apt.conf.d/80linuxbr-recovery','etc/linuxbr/recovery-policy.json',
+             'usr/share/linuxbr/firmware/certificates.json']:
+    assert owners[path]=='linuxbr-boot-tools',path
+server_control=(work/'work/linuxbr-server/DEBIAN/control').read_text()
+server_depends=next(line for line in server_control.splitlines() if line.startswith('Depends:'))
+assert 'linuxbr-boot-tools' in server_depends
+assert all(name not in server_depends for name in ['linuxbr-system','linuxbr-desktop','plasma-desktop','plasma-workspace'])
+assert (work/'work/linuxbr-boot-tools/usr/lib/linuxbr-server/desktop_theme.py').is_file()
+assert 'vm_firmware.py --prepare' in (work/'work/linuxbr-server/DEBIAN/postinst').read_text()
+system=work/'work/linuxbr-system'
+for name in ['linuxbr-recovery','linuxbr-setup']:
+    assert (system/'usr/bin'/name).stat().st_mode & 0o111
+for dependency in ['kup-backup','bup','rsync']:
+    assert dependency in (system/'DEBIAN/control').read_text()
+print('PASS: propriedade única dos arquivos e dependências de backup da 0.5')

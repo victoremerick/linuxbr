@@ -42,6 +42,29 @@ async function profileControls() {
   if(window!==window.top || location.protocol!=='https:')return;
   const context=await chrome.runtime.sendMessage({action:'profile-context'});
   if(!context?.available)return;
+  if(context.external_links==='default-browser') {
+    document.addEventListener('click',async event=>{
+      if(!event.isTrusted || event.defaultPrevented || event.button!==0 || event.ctrlKey || event.shiftKey || event.altKey || event.metaKey)return;
+      const anchor=event.composedPath().find(node=>node instanceof HTMLAnchorElement);
+      if(!anchor || anchor.hasAttribute('download'))return;
+      let url;try {url=new URL(anchor.href);}catch{return;}
+      if(!['https:','http:'].includes(url.protocol) || context.hosts.includes(url.hostname))return;
+      event.preventDefault();
+      try {
+        const result=await chrome.runtime.sendMessage({action:'external-link',url:url.href});
+        if(!result?.opened)throw new Error(result?.error || 'Não foi possível abrir o navegador padrão.');
+      } catch(error) {
+        // The user can recover the original navigation without repeating routing.
+        const status=document.createElement('div');status.setAttribute('role','alert');
+        status.style.cssText='position:fixed;left:12px;bottom:12px;z-index:2147483647;background:white;color:#252a31;border:2px solid #6450a2;padding:12px;max-width:400px;font:14px system-ui';
+        const text=document.createElement('p');text.textContent=error.message;
+        const recover=document.createElement('button');recover.textContent='Abrir neste perfil';
+        recover.addEventListener('click',click=>{if(click.isTrusted)location.assign(url.href);});
+        const dismiss=document.createElement('button');dismiss.textContent='Fechar';dismiss.addEventListener('click',()=>status.remove());
+        status.append(text,recover,dismiss);document.documentElement.append(status);recover.focus();
+      }
+    });
+  }
   const host=document.createElement('div');host.id='linuxbr-profile-controls';
   host.style.cssText='position:fixed!important;right:12px!important;bottom:12px!important;z-index:2147483647!important;';
   const shadow=host.attachShadow({mode:'closed'});
@@ -72,6 +95,14 @@ async function profileControls() {
     } catch {button.textContent='Tentar novamente';}
     finally {button.disabled=false;}
   });
-  row.append(label,button);shadow.append(style,row);document.documentElement.append(host);
+  const preferences=document.createElement('button');preferences.textContent='Preferências';
+  preferences.addEventListener('click',async event=>{
+    if(!event.isTrusted)return;
+    preferences.disabled=true;
+    try {const result=await chrome.runtime.sendMessage({action:'profile-preferences'});if(!result?.opened)preferences.textContent='Tentar novamente';}
+    catch {preferences.textContent='Tentar novamente';}
+    finally {preferences.disabled=false;}
+  });
+  row.append(label,button,preferences);shadow.append(style,row);document.documentElement.append(host);
 }
 profileControls().catch(()=>{});

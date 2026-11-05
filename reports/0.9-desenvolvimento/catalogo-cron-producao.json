@@ -1,0 +1,14 @@
+{
+    "observed_at": "2026-11-05T05:39:15+00:00",
+    "checks": [
+        {
+            "app_id": "notion",
+            "checked_at": "2026-11-05 05:00:02"
+        },
+        {
+            "app_id": "whatsapp",
+            "checked_at": "2026-11-05 05:00:03"
+        }
+    ],
+    "source": "Hostinger hourly cron; read-only observation"
+}

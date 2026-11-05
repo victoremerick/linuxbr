@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QApplication,QDialog,QVBoxLayout,QLabel,QMessageBox,
 
 
 COMMANDS = {
-    'apps':['plasma-discover','--mode','Installed'],
+    'apps':['linuxbr-store','--installed'],
     'power-settings':['linuxbr-system','--page','Energia e bateria'],
     'logs':['linuxbr-system','--page','Administração'],
     'system':['linuxbr-system','--page','Sistema'],

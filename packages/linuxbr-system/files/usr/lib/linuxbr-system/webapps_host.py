@@ -10,14 +10,24 @@ def handle(message):
     if os.geteuid()==0 or not isinstance(message,dict):
         raise ValueError('Use a sua conta de usuário.')
     action=message.get('action')
-    if action in ('profile-context','new-profile'):
+    if action in ('profile-context','new-profile','profile-preferences','external-link'):
         item=backend.profile_context()
         if not item:return {'available':False}
-        if action=='new-profile':
-            subprocess.Popen(['/usr/bin/linuxbr-webapps','--new-profile',item['id']],
+        if action=='external-link':
+            backend.open_external(item['id'],message.get('url',''))
+            return {'opened':True}
+        if action in ('new-profile','profile-preferences'):
+            option='--new-profile' if action=='new-profile' else '--preferences'
+            subprocess.Popen(['/usr/bin/linuxbr-webapps',option,item['id']],
                 stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
             return {'opened':True}
-        return {'available':True,'name':item['name'],'session':item['session']}
+        options=backend.profile_options(item['id'])
+        service=backend.service_for(item['url'])
+        hosts=list(service.get('hosts',[])) if service else []
+        from urllib.parse import urlsplit
+        hosts.append(urlsplit(item['url']).hostname)
+        return {'available':True,'name':item['name'],'session':item['session'],
+                'external_links':options['external_links'],'hosts':sorted(set(hosts))}
     if action=='status':return backend.status(message)
     if action=='offer':
         item=backend.normalize_offer(message)

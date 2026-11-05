@@ -13,6 +13,7 @@ from partition_dialog import PartitionDialog, TITLES
 from core import LETTERS
 from client import ServiceStore
 from properties import Properties, usage_widget
+from network_access import NetworkAccess, wallet_command
 
 
 class Window(QMainWindow):
@@ -25,6 +26,9 @@ class Window(QMainWindow):
         self.store = ServiceStore()
         self.rows = []
         self.process = None
+        self.network = NetworkAccess(self)
+        self.network.finished.connect(self.network_finished)
+        self.network_states = {}
         self.operation_progress = QProgressBar()
         self.operation_progress.setRange(0, 0); self.operation_progress.setFixedWidth(140)
         self.operation_progress.setAccessibleName('Operação de particionamento em andamento')
@@ -47,6 +51,8 @@ class Window(QMainWindow):
                    ('Desmontar', 'media-eject', lambda: self.operate('unmount')),
                    ('Alterar letra', 'edit-rename', self.change_letter),
                    ('Reservas', 'drive-harddisk', self.reservations),
+                   ('Reconectar', 'network-connect', self.reconnect_selected),
+                   ('Senhas de rede', 'wallet-open', self.open_wallet),
                    ('Adicionar rede', 'list-add', self.add_share), ('Remover rede', 'list-remove', self.remove_share)]
         unit_menu = QMenu('Gerenciar unidade', toolbar)
         network_menu = QMenu('Rede', toolbar)
@@ -54,7 +60,7 @@ class Window(QMainWindow):
             action = QAction(QIcon.fromTheme(icon), name, self); action.triggered.connect(callback)
             self.buttons[name] = action
             if name in ('Atualizar', 'Abrir', 'Propriedades'): toolbar.addAction(action)
-            elif name in ('Adicionar rede', 'Remover rede'): network_menu.addAction(action)
+            elif name in ('Reconectar', 'Senhas de rede', 'Adicionar rede', 'Remover rede'): network_menu.addAction(action)
             else: unit_menu.addAction(action)
         toolbar.addSeparator(); toolbar.addAction(unit_menu.menuAction()); toolbar.addAction(network_menu.menuAction())
         partition_menu = QMenu('Partições', toolbar)
@@ -107,7 +113,7 @@ class Window(QMainWindow):
     def selection_changed(self):
         row = self.selected() or {}
         self.diskmap.select(self.table.currentRow())
-        idle = self.process is None
+        idle = self.process is None and not self.network.busy
         for button in self.buttons.values(): button.setEnabled(idle)
         self.buttons['Propriedades'].setEnabled(idle and bool(row) and not row.get('unallocated'))
         self.buttons['Abrir'].setEnabled(idle and bool(row.get('mounts') or row.get('url')))
@@ -115,6 +121,8 @@ class Window(QMainWindow):
         self.buttons['Desmontar'].setEnabled(idle and bool(row.get('mountable')) and bool(row.get('mounts')))
         self.buttons['Alterar letra'].setEnabled(idle and bool(row.get('key')) and row.get('key') != 'system' and not row.get('protected'))
         self.buttons['Remover rede'].setEnabled(idle and bool(row.get('url')))
+        self.buttons['Reconectar'].setEnabled(idle and not self.network.busy and bool(row.get('url')))
+        self.buttons['Abrir'].setEnabled(self.buttons['Abrir'].isEnabled() and not self.network.busy)
         disk = row.get('partition_disk', {})
         editable = idle and bool(disk) and not disk.get('reason')
         for operation, action in self.partition_actions.items():
@@ -191,6 +199,8 @@ class Window(QMainWindow):
             letter = 'C' if row['key'] == 'system' else self.data['letters'].get(row['key'], '')
             size = f"{row['size'] / 1024**3:.1f} GiB" if row['size'] else '—'
             location = 'Disponível para nova partição' if row.get('unallocated') else row.get('url') or ', '.join(row['mounts']) or row.get('device', '') + ' · não montado'
+            if row.get('url'):
+                location += ' · ' + self.network_states.get(row['url'], 'Não verificada nesta sessão')
             values = [letter + ':' if letter else '—', row['name'], row['kind'], size, row['fs'] or '—', location]
             for j, value in enumerate(values): self.table.setItem(i, j, QTableWidgetItem(value))
             if not hidden:
@@ -210,6 +220,9 @@ class Window(QMainWindow):
         menu = QMenu(self)
         for name in ('Abrir', 'Propriedades', 'Montar', 'Desmontar', 'Alterar letra'):
             menu.addAction(self.buttons[name])
+        if (self.selected() or {}).get('url'):
+            menu.addAction(self.buttons['Reconectar'])
+            menu.addAction(self.buttons['Senhas de rede'])
         menu.addSeparator()
         for action in self.partition_actions.values(): menu.addAction(action)
         menu.exec(self.table.viewport().mapToGlobal(position))
@@ -246,8 +259,37 @@ class Window(QMainWindow):
     def open_selected(self, *args):
         row = self.selected()
         if not row: return
+        if row.get('url'):
+            self.reconnect_selected()
+            return
         url = QUrl(row['url']) if row.get('url') else QUrl.fromLocalFile(row['mounts'][0]) if row.get('mounts') else None
         if url is not None and not QDesktopServices.openUrl(url): self.error('Não foi possível abrir o gerenciador de arquivos.')
+
+    def reconnect_selected(self):
+        row = self.selected()
+        if not row or not row.get('url'): return
+        try:
+            self.network.start(row['url'])
+        except ValueError as error:
+            self.error(str(error)); return
+        self.network_states[row['url']] = 'Conectando…'
+        self.statusBar().showMessage('Conectando à unidade. Informe a conta na janela do sistema, se solicitado.')
+        self.selection_changed()
+
+    def network_finished(self, url, success, text):
+        self.network_states[url] = 'Acesso confirmado na última tentativa' if success else 'Não acessível na última tentativa'
+        self.refresh()
+        self.selection_changed()
+        if success:
+            if not QDesktopServices.openUrl(QUrl(url)):
+                self.error('O acesso foi confirmado, mas não foi possível abrir o Explorador de arquivos.')
+        else:
+            self.error(text)
+
+    def open_wallet(self):
+        command = wallet_command()
+        if not command or not QProcess.startDetached(command, [])[0]:
+            self.error('Não foi possível abrir o Cofre de senhas do KDE. Confira a instalação de kwalletmanager.')
 
     def operate(self, operation):
         row = self.selected()
@@ -289,7 +331,7 @@ class Window(QMainWindow):
             except (ValueError, OSError) as error: self.error(str(error))
 
     def closeEvent(self, event):
-        if self.process is not None:
+        if self.process is not None or self.network.busy:
             self.statusBar().showMessage('Aguarde a operação terminar antes de fechar.')
             event.ignore()
         else: event.accept()

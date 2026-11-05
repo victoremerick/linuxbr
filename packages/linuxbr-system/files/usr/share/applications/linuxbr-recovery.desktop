@@ -1,0 +1,26 @@
+[Desktop Entry]
+Type=Application
+Name=Backup e recuperação
+Comment=Copiar e restaurar arquivos, atualizar e encontrar ajuda
+Exec=linuxbr-recovery
+TryExec=linuxbr-recovery
+Icon=preferences-system-backup
+Terminal=false
+Categories=System;Archiving;
+Keywords=backup;cópia;restaurar;recuperar;atualizações;suporte;Windows;ponto;Timeshift;
+Actions=updates;system;help;
+
+[Desktop Action system]
+Name=Pontos de restauração do sistema
+Exec=linuxbr-recovery --section system
+Icon=preferences-system-backup
+
+[Desktop Action updates]
+Name=Atualizações
+Exec=linuxbr-recovery --section updates
+Icon=system-software-update
+
+[Desktop Action help]
+Name=Recuperação e suporte
+Exec=linuxbr-recovery --section help
+Icon=help-browser

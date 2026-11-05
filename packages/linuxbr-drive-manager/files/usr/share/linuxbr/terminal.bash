@@ -22,6 +22,10 @@ terminal-modo() {
 unidades() { _linuxbr_terminal_helper list; }
 unidade() { (( $# == 1 )) || { printf 'Use unidade D:/caminho\n' >&2; return 2; }; _linuxbr_terminal_helper resolve "$1"; }
 _linuxbr_cd() {
+    if [[ $_LINUXBR_TERMINAL_MODE == letras && ${1:-} == /[dD] ]]; then
+        shift
+        (( $# == 1 )) || { printf 'Use cd /d "D:/pasta".\n' >&2; return 2; }
+    fi
     local -a options=() original=("$@")
     local target
     while (( $# )); do
@@ -115,3 +119,32 @@ function w: { _linuxbr_drive W: "$@"; }
 function x: { _linuxbr_drive X: "$@"; }
 function y: { _linuxbr_drive Y: "$@"; }
 function z: { _linuxbr_drive Z: "$@"; }
+
+_linuxbr_windows_command() { /usr/bin/python3 /usr/lib/linuxbr-drive-manager/windows_commands.py "$@"; }
+# Keep the original Linux command available through `command name`.
+function dir { _linuxbr_windows_command dir "$@"; }
+function cls { _linuxbr_windows_command cls "$@"; }
+function copy { _linuxbr_windows_command copy "$@"; }
+function move { _linuxbr_windows_command move "$@"; }
+function del { _linuxbr_windows_command del "$@"; }
+function rd { _linuxbr_windows_command rd "$@"; }
+function md { _linuxbr_windows_command md "$@"; }
+function type { _linuxbr_windows_command type "$@"; }
+function explorer { _linuxbr_windows_command explorer "$@"; }
+function ipconfig { _linuxbr_windows_command ipconfig "$@"; }
+function tasklist { _linuxbr_windows_command tasklist "$@"; }
+function where { _linuxbr_windows_command where "$@"; }
+function bat {
+    (( $# == 1 )) || { printf 'Use bat "C:/pasta/arquivo.bat".\n' >&2; return 2; }
+    local target=$1
+    target=${target//\\//}
+    if [[ $target =~ ^[A-Za-z]: ]]; then target=$(_linuxbr_terminal_helper resolve "$target") || return; fi
+    /usr/bin/linuxbr-windows "$target"
+}
+function comandos-windows {
+    printf '%s\n' 'Comandos: dir [/s] [/b] [/a], cls, copy [/y], move [/y], del, rd, md, type, explorer, ipconfig, tasklist, where, bat.' \
+      'Use aspas e barras normais: copy "C:/Minha pasta/a.txt" "D:/Backup/a.txt".' \
+      'copy/move perguntam antes de substituir; del pergunta antes de apagar; rd remove apenas pastas vazias.' \
+      'BAT/CMD abre a confirmação do ambiente Windows; para editar use Abrir com > Editor de texto.' \
+      'Este terminal usa sintaxe Bash; comandos nativos continuam disponíveis, por exemplo: command dir.'
+}

@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Linux BR — Sessão mínima
+Description=Entrada autenticada para servidor e manutenção
+Type=sddm-theme
+Version=0.9
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=linuxbr-minimal
+Theme-API=2.0
+QtVersion=6

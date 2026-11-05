@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "domain": "0385d3b0-7d13-4340-8739-f788a07b7de7",
+  "steps": [
+    "snapshot-create-with-nvram-and-tpm",
+    "change-disposable-state-while-vm-off",
+    "restore-disk-firmware-tpm",
+    "hashes-match-and-no-pending-restore"
+  ],
+  "before": {
+    "nvram": "0d12f9839018a68f4b13c9819cbf607b8b62d566f9c9dd7966550d93335f06b2",
+    "tpm": "fa85fba9148b85ae93d17c120bb670f1eb877bfbed45d49687bbba4e384939b8"
+  },
+  "after": {
+    "nvram": "0d12f9839018a68f4b13c9819cbf607b8b62d566f9c9dd7966550d93335f06b2",
+    "tpm": "fa85fba9148b85ae93d17c120bb670f1eb877bfbed45d49687bbba4e384939b8"
+  }
+}

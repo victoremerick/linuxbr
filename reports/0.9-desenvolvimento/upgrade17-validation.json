@@ -1,0 +1,43 @@
+{
+  "returncode": 0,
+  "packages": [
+    "linuxbr-release",
+    "linuxbr-boot-theme",
+    "linuxbr-boot-tools",
+    "linuxbr-branding",
+    "linuxbr-calamares-settings",
+    "linuxbr-desktop-edition",
+    "linuxbr-desktop",
+    "linuxbr-device-manager",
+    "linuxbr-drive-manager",
+    "linuxbr-file-properties",
+    "linuxbr-sddm-theme",
+    "linuxbr-system"
+  ],
+  "version": "0.9.0~beta1",
+  "source": "HTTPS APT candidate17 port8444",
+  "natural_version_upgrade": true,
+  "status": "PARTIAL",
+  "personal_files": 1793,
+  "personal_changed": 0,
+  "automatic_snapshot": {
+    "status": "created",
+    "packages": [
+      "linuxbr-boot-theme",
+      "linuxbr-branding",
+      "linuxbr-desktop",
+      "linuxbr-device-manager",
+      "linuxbr-drive-manager",
+      "linuxbr-file-properties",
+      "linuxbr-release",
+      "linuxbr-sddm-theme",
+      "linuxbr-system"
+    ],
+    "time": "2026-11-05T07:14:52.100233+00:00"
+  },
+  "dpkg_audit": "clean",
+  "reboot": "PASS installed system version 0.9.0~beta1 and no failed units",
+  "basic_video_code_packaged": true,
+  "native_payload": "Same-version native packages were retained; superseded by source18 validation",
+  "native_failure_evidence": "upgrade17-payload-validation.json"
+}

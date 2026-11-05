@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "checks": [
+    "create-task",
+    "run-literal-arguments",
+    "inventory",
+    "disable-enable",
+    "remove"
+  ]
+}

@@ -1,0 +1,100 @@
+[
+  {
+    "file": "01-instalacao.png",
+    "width": 1280,
+    "height": 800,
+    "bytes": 13703,
+    "reviewed": true
+  },
+  {
+    "file": "02-configuracoes-tela.png",
+    "width": 1280,
+    "height": 800,
+    "bytes": 86455,
+    "reviewed": true
+  },
+  {
+    "file": "03-aplicativos-padrao.png",
+    "width": 1280,
+    "height": 800,
+    "bytes": 77840,
+    "reviewed": true
+  },
+  {
+    "file": "04-loja-inicio.png",
+    "width": 1280,
+    "height": 800,
+    "bytes": 634807,
+    "reviewed": true
+  },
+  {
+    "file": "05-rede-avancada.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 86645,
+    "reviewed": true
+  },
+  {
+    "file": "06-barra-de-tarefas.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 105474,
+    "reviewed": true
+  },
+  {
+    "file": "07-permissoes-camera.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 110536,
+    "reviewed": true
+  },
+  {
+    "file": "08-atualizacoes-avancadas.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 113257,
+    "reviewed": true
+  },
+  {
+    "file": "09-hyperv-painel.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 73671,
+    "reviewed": true
+  },
+  {
+    "file": "10-hyperv-memoria.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 134646,
+    "reviewed": true
+  },
+  {
+    "file": "11-hyperv-adaptador.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 133384,
+    "reviewed": true
+  },
+  {
+    "file": "12-hyperv-rede-avancada.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 139333,
+    "reviewed": true
+  },
+  {
+    "file": "13-hyperv-tipos-rede.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 99090,
+    "reviewed": true
+  },
+  {
+    "file": "14-hyperv-rede-existente.png",
+    "width": 1280,
+    "height": 768,
+    "bytes": 113502,
+    "reviewed": true
+  }
+]

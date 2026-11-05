@@ -74,7 +74,7 @@ main() {
     fi
 
     mkdir -p .cache/logs
-    printf 'Compilando Linux BR %s Alpha...\n' "$VERSION"
+    printf 'Compilando Linux BR %s...\n' "$(build_version_label "$VERSION")"
     "${AS_ROOT[@]}" env LINUXBR_BANNER_SHOWN=1 CONTAINER_ENGINE="$ENGINE" ./build.sh "${BUILD_ARGS[@]}"
 
     printf '\nValidando a ISO gerada...\n'

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Máquinas virtuais
+Comment=Criar e configurar máquinas virtuais, discos e redes
+Exec=linuxbr-virtual-machines
+Icon=computer
+Terminal=false
+Categories=System;Emulator;
+Keywords=Hyper-V;VM;máquina;virtual;KVM;QEMU;virtualização;rede;disco;
+StartupWMClass=linuxbr-virtual-machines

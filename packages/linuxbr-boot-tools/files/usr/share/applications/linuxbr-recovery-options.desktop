@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Opções avançadas de recuperação
+Comment=Modos de inicialização, pontos do sistema, terminal e reparação do menu
+Exec=linuxbr-recovery-options
+Icon=document-revert
+Categories=System;Settings;
+Keywords=recuperação;manutenção;F8;Shift;reiniciar;restaurar;

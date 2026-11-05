@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "candidate": "source17",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "shift_restart": "actual Plasma prompt and QMP Shift+Space",
+  "recovery_authentication": true,
+  "recovery_uid": 1000,
+  "recovery_network": "inactive",
+  "recovery_ssh": "masked-runtime",
+  "firewall": "active",
+  "evidence": "desktop17-recuperacao-politica.png",
+  "installed_f8": "PASS actual advanced menu",
+  "normal_return": true,
+  "cmdline": "BOOT_IMAGE=/boot/vmlinuz-6.12.115+deb13.1-amd64 root=UUID=105db587-443d-4d16-91ba-ba6ae4b1aec1 ro quiet splash resume=UUID=49536719-a499-4928-a9c7-dbc033808e61 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0"
+}

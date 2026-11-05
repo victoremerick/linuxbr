@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "checks": [
+    "nat-start-firewalld",
+    "dhcp-lease-route",
+    "dns-through-virtual-network",
+    "https-through-nat"
+  ],
+  "lease": {
+    "address": "192.168.157.151",
+    "gateway": "192.168.157.1",
+    "dns": [
+      "192.168.157.1"
+    ]
+  },
+  "scope": "Cliente descart\u00e1vel em namespace ligado \u00e0 ponte libvirt; n\u00e3o homologa drivers do convidado."
+}

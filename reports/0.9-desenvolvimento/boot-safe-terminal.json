@@ -1,0 +1,126 @@
+{
+  "mode": "safe-terminal",
+  "kernel": "BOOT_IMAGE=/boot/vmlinuz-6.12.113+deb13-amd64 root=UUID=9b1fe9b0-6ed8-4c2c-a562-0e2e327e3a2c ro quiet splash resume=UUID=d08010b4-6c27-48f6-b9e8-4b66f91a0c79 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0 linuxbr.mode=safe-terminal systemd.unit=linuxbr-safe.target",
+  "units": {
+    "linuxbr-safe.target": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=active\nSubState=active",
+      "error": ""
+    },
+    "linuxbr-safe-prepare.service": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=active\nSubState=exited",
+      "error": ""
+    },
+    "linuxbr-boot-consume.service": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "sddm.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "getty@tty1.service": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=active\nSubState=running",
+      "error": ""
+    },
+    "NetworkManager.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "firewalld.service": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=active\nSubState=running",
+      "error": ""
+    },
+    "polkit.service": {
+      "code": 0,
+      "output": "LoadState=loaded\nActiveState=active\nSubState=running",
+      "error": ""
+    },
+    "ssh.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "cron.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "libvirtd.socket": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "smbd.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "linuxbr-qa-forbidden.service": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "linuxbr-qa-forbidden.socket": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    },
+    "linuxbr-qa-forbidden.timer": {
+      "code": 0,
+      "output": "LoadState=masked\nActiveState=inactive\nSubState=dead",
+      "error": ""
+    }
+  },
+  "links": {
+    "code": 0,
+    "output": "[{\"ifindex\":1,\"ifname\":\"lo\",\"flags\":[\"LOOPBACK\",\"UP\",\"LOWER_UP\"],\"mtu\":65536,\"qdisc\":\"noqueue\",\"operstate\":\"UNKNOWN\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"loopback\",\"address\":\"00:00:00:00:00:00\",\"broadcast\":\"00:00:00:00:00:00\"},{\"ifindex\":2,\"ifname\":\"enp0s1\",\"flags\":[\"BROADCAST\",\"MULTICAST\"],\"mtu\":1500,\"qdisc\":\"noop\",\"operstate\":\"DOWN\",\"linkmode\":\"DEFAULT\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"52:54:00:12:34:56\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"altnames\":[\"enx525400123456\"]}]",
+    "error": ""
+  },
+  "addresses": {
+    "code": 0,
+    "output": "[{\"ifindex\":1,\"ifname\":\"lo\",\"flags\":[\"LOOPBACK\",\"UP\",\"LOWER_UP\"],\"mtu\":65536,\"qdisc\":\"noqueue\",\"operstate\":\"UNKNOWN\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"loopback\",\"address\":\"00:00:00:00:00:00\",\"broadcast\":\"00:00:00:00:00:00\",\"addr_info\":[{\"family\":\"inet\",\"local\":\"127.0.0.1\",\"prefixlen\":8,\"scope\":\"host\",\"label\":\"lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"::1\",\"prefixlen\":128,\"scope\":\"host\",\"noprefixroute\":true,\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]},{\"ifindex\":2,\"ifname\":\"enp0s1\",\"flags\":[\"BROADCAST\",\"MULTICAST\"],\"mtu\":1500,\"qdisc\":\"noop\",\"operstate\":\"DOWN\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"ether\",\"address\":\"52:54:00:12:34:56\",\"broadcast\":\"ff:ff:ff:ff:ff:ff\",\"altnames\":[\"enx525400123456\"],\"addr_info\":[]}]",
+    "error": ""
+  },
+  "sessions": {
+    "code": 0,
+    "output": "",
+    "error": ""
+  },
+  "failed": {
+    "code": 0,
+    "output": "",
+    "error": ""
+  },
+  "user_manager_start": {
+    "code": 0,
+    "output": "",
+    "error": ""
+  },
+  "user_units": {
+    "code": 0,
+    "output": "LoadState=masked\nActiveState=inactive",
+    "error": ""
+  },
+  "getty": {
+    "code": 0,
+    "output": "ExecStart={ path=/sbin/agetty ; argv[]=/sbin/agetty -o -- \\u --noreset --noclear - ${TERM} ; ignore_errors=yes ; start_time=[Wed 2026-11-04 21:22:56 -03] ; stop_time=[n/a] ; pid=712 ; code=(null) ; status=0/0 }",
+    "error": ""
+  },
+  "firewall": {
+    "code": 0,
+    "output": "running",
+    "error": ""
+  },
+  "journal": {
+    "code": 0,
+    "output": "nov 04 21:22:54 linuxbr-qa kernel: ata3.00: LPM support broken, forcing max_power\nnov 04 21:22:54 linuxbr-qa kernel: ata3.00: LPM support broken, forcing max_power\nnov 04 21:22:54 linuxbr-qa systemd-ssh-generator[291]: Failed to query local AF_VSOCK CID: Cannot assign requested address\nnov 04 21:22:54 linuxbr-qa (sd-exec-[280]: /usr/lib/systemd/system-generators/systemd-ssh-generator failed with exit status 1.\nnov 04 21:22:54 linuxbr-qa systemd-udevd[357]: /usr/lib/udev/rules.d/90-alsa-restore.rules:18 GOTO=\"alsa_restore_std\" has no matching label, ignoring.\nnov 04 21:22:54 linuxbr-qa systemd-udevd[357]: /usr/lib/udev/rules.d/90-alsa-restore.rules:22 GOTO=\"alsa_restore_std\" has no matching label, ignoring.\nnov 04 21:23:31 linuxbr-qa systemd[793]: drkonqi-coredump-launcher.socket: Failed to enqueue start job, ignoring: Unit drkonqi-coredump-launcher.socket is masked.",
+    "error": ""
+  }
+}

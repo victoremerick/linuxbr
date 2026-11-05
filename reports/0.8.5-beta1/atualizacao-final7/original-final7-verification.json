@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "runtime_files": 1390,
+  "profile_files": 1789,
+  "boot_id_before": "07bccfbc-dac6-40f3-ac54-4635d83c1ae0",
+  "reboot_verified": true,
+  "boot_id_after": "1076f8a6-1c71-4fe1-a5d0-cfff5c6fa841",
+  "at": "2026-11-04T21:12:08.815300+00:00",
+  "profile_files_after_reboot": 1789,
+  "profiles_unchanged": true
+}

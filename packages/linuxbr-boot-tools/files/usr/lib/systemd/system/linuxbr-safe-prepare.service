@@ -1,0 +1,9 @@
+[Unit]
+Description=Prepare authenticated restricted Linux BR session
+After=systemd-udev-trigger.service local-fs.target live-config.service
+Before=sddm.service getty@tty1.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-boot/prepare.py
+RemainAfterExit=yes

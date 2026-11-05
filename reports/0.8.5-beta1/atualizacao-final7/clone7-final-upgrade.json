@@ -1,0 +1,110 @@
+{
+  "status": "PASS",
+  "from_version": "0.8.0~beta1",
+  "to_version": "0.8.5~beta1",
+  "packages": [
+    {
+      "name": "dolphin-data_25.04.3-1+deb13u1+linuxbr1_all.deb",
+      "sha256": "c18d89cabb47adf9e446c9c24e35f2ca7c0e364cf61ceb6fada535cb0373d1e6",
+      "bytes": 872896
+    },
+    {
+      "name": "dolphin_25.04.3-1+deb13u1+linuxbr1_amd64.deb",
+      "sha256": "ec4c83d053694cc29bbc1647332ac16517f5e541caad013b23d20d11a728fc29",
+      "bytes": 962884
+    },
+    {
+      "name": "kio6_6.13.0-6+linuxbr0.8.1_amd64.deb",
+      "sha256": "46c72c5ecbbf8619b0d281432fed325357f5b0f97e15b11d4e487e7227e7bfd0",
+      "bytes": 2149876
+    },
+    {
+      "name": "libdolphinvcs6_25.04.3-1+deb13u1+linuxbr1_amd64.deb",
+      "sha256": "23ac4b52edceffa111c3e750e747c596f94ea03bb609d84fcc493f5ebbbe17b7",
+      "bytes": 13524
+    },
+    {
+      "name": "libkf6kiocore6_6.13.0-6+linuxbr0.8.1_amd64.deb",
+      "sha256": "82e75a382ea410a06390cdcc0d0a061a086128addb213da3adcfba270d6a911c",
+      "bytes": 510980
+    },
+    {
+      "name": "libkf6kiofilewidgets6_6.13.0-6+linuxbr0.8.1_amd64.deb",
+      "sha256": "ef32426fa50d05589a13a701e5db5a0a4da783a0ea049ec4c7d2cac376dcb15b",
+      "bytes": 358568
+    },
+    {
+      "name": "libkf6kiogui6_6.13.0-6+linuxbr0.8.1_amd64.deb",
+      "sha256": "72b5a921a631ddf357c002bacd23c34b124521b736354a3c39679e09c4d38fdc",
+      "bytes": 159860
+    },
+    {
+      "name": "libkf6kiowidgets6_6.13.0-6+linuxbr0.8.1_amd64.deb",
+      "sha256": "27c1a90b4f6a23d35d94b976d44e0a42d6900eadc4bb5c4be966a70dd4e1a1ca",
+      "bytes": 379340
+    },
+    {
+      "name": "linuxbr-boot-theme_0.8.5~beta1_all.deb",
+      "sha256": "22566cde41ea2fb0375f52e52e52d584af563479a75367e3e3ad8a506feb67af",
+      "bytes": 28056
+    },
+    {
+      "name": "linuxbr-branding_0.8.5~beta1_all.deb",
+      "sha256": "a0f098f8730d32146ddf63f6266ded5df3085d65ecf928e33d3057961f7a5908",
+      "bytes": 25790276
+    },
+    {
+      "name": "linuxbr-calamares-settings_0.8.5~beta1_all.deb",
+      "sha256": "fa716a3c474afe86d58edb20ce3abed3e6331e00d71fb1f3fbff9a521b361a48",
+      "bytes": 70012
+    },
+    {
+      "name": "linuxbr-desktop_0.8.5~beta1_amd64.deb",
+      "sha256": "8218a6bca0891af62f99c2ceb6125c2007a887984248ec38c44098c2e6de3b29",
+      "bytes": 30100
+    },
+    {
+      "name": "linuxbr-device-manager_0.8.5~beta1_all.deb",
+      "sha256": "023a296807e81582c41ac0600500631e996d59e6152f9c1d3f8a3884b248efc8",
+      "bytes": 12812
+    },
+    {
+      "name": "linuxbr-drive-manager_0.8.5~beta1_amd64.deb",
+      "sha256": "752109c9663539623e5a67df7f5c1997f3a52c87e3c4b01dbafb87205bb642b0",
+      "bytes": 56072
+    },
+    {
+      "name": "linuxbr-file-properties_0.8.5~beta1_amd64.deb",
+      "sha256": "d3d44c9aea4961ed7fbd2108c7482dc9f6863d54dfd859010b5e0f7c3c4fc12e",
+      "bytes": 73092
+    },
+    {
+      "name": "linuxbr-release_0.8.5~beta1_all.deb",
+      "sha256": "cfd4902f7c2091f6d68ffe5fe559ba93817bd990b27138a4bbae7db6d1cf6952",
+      "bytes": 1900
+    },
+    {
+      "name": "linuxbr-sddm-theme_0.8.5~beta1_all.deb",
+      "sha256": "b80914fa9b0dc4c8acf963ee0d3899952c2652a0b221ba43cf7a019161578e6a",
+      "bytes": 573340
+    },
+    {
+      "name": "linuxbr-system_0.8.5~beta1_all.deb",
+      "sha256": "9f98f92473570366eabdc88b5547937032bd74d2d79c46565b8118bf2e14d226",
+      "bytes": 288728
+    }
+  ],
+  "installed_packages": 17,
+  "installer_package_skipped": true,
+  "original_disks_read_only": true,
+  "source_archive_sha256": "e122e0c8007eed44e28db52b076efa7680115040d4eca744a6325c3cd211ed5d",
+  "started_at": "2026-11-04T20:58:13.810791+00:00",
+  "exit_code": 0,
+  "audit_empty": true,
+  "removals": 0,
+  "automatic_snapshots_created": [
+    "2026-11-04_17-58-34"
+  ],
+  "simulation_summary": "9 upgraded, 17 newly installed, 8 reinstalled, 0 to remove and 11 not upgraded.",
+  "finished_at": "2026-11-04T21:01:00.865864+00:00"
+}

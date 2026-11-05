@@ -39,6 +39,10 @@ def set_mode(value):
 
 
 def service_state():
+    try:choices=[part.split('=',1)[1] for part in Path('/proc/cmdline').read_text().split() if part.startswith('linuxbr.mode=')]
+    except OSError:choices=[]
+    if choices and choices[-1] in {'safe','safe-network','safe-terminal','recovery'}:
+        raise ValueError('O serviço de mapeamento de unidades está indisponível neste modo. Use C: para os caminhos locais.')
     import dbus
     obj=dbus.SessionBus().get_object('org.linuxbr.DriveManager1','/org/linuxbr/DriveManager1',introspect=False)
     return json.loads(dbus.Interface(obj,'org.linuxbr.DriveManager1').GetState(timeout=0.5))

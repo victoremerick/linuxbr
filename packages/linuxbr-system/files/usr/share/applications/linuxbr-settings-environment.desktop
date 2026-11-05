@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Variáveis de ambiente
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page environment
+Icon=preferences-system
+Keywords=Path;Ambiente;Variáveis;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

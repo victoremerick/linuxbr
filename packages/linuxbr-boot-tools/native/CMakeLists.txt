@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(linuxbrboot LANGUAGES CXX)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus)
+add_library(linuxbrbootplugin MODULE plugin.cpp)
+target_link_libraries(linuxbrbootplugin PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus)

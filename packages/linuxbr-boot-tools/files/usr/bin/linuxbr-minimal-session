@@ -1,0 +1,28 @@
+#!/bin/sh
+set -eu
+export XDG_CURRENT_DESKTOP=LinuxBRMinimal
+export DESKTOP_SESSION=linuxbr-minimal
+export QT_QPA_PLATFORM=xcb
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    exec /usr/bin/dbus-run-session -- "$0"
+fi
+variables="${XDG_CONFIG_HOME:-$HOME/.config}/plasma-workspace/env/linuxbr-variables.sh"
+case " $(/usr/bin/cat /proc/cmdline) " in
+    *" linuxbr.mode=safe "*|*" linuxbr.mode=safe-network "*|*" linuxbr.mode=safe-terminal "*|*" linuxbr.mode=recovery "*) ;;
+    *) if [ -f "$variables" ]; then . "$variables"; fi ;;
+esac
+export XDG_CURRENT_DESKTOP=LinuxBRMinimal DESKTOP_SESSION=linuxbr-minimal QT_QPA_PLATFORM=xcb
+/usr/bin/xsetroot -solid black
+/usr/bin/xset s off -dpms
+/usr/bin/openbox --sm-disable &
+manager=$!
+trap 'kill "$manager" 2>/dev/null || true' EXIT HUP INT TERM
+if [ -x /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 ]; then
+    /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 &
+elif [ -x /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 ]; then
+    /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
+fi
+/usr/bin/python3 /usr/lib/linuxbr-boot/console.py

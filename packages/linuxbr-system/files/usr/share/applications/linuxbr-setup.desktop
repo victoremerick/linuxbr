@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Preparar meu computador
+Comment=Conferir rede, teclado, tela, dispositivos, backup e aplicativos
+Exec=linuxbr-setup
+TryExec=linuxbr-setup
+Icon=tools-wizard
+Terminal=false
+Categories=System;Settings;
+Keywords=primeiros passos;configuração inicial;bem-vindo;configuração guiada;

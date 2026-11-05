@@ -1,4 +1,4 @@
-"""Explicit local package review; installation stays with Discover/PackageKit."""
+"""Explicit local package review with native package transactions."""
 from pathlib import Path
 import subprocess
 import sys
@@ -60,12 +60,15 @@ class Installer(QWidget):
     def load(self,name):
         self.install.setEnabled(False);self.path=None
         self.install.setText('Continuar instalação')
-        self.note.setText('Continue apenas se você confia na origem do arquivo. O Discover verifica o pacote, mostra a instalação e pode solicitar autenticação administrativa.')
+        self.note.setText('Continue apenas se você confia na origem do arquivo. A Loja apresenta os componentes e as permissões antes de instalar e solicita autorização quando necessário.')
         try:
             path,allowed,detail=inspect_package(name)
             self.details.setPlainText(path.name+'\nPasta: '+str(path.parent)+'\n\n'+detail)
             if allowed:
+                import hashlib
+                with path.open('rb') as stream:self.sha256=hashlib.file_digest(stream,'sha256').hexdigest()
                 self.path=path;self.install.setEnabled(True)
+                self.details.appendPlainText('\nSHA-256: '+self.sha256)
                 if path.suffix.lower() in ('.exe','.msi'):
                     self.install.setText('Escolher ambiente Wine…')
                     self.note.setText('A próxima janela permite escolher o ambiente e confirmar a execução. Wine usa os acessos da sua conta e não precisa de sudo. A compatibilidade depende do programa.')
@@ -73,13 +76,22 @@ class Installer(QWidget):
         except (OSError,ValueError,subprocess.SubprocessError) as error:self.details.setPlainText('Não foi possível abrir o pacote: '+str(error))
     def start(self):
         if self.path is None:return
-        # Revalidate after the user reviewed it. Discover performs its own checks.
+        # Revalidate the selection before handing it to a native transaction.
         try:
             path,allowed,_=inspect_package(str(self.path))
             if not allowed:raise ValueError('Formato incompatível.')
-            command,args=('linuxbr-windows',[str(path)]) if path.suffix.lower() in ('.exe','.msi') else ('plasma-discover',['--local-filename',str(path)])
-            if not QProcess.startDetached(command,args)[0]:raise OSError('Ferramenta indisponível: '+command)
-            self.close()
+            if path.suffix.lower() in ('.exe','.msi'):
+                if not QProcess.startDetached('linuxbr-windows',[str(path)])[0]:raise OSError('Ferramenta indisponível: linuxbr-windows')
+                self.close()
+            else:
+                from store_operations import Operations
+                if not hasattr(self,'operations'):self.operations=Operations(self)
+                self.operations.install_file(path,self.sha256)
         except (OSError,ValueError,subprocess.SubprocessError) as error:QMessageBox.warning(self,'Não foi possível continuar',str(error))
+
+    def closeEvent(self,event):
+        operation=getattr(self,'operations',None)
+        if operation and (operation.process or operation.queue):event.ignore();operation.show();return
+        super().closeEvent(event)
 if __name__=='__main__':
     app=QApplication(sys.argv);app.setDesktopFileName("linuxbr-install-package");window=Installer(sys.argv[1] if len(sys.argv)>1 else None);window.show();sys.exit(app.exec())

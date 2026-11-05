@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Linux BR — Servidor
+Comment=Console de configuração sem o desktop completo
+Exec=/usr/bin/linuxbr-minimal-session
+Type=Application
+DesktopNames=LinuxBRMinimal;

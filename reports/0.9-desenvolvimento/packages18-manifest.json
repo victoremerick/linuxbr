@@ -1,0 +1,170 @@
+[
+  {
+    "file": "dolphin-data_25.04.3-1+deb13u1+linuxbr2_all.deb",
+    "bytes": 873016,
+    "sha256": "c8a7ecbb42e0877c01b7928ec01941eb95b121c74fba397c98e7ff9d3d7ac217",
+    "Package": "dolphin-data",
+    "Version": "4:25.04.3-1+deb13u1+linuxbr2",
+    "Architecture": "all"
+  },
+  {
+    "file": "dolphin_25.04.3-1+deb13u1+linuxbr2_amd64.deb",
+    "bytes": 963464,
+    "sha256": "ad7168b9eb16552af97d7599ce598cb9d6ea71143e9f4d6c11df2b07c5b5483d",
+    "Package": "dolphin",
+    "Version": "4:25.04.3-1+deb13u1+linuxbr2",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "kio6_6.13.0-6+linuxbr0.9.1_amd64.deb",
+    "bytes": 2149752,
+    "sha256": "becd7128deab22026b5da0b8c224c8b4a78b1df4d5effb0450ae46ad676a258b",
+    "Package": "kio6",
+    "Version": "6.13.0-6+linuxbr0.9.1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "libdolphinvcs6_25.04.3-1+deb13u1+linuxbr2_amd64.deb",
+    "bytes": 13512,
+    "sha256": "5924af60617ccf0806705113f5bcd6943cf8b2cf8a5843b3ddac5de3fe95b183",
+    "Package": "libdolphinvcs6",
+    "Version": "4:25.04.3-1+deb13u1+linuxbr2",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "libkf6kiocore6_6.13.0-6+linuxbr0.9.1_amd64.deb",
+    "bytes": 508680,
+    "sha256": "f72ee0917551984579f99bc5e7afaad2f3e6cb4ec5b583e288875ca91efe0bcc",
+    "Package": "libkf6kiocore6",
+    "Version": "6.13.0-6+linuxbr0.9.1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "libkf6kiofilewidgets6_6.13.0-6+linuxbr0.9.1_amd64.deb",
+    "bytes": 357948,
+    "sha256": "4115d88c5e61b27411780d0ef4009678a5d05abe2489ffffc1c3d053125db4d6",
+    "Package": "libkf6kiofilewidgets6",
+    "Version": "6.13.0-6+linuxbr0.9.1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "libkf6kiogui6_6.13.0-6+linuxbr0.9.1_amd64.deb",
+    "bytes": 160004,
+    "sha256": "657beed09302253e41d2b61075ccbda3e51c2fba4f54ec0848eddaa4be089fb6",
+    "Package": "libkf6kiogui6",
+    "Version": "6.13.0-6+linuxbr0.9.1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "libkf6kiowidgets6_6.13.0-6+linuxbr0.9.1_amd64.deb",
+    "bytes": 380936,
+    "sha256": "cfbae986bd06c16e0d8e132826721043a0fdabae878d70091d8eb349b88e60ce",
+    "Package": "libkf6kiowidgets6",
+    "Version": "6.13.0-6+linuxbr0.9.1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "linuxbr-boot-theme_0.9.0~beta1_all.deb",
+    "bytes": 28048,
+    "sha256": "f2d0a403179bd44dae3531c2645bdf9edbdb77878c372a1b2eb80711f5caf4a4",
+    "Package": "linuxbr-boot-theme",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-boot-tools_0.9.0~beta1_amd64.deb",
+    "bytes": 45680,
+    "sha256": "0abe88d1704228321555f3c641b37b04e0197fee85eca00c12839b7de5dc52e5",
+    "Package": "linuxbr-boot-tools",
+    "Version": "0.9.0~beta1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "linuxbr-branding_0.9.0~beta1_all.deb",
+    "bytes": 25790276,
+    "sha256": "2b2498688e0ec758d4e4b3d619c458cb2d352dfada7e774ab397211836b3bb20",
+    "Package": "linuxbr-branding",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-calamares-settings_0.9.0~beta1_all.deb",
+    "bytes": 71984,
+    "sha256": "e3ae863f2c6ab1f7af132f4c16dd950ac59bc691ceea820154c35fb84afadb86",
+    "Package": "linuxbr-calamares-settings",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-desktop-edition_0.9.0~beta1_all.deb",
+    "bytes": 820,
+    "sha256": "f3e163ceffa7dd35d91d9e9f3572f5319f19c34d59ed42673e3185b628582cd8",
+    "Package": "linuxbr-desktop-edition",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-desktop_0.9.0~beta1_amd64.deb",
+    "bytes": 60808,
+    "sha256": "705031152a7988f68e3d5a7aa536ea044182aa5c3d546c05833256187fc86a36",
+    "Package": "linuxbr-desktop",
+    "Version": "0.9.0~beta1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "linuxbr-device-manager_0.9.0~beta1_all.deb",
+    "bytes": 12804,
+    "sha256": "d8143c2955f857a310fe3a47b370174c748a4f7d54e2b073f68c42d5a0d7a1f8",
+    "Package": "linuxbr-device-manager",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-drive-manager_0.9.0~beta1_amd64.deb",
+    "bytes": 52032,
+    "sha256": "bca2ad11db19f1163ee03453d02240b875f8f29f45ae7aa60b251a345e6ce9d6",
+    "Package": "linuxbr-drive-manager",
+    "Version": "0.9.0~beta1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "linuxbr-file-properties_0.9.0~beta1_amd64.deb",
+    "bytes": 74216,
+    "sha256": "9159cfbc279f78f1b4c272e55f48863bd25ba43b14b882b43fcd044a40cd0521",
+    "Package": "linuxbr-file-properties",
+    "Version": "0.9.0~beta1",
+    "Architecture": "amd64"
+  },
+  {
+    "file": "linuxbr-release_0.9.0~beta1_all.deb",
+    "bytes": 1872,
+    "sha256": "257fc2553495160e3d732d5297bbd68c74ef5e9dc42c2b0432253ad45ccf46b1",
+    "Package": "linuxbr-release",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-sddm-theme_0.9.0~beta1_all.deb",
+    "bytes": 573416,
+    "sha256": "81386977e336cc7b493398054a196bdc1cf0cb967d9734b06f18408ba6edc62b",
+    "Package": "linuxbr-sddm-theme",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-server_0.9.0~beta1_all.deb",
+    "bytes": 68032,
+    "sha256": "8a536da5c0bde094679525597e80c07ff44ef3062a65197d097b0adfd33c2a20",
+    "Package": "linuxbr-server",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  },
+  {
+    "file": "linuxbr-system_0.9.0~beta1_all.deb",
+    "bytes": 314112,
+    "sha256": "dc38b3c94f7236302042282bfc2b9ec03f0fffee3ce3d1a4d205931a6d077025",
+    "Package": "linuxbr-system",
+    "Version": "0.9.0~beta1",
+    "Architecture": "all"
+  }
+]

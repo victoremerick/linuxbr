@@ -1,0 +1,12 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "edition": "desktop",
+  "boot_id": "a90af308-1a87-4efa-bb7a-4769bad5dad7",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "authenticated": true,
+  "uid": 1000,
+  "plasma": true,
+  "failed_units": [],
+  "dpkg_audit": ""
+}

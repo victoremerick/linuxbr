@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "media": "source17",
+  "edition": "server",
+  "root_uuid": "5b4ba7f8-e9d7-411a-9a80-d1fddeec11d1",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "authenticated_uid": 1000,
+  "session": "X11 Openbox minimal console",
+  "no_plasma": true,
+  "ram_used_mib": 600,
+  "dpkg_audit": "",
+  "failed_units": "",
+  "ssh": "installed only for QA access",
+  "final_cohort": "source18 metadata update pending"
+}

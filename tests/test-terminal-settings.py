@@ -5,5 +5,5 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'packages/linuxbr-driv
 from terminal_settings import Settings
 app=QApplication([]);window=Settings()
 assert not window.findChildren(QRadioButton)
-assert any('sempre iniciam' in label.text() for label in window.findChildren(QLabel))
+assert any(r'D:\Projetos>' in label.text() and 'terminal-modo linux' in label.text() for label in window.findChildren(QLabel))
 print('PASS: configurações explicam letras obrigatórias ao abrir e compatibilidade por sessão')

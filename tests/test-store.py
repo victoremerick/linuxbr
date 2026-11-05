@@ -36,7 +36,7 @@ class StoreTests(unittest.TestCase):
     def test_actions_preserve_confirmation(self):
         for item in self.entries:
             argv = backend.action(item)
-            self.assertIn(argv[0], ('plasma-discover', 'linuxbr-webapps', 'xdg-open'))
+            self.assertIn(argv[0], ('linuxbr-store', 'linuxbr-webapps', 'xdg-open'))
             if item['kind'] == 'web': self.assertEqual(argv[1], '--offer')
             if item['kind'] == 'windows': self.assertEqual(argv[0], 'xdg-open')
         with self.assertRaises(ValueError): backend.action({'kind': 'windows', 'source': 'file:///tmp/installer'})
@@ -44,7 +44,7 @@ class StoreTests(unittest.TestCase):
     def test_installed_webapp_opens_without_reinstall(self):
         with patch('os.geteuid', return_value=1000):
             identifier = web.install({'name': 'WhatsApp', 'url': 'https://web.whatsapp.com/'})
-        with patch('store.subprocess.Popen') as launch:
+        with patch('webapp_icons.request_refresh'), patch('store.subprocess.Popen') as launch:
             window = store.Window(); window.query.setText('WhatsApp')
             self.assertEqual(window.primary.text(), 'Abrir aplicativo web')
             window.activate()
@@ -54,12 +54,12 @@ class StoreTests(unittest.TestCase):
             window.close()
 
     def test_gui_filters_and_empty_state(self):
-        with patch('store.subprocess.Popen') as launch:
+        with patch('webapp_icons.request_refresh'), patch('store.subprocess.Popen') as launch:
             window = store.Window()
             self.assertEqual(window.results.count(), len(self.entries)); launch.assert_not_called()
             window.query.setText('nada-encontrado'); self.assertEqual(window.results.count(), 0)
             self.assertTrue(window.primary.isHidden())
-            window.discover(); self.assertEqual(launch.call_args.args[0], ['plasma-discover', '--search', 'nada-encontrado'])
+            window.discover(); self.assertEqual(launch.call_args.args[0], ['linuxbr-store', '--search', 'nada-encontrado'])
             window.query.clear(); window.kind.setCurrentIndex(window.kind.findData('windows'))
             self.assertEqual(window.results.count(), 2)
             window.activate(); self.assertEqual(launch.call_args.args[0][0], 'xdg-open')

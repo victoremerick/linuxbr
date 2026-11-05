@@ -1,0 +1,5 @@
+{
+  "returncode": 0,
+  "output": "PASS: native Wi-Fi/Bluetooth on and off, volume/mute, external volume synchronization\n",
+  "context": "active graphical session, virtual Wi-Fi/BT, active null audio sink"
+}

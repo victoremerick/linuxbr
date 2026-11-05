@@ -1,0 +1,8 @@
+{
+  "encrypted_backup": true,
+  "tampering_refused": true,
+  "existing_database_refused": true,
+  "restored_counts_key_and_publication_match": true,
+  "bytes": 6805,
+  "sha256": "e1d2e18725e6641a650ec19e3c1e0e731025682f2a783777225535f9ab64bc62"
+}

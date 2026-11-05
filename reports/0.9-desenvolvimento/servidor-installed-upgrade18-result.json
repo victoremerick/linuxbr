@@ -1,0 +1,19 @@
+{
+  "returncode": 0,
+  "targets": [
+    "linuxbr-boot-theme=0.9.0~beta1",
+    "linuxbr-boot-tools=0.9.0~beta1",
+    "linuxbr-branding=0.9.0~beta1",
+    "linuxbr-release=0.9.0~beta1",
+    "linuxbr-server=0.9.0~beta1",
+    "dolphin-data",
+    "libdolphinvcs6",
+    "kio6",
+    "libkf6kiocore6",
+    "libkf6kiogui6",
+    "libkf6kiowidgets6",
+    "libkf6kiofilewidgets6"
+  ],
+  "candidate": "source18",
+  "context": "final cohort replacement after clean candidate installation"
+}

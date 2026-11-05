@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Serviços
+Comment=Abrir diretamente nas Configurações do Linux BR
+Exec=linuxbr-system --page services
+Icon=preferences-system-services
+Keywords=services.msc;Serviços;
+Categories=Settings;
+Terminal=false
+StartupNotify=true

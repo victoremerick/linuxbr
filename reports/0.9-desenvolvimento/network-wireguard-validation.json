@@ -1,0 +1,30 @@
+{
+  "connected": {
+    "Conexão": "LinuxBR QA09 5593ee40",
+    "Adaptador": "wgqa09",
+    "Tipo": "WireGuard",
+    "Estado": "Conectado",
+    "Endereço físico (MAC)": "Não disponível",
+    "MTU": "1420",
+    "Driver": "wireguard",
+    "Velocidade do link": "Não disponível",
+    "Fabricante": "Não disponível",
+    "Modelo": "Não disponível",
+    "Conectividade IPv4": "Acesso limitado",
+    "Endereços IPv4": "10.253.241.2/24\n10.253.241.1/24",
+    "Gateway IPv4": "Não disponível",
+    "Servidores DNS IPv4": "Não disponível",
+    "Domínios de pesquisa IPv4": "Não disponível",
+    "Rotas IPv4": "10.253.241.0/24 → 0.0.0.0 · prioridade 50\n10.253.241.0/24 → 0.0.0.0 · prioridade 50",
+    "Máscaras IPv4": "255.255.255.0\n255.255.255.0",
+    "Conectividade IPv6": "Acesso limitado",
+    "Endereços IPv6": "fd09:241::1/64",
+    "Gateway IPv6": "Não disponível",
+    "Servidores DNS IPv6": "Não disponível",
+    "Domínios de pesquisa IPv6": "Não disponível",
+    "Rotas IPv6": "fd09:241::/64 → :: · prioridade 50"
+  },
+  "after_down": [],
+  "status": "PASS",
+  "scope": "WireGuard adapter and structured addresses; no external VPN peer traffic"
+}

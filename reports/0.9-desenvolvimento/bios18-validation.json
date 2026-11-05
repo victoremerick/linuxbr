@@ -1,0 +1,13 @@
+{
+  "candidate": "source18",
+  "status": "PASS",
+  "iso_sha256": "e6c34cd34f7a106a819ccc2537ae6fca958c6ac0b402ad26dd024a03167f628d",
+  "firmware": "SeaBIOS",
+  "scenario": "Live normal boot, authenticated Plasma, Konsole commands id and os-release, poweroff",
+  "uid": 1000,
+  "user": "user",
+  "version": "0.9.0~beta1",
+  "resolution": "1280x768",
+  "installation_tested": false,
+  "evidence": "bios18-live-terminal.png"
+}

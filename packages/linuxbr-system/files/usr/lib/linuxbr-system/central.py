@@ -7,7 +7,7 @@ sys.path.insert(0, '/usr/lib/linuxbr-device-manager')
 from PyQt6.QtCore import QProcess, QSize, Qt
 from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
-                            QListWidget, QListWidgetItem, QStackedWidget, QLabel, QPushButton, QMessageBox, QToolButton, QScrollArea, QFrame, QLineEdit)
+                            QListWidget, QListWidgetItem, QStackedWidget, QLabel, QPushButton, QMessageBox, QToolButton, QScrollArea, QFrame, QLineEdit, QSizePolicy)
 from app import Window as Drives
 from devices import Devices
 from about import About
@@ -22,6 +22,11 @@ from remote_page import RemoteAccess
 from power_page import Power
 from visual_style import BUTTONS
 from welcome import HelpPage
+from recovery import RecoveryPage
+from daily_use import DailyUse
+from desktopflows08 import DesktopFlowsPage, PathButton
+from maintenance import MaintenancePage
+from function_icons import FUNCTION_ICONS
 
 PAGES = [
  ('Sistema', '', []),
@@ -43,11 +48,11 @@ PAGES = [
      ('Gerenciar usuários', ['kcmshell6', 'kcm_users'])]),
  ('Organização', '', []),
  ('Administração', 'Ferramentas de manutenção do sistema.', [
-     ('Aplicativos e atualizações', ['plasma-discover']),
-     ('Firmware de dispositivos', ['plasma-discover', '--mode', 'Update']),
+     ('Aplicativos e atualizações', ['linuxbr-store']),
+     ('Firmware de dispositivos', ['linuxbr-store','--firmware']),
      ('Analisar espaço ocupado', ['filelight']),
      ('Executar um programa', ['linuxbr-run']),
-     ('Aplicativos na inicialização', ['kcmshell6', 'kcm_autostart']),
+     ('Aplicativos na inicialização', ['linuxbr-desktop-flows', '--page', 'startup']),
      ('Logs desta inicialização', ['konsole', '-e', 'journalctl', '-b', '--pager-end']),
      ('Estado dos serviços', ['konsole', '-e', 'systemctl', 'status']),
      ('Configurações do terminal', ['linuxbr-terminal-settings']),
@@ -57,9 +62,9 @@ PAGES = [
      ('Instalar a partir de arquivo', ['linuxbr-install-package']),
      ('Programas Windows e jogos', ['linuxbr-windows']),
      ('Aplicativos web', ['linuxbr-webapps']),
-     ('Programas instalados', ['plasma-discover', '--mode', 'Installed']),
+     ('Programas instalados', ['linuxbr-store', '--installed']),
      ('Encontrar programas', ['linuxbr-store']),
-     ('Atualizações', ['plasma-discover', '--mode', 'Update'])]),
+     ('Atualizações', ['linuxbr-store','--updates'])]),
  ('Telas', 'Monitores, resolução, escala, orientação e disposição das telas.', []),
  ('Personalização', '', []),
  ('Acesso remoto', 'Permita conexões RDP ou VNC à sessão deste computador.', []),
@@ -90,13 +95,17 @@ PAGES = [
      ('Restaurar sessão e encerramento', ['kcmshell6', 'kcm_smserver'])]),
 ]
 PAGES += [
+ ('Uso diário', 'Pendrives, NTFS, pastas Windows, impressoras, Bluetooth e aplicativos padrão.', []),
  ('Arquivos e atalhos', 'Crie atalhos, mapeie unidades de rede e organize documentos.', [
+     ('Trazer meus arquivos do Windows', ['linuxbr-migration']),
      ('Ferramentas de arquivos', ['linuxbr-file-tools']),
      ('Mapear unidade de rede', ['linuxbr-file-tools', '--map-network']),
      ('Este computador', ['dolphin', 'linuxbr:/']),
      ('Lixeira', ['dolphin', 'trash:/']),
      ('Arquivos compactados', ['ark']),
-     ('Analisar espaço ocupado', ['filelight'])]),
+     ('Analisar espaço ocupado', ['filelight']),
+     ('Cópias e conflitos de arquivos', ['linuxbr-desktop-flows', '--page', 'transfers'])]),
+ ('Cuidados com o computador', 'Proteção, backup, condições para atualizar, diagnóstico e limpeza revisada.', []),
  ('Aplicativos web', 'Sites instalados como aplicativos, com janela própria no Chromium.', [
      ('Gerenciar aplicativos web', ['linuxbr-webapps']),
      ('Abrir Chromium', ['chromium'])]),
@@ -106,6 +115,8 @@ PAGES += [
  ('Proxy', 'Proxy manual ou PAC para aplicativos KDE.', []),
  ('Primeiros passos', 'Ajuda, guia para quem vem do Windows, menu Iniciar e uso diário.', []),
  ('Recuperação e ajuda', 'Suporte, cópia de segurança, backup, falhas e reparação da inicialização.', []),
+ ('Backup e recuperação', 'Cópias de segurança, restauração de arquivos e suporte.', []),
+ ('Atualizações', 'Atualizações do sistema, aplicativos e firmware.', []),
  ('Programas Windows e jogos', 'Compatibilidade com EXE, MSI, Wine, Steam, Proton e Bottles.', [
      ('Abrir central de compatibilidade', ['linuxbr-windows']),
      ('Meus programas Windows', ['linuxbr-windows', '--page', 'library']),
@@ -115,6 +126,9 @@ PAGES += [
 ]
 
 SEARCH_ALIASES = {
+ 'Cuidados com o computador': 'limpar cache lixeira espaço backup proteção certificado atualização resolver problema som impressão rede reparação diagnóstico',
+ 'Backup e recuperação': 'backup cópia segurança restaurar histórico arquivos recuperar pendrive disco externo kup ponto restauração sistema timeshift voltar',
+ 'Atualizações': 'windows update atualizar segurança firmware driver versão discover',
  'Administração': 'gerenciador de tarefas taskmgr processos cpu memória desempenho ctrl shift esc',
  'Arquivos e atalhos': 'explorer explorador atalho desktop área trabalho lixeira rede compartilhamento unc smb zip copiar caminho',
  'Aplicativos web': 'chromium navegador site pwa webapp whatsapp teams canva instalar internet',
@@ -135,7 +149,7 @@ class Central(QMainWindow):
         super().__init__()
         self.setStyleSheet(BUTTONS)
         self.setWindowTitle('Linux BR — Central do Sistema')
-        self.setWindowIcon(QIcon.fromTheme('linuxbr'))
+        self.setWindowIcon(QIcon.fromTheme('preferences-system'))
         self.resize(1260, 720)
         self.setMinimumSize(900, 560)
         root=QWidget(); self.setCentralWidget(root)
@@ -164,14 +178,25 @@ class Central(QMainWindow):
         self.nav.setAccessibleName('Categorias da Central do Sistema'); side.addWidget(self.nav,1)
         footer=QLabel('Central do Sistema'); footer.setStyleSheet('padding-left:12px'); side.addWidget(footer)
         self.stack=QStackedWidget()
-        layout.addWidget(sidebar); layout.addWidget(self.stack,1)
+        content=QWidget(); column=QVBoxLayout(content); column.setContentsMargins(0,0,0,0)
+        trail=QHBoxLayout(); trail.setContentsMargins(24,14,24,4)
+        self.back=PathButton(); self.back.setIcon(QIcon.fromTheme('go-previous'))
+        self.back.setToolTip('Voltar (Alt+Esquerda)'); self.back.setAccessibleName('Voltar à configuração anterior')
+        self.back.setEnabled(False); self.back.clicked.connect(self.go_back); trail.addWidget(self.back)
+        self.home=PathButton(); self.home.setText('Configurações'); self.home.setAutoRaise(True)
+        self.home.clicked.connect(lambda:self.navigate('Sistema')); trail.addWidget(self.home)
+        trail.addWidget(QLabel('›')); self.breadcrumb=QLabel(); self.breadcrumb.setTextFormat(Qt.TextFormat.PlainText)
+        self.breadcrumb.setAccessibleName('Página atual'); trail.addWidget(self.breadcrumb,1)
+        column.addLayout(trail); column.addWidget(self.stack,1)
+        self.navigation_history=[]; self.returning=False
+        self.back_shortcut=QShortcut(QKeySequence('Alt+Left'),self); self.back_shortcut.activated.connect(self.go_back)
+        layout.addWidget(sidebar); layout.addWidget(content,1)
         self.drives=Drives(); self.devices=Devices()
         self.firewall=Firewall();self.audio=Audio();self.ip=IPPage()
         self.displays=Displays();self.remote=RemoteAccess();self.proxy=Proxy();self.power=Power()
         self.users=AccountsPage(False,self.launch); self.organization=AccountsPage(True,self.launch)
-        icons=['computer','preferences-devices','drive-harddisk','network-workgroup','system-users','preferences-system','preferences-other','applications-other','video-display','preferences-desktop-theme','krdc']
         for index,(title,description,actions) in enumerate(PAGES):
-            item=QListWidgetItem(QIcon.fromTheme(icons[index] if index<len(icons) else 'preferences-system'),title); item.setSizeHint(QSize(170,38)); self.nav.addItem(item)
+            item=QListWidgetItem(QIcon.fromTheme(FUNCTION_ICONS[title]),title); item.setToolTip(title); item.setSizeHint(QSize(170,38)); self.nav.addItem(item)
             if title=='Sistema':
                 page=About(self.launch,self.navigate)
             elif title=='Personalização':
@@ -188,9 +213,19 @@ class Central(QMainWindow):
                 page=self.power
             elif title in ('Primeiros passos','Recuperação e ajuda'):
                 page=HelpPage(self.launch,title)
+            elif title in ('Backup e recuperação','Atualizações'):
+                page=RecoveryPage('updates' if title=='Atualizações' else 'backup')
             elif title in ('Firewall','Áudio','Endereços IP e DNS','Proxy'):
                 page={'Firewall':self.firewall,
                       'Áudio':self.audio,'Endereços IP e DNS':self.ip,'Proxy':self.proxy}[title]
+            elif title=='Uso diário':
+                page=DailyUse()
+            elif title=='Pesquisa e padrões':
+                page=DesktopFlowsPage('search')
+                page.back_shortcut.setEnabled(False)
+            elif title=='Cuidados com o computador':
+                self.maintenance=MaintenancePage()
+                page=self.maintenance
             elif title=='Dispositivos':
                 page=QWidget(); body=QVBoxLayout(page); body.setContentsMargins(0,0,0,16)
                 body.addWidget(self.devices)
@@ -208,7 +243,7 @@ class Central(QMainWindow):
                 heading=QLabel(title); heading.setStyleSheet('font-size:26px; font-weight:600'); body.addWidget(heading)
                 text=QLabel(description); text.setWordWrap(True); body.addWidget(text)
                 for caption,command in actions:
-                    body.addWidget(self.action_link(caption,lambda checked=False,cmd=command:self.launch(cmd)),0,Qt.AlignmentFlag.AlignLeft)
+                    body.addWidget(self.action_link(caption,lambda checked=False,cmd=command:self.launch(cmd)))
                 if title=='Rede':
                     body.addWidget(self.action_link('Endereços IP e DNS',lambda:self.navigate('Endereços IP e DNS')),0,Qt.AlignmentFlag.AlignLeft)
                     body.addWidget(self.action_link('Configurar proxy',self.open_proxy),0,Qt.AlignmentFlag.AlignLeft)
@@ -218,7 +253,7 @@ class Central(QMainWindow):
                     body.addWidget(self.action_link('Gerenciador de Tarefas',lambda:self.launch(['linuxbr-task-manager'])),0,Qt.AlignmentFlag.AlignLeft)
                 body.addStretch()
             self.stack.addWidget(page)
-        self.nav.currentRowChanged.connect(self.stack.setCurrentIndex)
+        self.nav.currentRowChanged.connect(self.select_page)
         self.search.textChanged.connect(self.filter_pages)
         self.navigate('Sistema')
 
@@ -239,10 +274,32 @@ class Central(QMainWindow):
 
     @staticmethod
     def action_link(caption,callback):
-        button=QToolButton(); button.setText(caption); button.setIcon(QIcon.fromTheme('go-next'))
-        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon); button.setAutoRaise(True)
+        button=PathButton(); button.setText(caption); button.setIcon(QIcon.fromTheme(FUNCTION_ICONS[caption]))
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon); button.setAutoRaise(False)
+        button.setMinimumHeight(44); button.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Preferred)
+        button.setStyleSheet('QToolButton { text-align:left; padding:10px 12px; border:1px solid palette(mid); border-radius:5px; } QToolButton:focus { border:2px solid palette(highlight); }')
         button.clicked.connect(callback)
         return button
+
+    def select_page(self,index):
+        if index < 0: return
+        previous=self.stack.currentIndex()
+        if previous != index and not self.returning:
+            self.navigation_history.append(previous)
+        self.stack.setCurrentIndex(index); self.breadcrumb.setText(PAGES[index][0])
+        self.back.setEnabled(bool(self.navigation_history))
+
+    def go_back(self):
+        page=self.stack.currentWidget()
+        if isinstance(page,DesktopFlowsPage) and page.history:
+            page.go_back(); return
+        if not self.navigation_history: return
+        index=self.navigation_history.pop(); self.returning=True
+        try:
+            if self.nav.item(index).isHidden(): self.search.clear()
+            self.nav.setCurrentRow(index)
+        finally:
+            self.returning=False; self.back.setEnabled(bool(self.navigation_history))
 
     def open_proxy(self):
         self.navigate('Proxy')
@@ -255,7 +312,12 @@ class Central(QMainWindow):
             QMessageBox.warning(self, 'Ferramenta indisponível', 'Não foi possível iniciar '+command[0]+'. Verifique a instalação do pacote correspondente.')
 
     def closeEvent(self, event):
-        if self.users.process is not None or self.organization.process is not None or self.users.groups.process is not None:
+        if getattr(self, 'maintenance', None) is not None and self.maintenance.jobs:
+            for job in self.maintenance.jobs:
+                job.cancel.set()
+            QMessageBox.information(self,'Operação em andamento','Aguarde a consulta ou limpeza terminar. O cancelamento foi solicitado.')
+            event.ignore()
+        elif self.users.process is not None or self.organization.process is not None or self.users.groups.process is not None:
             QMessageBox.information(self,'Operação em andamento','Aguarde a operação de contas ou domínio terminar.')
             event.ignore()
         elif self.firewall.process is not None or self.audio.process is not None or self.ip.process is not None or self.remote.process is not None:
@@ -267,7 +329,10 @@ class Central(QMainWindow):
         elif not self.devices.shutdown():
             QMessageBox.information(self,'Operação em andamento','Aguarde a operação de pacotes terminar.')
             event.ignore()
-        else: event.accept()
+        else:
+            for page in self.findChildren(RecoveryPage):
+                page.stop_update_query()
+            event.accept()
 
 if __name__=='__main__':
     application=QApplication(sys.argv)

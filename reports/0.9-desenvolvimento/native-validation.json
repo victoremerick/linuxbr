@@ -1,0 +1,22 @@
+{
+  "kio-session": {
+    "code": 0,
+    "output": "PASS: real D-Bus session, native Dolphin Places, KIO redirect, persistent aliases across service restart\nPASS: KIO loads linuxbr worker and redirects to native filesystem\n",
+    "context": "independent D-Bus without installed automatic activation"
+  },
+  "properties-native": {
+    "code": 0,
+    "output": "{\"applyApi\":true,\"familiarReadOnly\":true,\"location\":true,\"pages\":[\"&Geral\",\"Seguran\u00e7a\",\"Valida\u00e7\u00e3o\",\"&Detalhes\",\"Vers\u00f5es anteriores\"],\"validation\":true,\"versions\":true}\nnative-dialog-sha256-sha512-reference-match-mismatch: ok\nnative-dialog-familiar-location: read-only, initial position and copy: ok\nnative-dialog-apply: four applications, two renames, permissions unchanged, same window: ok\n",
+    "stderr": ""
+  },
+  "properties-multiple": {
+    "code": 0,
+    "output": "native-dialog-multiple: native selection preserved; recursion disabled; no first-item pages: ok\n",
+    "stderr": ""
+  },
+  "kio-session-initial": {
+    "code": 1,
+    "output": "",
+    "stderr": "/source06/tests/test-driv\")\ndbus-daemon[1255]: [session uid=1000 pid=1255 pidfd=5] Successfully activated service 'org.linuxbr.DriveManager1'\nTraceback (most recent call last):\n  File \"/home/brasil/qa09/source06/tests/test-drive-session.py\", line 30, in <module>\n    name=dbus.service.BusName(service.BUS,bus=dbus.SessionBus(),do_not_queue=True)\n  File \"/usr/lib/python3/dist-packages/dbus/service.py\", line 145, in __new__\n    raise NameExistsException(name)\ndbus.exceptions.NameExistsException: Bus name already exists: org.linuxbr.DriveManager1\nTraceback (most recent call last):\n  File \"/home/brasil/qa09/source06/tests/test-drive-session.py\", line 73, in <module>\n    assert state['data']['letters']['uuid:test']=='E',state\n           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\nKeyError: 'uuid:test'\n"
+  }
+}
