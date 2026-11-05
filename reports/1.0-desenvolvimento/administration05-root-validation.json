@@ -1,0 +1,12 @@
+[
+  {
+    "script": "service-policy05.py",
+    "returncode": 0,
+    "output": "{\n  \"linger_change_confirmed\": true,\n  \"linger_original_restored\": true,\n  \"network_isolation\": true,\n  \"user_and_group\": true,\n  \"umask_verified\": true,\n  \"memory_limit\": true,\n  \"cpu_quota\": true,\n  \"delayed_start\": true\n}\n"
+  },
+  {
+    "script": "feature-services05.py",
+    "returncode": 0,
+    "output": "{\"socket_blocked\": true, \"service_blocked\": true, \"activation_refused\": true, \"restore_exact_state\": true}\n"
+  }
+]

@@ -13,7 +13,7 @@ build_parse_args() {
     done
 }
 build_version_label() {
-    printf '%s' "$1" | sed -E 's/~beta([0-9]+)$/ Beta \1/'
+    printf '%s' "$1" | sed -E 's/~alpha([0-9]+)$/ Alpha \1/;s/~beta([0-9]+)$/ Beta \1/;s/~rc([0-9]+)$/ RC \1/'
 }
 build_banner() {
     [[ ${LINUXBR_BANNER_SHOWN:-0} == 1 ]] && return 0

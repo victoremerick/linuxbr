@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
 import gzip
 import hashlib
+import importlib.util
 from pathlib import Path
 import re
 import shutil
@@ -16,7 +17,7 @@ def run(*argv, **kwargs):
     return subprocess.check_output(argv, **kwargs)
 
 
-def build(packages, output, fingerprint, base_url=None):
+def build(packages, output, fingerprint, base_url=None, acceptance_report=None):
     if not re.fullmatch(r'[A-Fa-f0-9]{40,64}', fingerprint):
         raise ValueError('Informe a impressão digital completa da chave de assinatura.')
     if base_url:
@@ -38,6 +39,15 @@ def build(packages, output, fingerprint, base_url=None):
         if identity in identities:raise ValueError('Pacote duplicado: '+name)
         identities.add(identity);inputs.append((deb,name,version,arch))
     if not inputs:raise ValueError('Nenhum pacote DEB encontrado.')
+    versions = {version for _, name, version, _ in inputs if name.startswith('linuxbr-')}
+    stable = {version for version in versions if re.fullmatch(r'[1-9]\d*\.\d+\.\d+', version)}
+    if stable:
+        if len(versions) != 1:
+            raise ValueError('A publicação estável não pode misturar versões dos componentes Linux BR.')
+        spec = importlib.util.spec_from_file_location('linuxbr_release_gate', Path(__file__).with_name('release_gate.py'))
+        gate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gate)
+        gate.publication_acceptance(acceptance_report, next(iter(stable)), inputs)
     output.mkdir(parents=True)
     pool=output/'pool/main';pool.mkdir(parents=True)
     for deb,name,version,arch in inputs:
@@ -79,6 +89,7 @@ if __name__=='__main__':
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--fingerprint',required=True)
     parser.add_argument('--base-url')
+    parser.add_argument('--acceptance-report', type=Path)
     args=parser.parse_args()
-    try:print(f'{build(args.packages,args.output,args.fingerprint,args.base_url)} pacotes publicados no diretório local {args.output}.')
+    try:print(f'{build(args.packages,args.output,args.fingerprint,args.base_url,args.acceptance_report)} pacotes publicados no diretório local {args.output}.')
     except (ValueError,OSError,subprocess.CalledProcessError) as error:parser.exit(1,str(error)+'\n')

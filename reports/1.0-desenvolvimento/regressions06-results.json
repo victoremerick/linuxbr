@@ -1,0 +1,397 @@
+{
+  "candidate": "source06",
+  "version": "1.0.0~rc2",
+  "syntax": "PASS",
+  "rows": [
+    {
+      "script": "test-accounts.py",
+      "returncode": 0,
+      "seconds": 0.24
+    },
+    {
+      "script": "test-basic-video.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-boot-09.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-boot-language.py",
+      "returncode": 0,
+      "seconds": 0.15
+    },
+    {
+      "script": "test-branding-logo.py",
+      "returncode": 0,
+      "seconds": 2.96
+    },
+    {
+      "script": "test-build-entrypoints.py",
+      "returncode": 0,
+      "seconds": 11.46
+    },
+    {
+      "script": "test-clean-layout.py",
+      "returncode": 0,
+      "seconds": 1.76
+    },
+    {
+      "script": "test-cleanup-mounts-08.py",
+      "returncode": 0,
+      "seconds": 0.23
+    },
+    {
+      "script": "test-cleanup-races-08.py",
+      "returncode": 0,
+      "seconds": 0.2
+    },
+    {
+      "script": "test-control-center-services.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-desktop-inventory.py",
+      "returncode": 0,
+      "seconds": 0.26
+    },
+    {
+      "script": "test-desktop-navigation-08.py",
+      "returncode": 0,
+      "seconds": 1.46
+    },
+    {
+      "script": "test-device-manager-gui.py",
+      "returncode": 0,
+      "seconds": 0.3
+    },
+    {
+      "script": "test-device-manager.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-disk-map.py",
+      "returncode": 0,
+      "seconds": 0.24
+    },
+    {
+      "script": "test-dolphin-build.py",
+      "returncode": 0,
+      "seconds": 0.09
+    },
+    {
+      "script": "test-drive-capacity.py",
+      "returncode": 0,
+      "seconds": 0.16
+    },
+    {
+      "script": "test-drive-icons-qt.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-drive-manager-backend.py",
+      "returncode": 0,
+      "seconds": 0.13
+    },
+    {
+      "script": "test-drive-manager-gui.py",
+      "returncode": 0,
+      "seconds": 0.24
+    },
+    {
+      "script": "test-drive-manager.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-drive-service.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-drive-session.py",
+      "returncode": 0,
+      "seconds": 0.79
+    },
+    {
+      "script": "test-embedded-display-remote.py",
+      "returncode": 0,
+      "seconds": 0.16
+    },
+    {
+      "script": "test-features-09.py",
+      "returncode": 0,
+      "seconds": 0.11
+    },
+    {
+      "script": "test-file-properties-08.py",
+      "returncode": 0,
+      "seconds": 0.18
+    },
+    {
+      "script": "test-file-properties-integration-08.py",
+      "returncode": 0,
+      "seconds": 3.47
+    },
+    {
+      "script": "test-firewall-gui-08.py",
+      "returncode": 0,
+      "seconds": 0.19
+    },
+    {
+      "script": "test-keyboard-defaults.py",
+      "returncode": 0,
+      "seconds": 0.07
+    },
+    {
+      "script": "test-launchers.py",
+      "returncode": 0,
+      "seconds": 0.28
+    },
+    {
+      "script": "test-live-editions-09.py",
+      "returncode": 0,
+      "seconds": 0.13
+    },
+    {
+      "script": "test-maintenance-08.py",
+      "returncode": 0,
+      "seconds": 0.29
+    },
+    {
+      "script": "test-maintenance-gui-08.py",
+      "returncode": 0,
+      "seconds": 0.51
+    },
+    {
+      "script": "test-maintenance-locale-09.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-migration-08.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-migration-gui-08.py",
+      "returncode": 0,
+      "seconds": 1.02
+    },
+    {
+      "script": "test-native-style.py",
+      "returncode": 0,
+      "seconds": 0.32
+    },
+    {
+      "script": "test-network-about.py",
+      "returncode": 0,
+      "seconds": 0.33
+    },
+    {
+      "script": "test-network-details.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-nvidia.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-onboarding-compatibility-10.py",
+      "returncode": 0,
+      "seconds": 0.11
+    },
+    {
+      "script": "test-package-dependencies-09.py",
+      "returncode": 0,
+      "seconds": 0.18
+    },
+    {
+      "script": "test-partition-dialog.py",
+      "returncode": 0,
+      "seconds": 0.3
+    },
+    {
+      "script": "test-partitioning.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-plasma-layout.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-platform-085.py",
+      "returncode": 0,
+      "seconds": 2.18
+    },
+    {
+      "script": "test-platform-ui-085.py",
+      "returncode": 0,
+      "seconds": 1.91
+    },
+    {
+      "script": "test-quick-controls.py",
+      "returncode": 0,
+      "seconds": 0.91
+    },
+    {
+      "script": "test-quick-selection.py",
+      "returncode": 0,
+      "seconds": 1.31
+    },
+    {
+      "script": "test-recovery-07.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-recovery-setup.py",
+      "returncode": 0,
+      "seconds": 0.21
+    },
+    {
+      "script": "test-release-10.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-repository-maintenance-08.py",
+      "returncode": 0,
+      "seconds": 1.62
+    },
+    {
+      "script": "test-server-host-09.py",
+      "returncode": 0,
+      "seconds": 0.1
+    },
+    {
+      "script": "test-services-09.py",
+      "returncode": 0,
+      "seconds": 0.11
+    },
+    {
+      "script": "test-session-actions.py",
+      "returncode": 0,
+      "seconds": 0.24
+    },
+    {
+      "script": "test-settings-integration.py",
+      "returncode": 0,
+      "seconds": 0.25
+    },
+    {
+      "script": "test-signed-catalog-09.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-startup-09.py",
+      "returncode": 0,
+      "seconds": 0.11
+    },
+    {
+      "script": "test-store-cancel-10.py",
+      "returncode": 0,
+      "seconds": 0.19
+    },
+    {
+      "script": "test-store-windows-07.py",
+      "returncode": 0,
+      "seconds": 0.48
+    },
+    {
+      "script": "test-store-windows-08.py",
+      "returncode": 0,
+      "seconds": 0.36
+    },
+    {
+      "script": "test-store.py",
+      "returncode": 0,
+      "seconds": 0.29
+    },
+    {
+      "script": "test-system-central.py",
+      "returncode": 0,
+      "seconds": 1.42
+    },
+    {
+      "script": "test-task-manager.py",
+      "returncode": 0,
+      "seconds": 0.3
+    },
+    {
+      "script": "test-terminal-settings.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-terminal.py",
+      "returncode": 0,
+      "seconds": 0.63
+    },
+    {
+      "script": "test-update-status.py",
+      "returncode": 0,
+      "seconds": 0.13
+    },
+    {
+      "script": "test-user-environment-09.py",
+      "returncode": 0,
+      "seconds": 0.12
+    },
+    {
+      "script": "test-version-06.py",
+      "returncode": 0,
+      "seconds": 0.52
+    },
+    {
+      "script": "test-webapp-icons.py",
+      "returncode": 0,
+      "seconds": 0.25
+    },
+    {
+      "script": "test-webapps-07.py",
+      "returncode": 0,
+      "seconds": 0.39
+    },
+    {
+      "script": "test-webapps-desktop-08.py",
+      "returncode": 0,
+      "seconds": 1.48
+    },
+    {
+      "script": "test-webapps-gui.py",
+      "returncode": 0,
+      "seconds": 0.42
+    },
+    {
+      "script": "test-webapps.py",
+      "returncode": 0,
+      "seconds": 0.24
+    },
+    {
+      "script": "test-welcome.py",
+      "returncode": 0,
+      "seconds": 0.44
+    },
+    {
+      "script": "test-windows-commands.py",
+      "returncode": 0,
+      "seconds": 0.53
+    },
+    {
+      "script": "test-windows-compat.py",
+      "returncode": 0,
+      "seconds": 0.45
+    }
+  ]
+}

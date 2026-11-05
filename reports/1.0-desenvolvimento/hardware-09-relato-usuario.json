@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "reported_at": "2026-11-05",
+  "source": "relato do usuário nesta conversa",
+  "release": "0.9.0~beta1",
+  "iso": "linuxbr-0.9.0~beta1-amd64.iso",
+  "iso_sha256_from_delivery_history": "e6c34cd34f7a106a819ccc2537ae6fca958c6ac0b402ad26dd024a03167f628d",
+  "user_verified_sha256": null,
+  "overall_result": "usuário relatou estabilidade",
+  "hardware": [
+    {
+      "processor": "Ryzen 5800H",
+      "ram_gb": 16,
+      "ram_type": "DDR4"
+    },
+    {
+      "processor": "i9 10900",
+      "ram_gb": 64,
+      "ram_type": "DDR4"
+    },
+    {
+      "processor": "i7 14700",
+      "ram_gb": 16,
+      "ram_type": "DDR5"
+    }
+  ],
+  "firmware": null,
+  "individual_video_network_audio_restart_suspend_results": null,
+  "validates_1_0_final_iso": false
+}

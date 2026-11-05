@@ -42,6 +42,9 @@ class Operations(QDialog):
         self.listing=QListWidget();self.listing.setMinimumHeight(42);self.listing.setMaximumHeight(64);queue.addWidget(self.listing)
         row=QHBoxLayout();self.progress=QProgressBar();self.progress.setRange(0,100);row.addWidget(self.progress,1)
         remove=QPushButton('Retirar aguardando');remove.setIcon(QIcon.fromTheme('list-remove'));remove.clicked.connect(self.remove_queued);row.addWidget(remove);queue.addLayout(row)
+        self.cancel_current=QPushButton(QIcon.fromTheme('process-stop'),'Cancelar operação atual')
+        self.cancel_current.setEnabled(False);self.cancel_current.setToolTip('Disponível somente nas etapas em que o gerenciador permite cancelar. Não encerra processos à força.')
+        self.cancel_current.clicked.connect(self.request_cancel);queue.addWidget(self.cancel_current)
         records=QGroupBox('Andamento e histórico');records_layout=QVBoxLayout(records);body.addWidget(records,1)
         self.log=QPlainTextEdit();self.log.setReadOnly(True);self.log.setMinimumHeight(96);self.log.setMaximumBlockCount(1500);records_layout.addWidget(self.log,1)
         history_button=QPushButton('Histórico');history_button.setIcon(QIcon.fromTheme('document-open-recent'));history_button.clicked.connect(self.show_history);records_layout.addWidget(history_button)
@@ -147,6 +150,12 @@ class Operations(QDialog):
                 self.progress.setRange(0,100 if 0<=percentage<=100 else 0)
                 if percentage<=100:self.progress.setValue(percentage)
             elif value.get('event')=='confirmation':self.confirm_packages(value)
+            elif value.get('event')=='cancelable':self.cancel_current.setEnabled(value.get('allowed') is True)
+
+    def request_cancel(self):
+        if not self.process or not self.cancel_current.isEnabled():return
+        self.cancel_current.setEnabled(False);self.process.write(b'cancel\n')
+        self.state.setText('Pedido de cancelamento enviado. Aguardando confirmação do gerenciador…')
 
     def confirm_packages(self,value):
         dialog=QDialog(self);dialog.setWindowTitle('Confirmar alterações DEB');dialog.resize(730,470)
@@ -181,6 +190,7 @@ class Operations(QDialog):
         if not self.process:return
         identifier,request=self.current
         self.read_output();process=self.process;self.process=None;self.current=None;process.deleteLater()
+        self.cancel_current.setEnabled(False)
         if code==0 and request['action'] in ('install','remove'):
             for index in range(self.targets.count()):
                 target=self.targets.itemData(index)
@@ -204,7 +214,7 @@ class Operations(QDialog):
         lines=[]
         for item in transactions.history():
             when=datetime.datetime.fromtimestamp(item['started']).strftime('%d/%m/%Y %H:%M')
-            status={'success':'Concluída','failed':'Não concluída','waiting':'Aguardava','running':'Resultado não registrado; confira o gerenciador'}.get(item['status'],item['status'])
+            status={'success':'Concluída','failed':'Não concluída','stopped':'Não concluída após pedido de cancelamento','waiting':'Aguardava','running':'Resultado não registrado; confira o gerenciador'}.get(item['status'],item['status'])
             lines.append(when+' · '+status+' · '+self.describe(item['request'])+'\n'+item.get('error',''))
         text='\n\n'.join(lines) or 'Ainda não há operações registradas nesta conta.'
         if not self.process:self.log.setPlainText(text)

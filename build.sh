@@ -17,6 +17,7 @@ main() {
     # Protect shared downloads and ISO publication from simultaneous builds.
     exec 9>.cache/build.lock
     flock -n 9 || { echo 'Outro build esta em andamento neste projeto.' >&2; exit 1; }
+    python3 scripts/build_preflight.py "$PWD" || return $?
     local image digest
     digest=$(sha256sum scripts/Containerfile.build); digest=${digest%% *}
     image="localhost/linuxbr-builder:${digest:0:20}"

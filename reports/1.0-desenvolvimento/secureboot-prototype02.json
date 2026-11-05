@@ -1,0 +1,11 @@
+{
+  "secureboot_byte": 1,
+  "mokutil": "SecureBoot enabled\n",
+  "version": "1.0.0~rc1",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "firmware": "UEFI",
+  "candidate": "source02",
+  "iso_sha256": "fb3bbddc88e7f85015f1910a4ef81c9080f4fe61b643d26c9866cc505f66fa28",
+  "status": "PASS",
+  "context": "prototype ISO; final candidate requires separate validation"
+}

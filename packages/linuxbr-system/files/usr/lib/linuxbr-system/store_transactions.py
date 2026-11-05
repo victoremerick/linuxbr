@@ -130,6 +130,10 @@ def run_terminal(command):
     if code:raise ValueError('O Flatpak não concluiu a operação (código '+str(code)+'). Confira o registro acima.')
 
 
+class OperationStopped(ValueError):
+    """The manager ended a transaction after an explicit cancellation request."""
+
+
 class PackageKit:
     """The system daemon owns authorization, package locks and transaction state."""
     SERVICE='org.freedesktop.PackageKit'
@@ -146,6 +150,7 @@ class PackageKit:
             'CreateTransaction',None,GLib.VariantType.new('(o)'),Gio.DBusCallFlags.NONE,15000,None).unpack()[0]
         proxy=Gio.DBusProxy.new_sync(self.bus,Gio.DBusProxyFlags.NONE,None,self.SERVICE,path,self.INTERFACE,None)
         loop=GLib.MainLoop();result={'packages':[],'errors':[],'finished':False,'exit':None}
+        cancellation={'requested':False,'watch':None}
         def signal_received(_proxy,_sender,name,parameters):
             values=parameters.unpack()
             if name=='Package':
@@ -163,14 +168,50 @@ class PackageKit:
         def changed(_proxy,properties,_invalidated):
             values=properties.unpack()
             if 'Percentage' in values:emit('progress',percentage=values['Percentage'])
+            if 'AllowCancel' in values:emit('cancelable',allowed=values['AllowCancel'] is True and not cancellation['requested'])
+        def cancellation_input():
+            import select
+            try:
+                if not select.select([sys.stdin],[],[],0)[0]:return True
+                line=sys.stdin.readline()
+                if not line:
+                    cancellation['watch']=None;return False
+                if line.strip()=='cancel' and not cancellation['requested'] and self.request_cancel(proxy):cancellation['requested']=True
+            except (OSError,ValueError):
+                cancellation['watch']=None;return False
+            return True
         proxy.connect('g-signal',signal_received);proxy.connect('g-properties-changed',changed)
         proxy.call_sync('SetHints',GLib.Variant('(as)',(['interactive=true','background=false','cache-age=4294967295'],)),
                         Gio.DBusCallFlags.NONE,15000,None)
-        proxy.call_sync(method,GLib.Variant(signature,arguments),Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION,15000,None)
-        if not result['finished']:loop.run()
+        try:
+            proxy.call_sync(method,GLib.Variant(signature,arguments),Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION,15000,None)
+            allowed=proxy.get_cached_property('AllowCancel')
+            emit('cancelable',allowed=bool(allowed and allowed.unpack() is True))
+            if not result['finished']:
+                cancellation['watch']=GLib.timeout_add(100,cancellation_input);loop.run()
+        finally:
+            if cancellation['watch'] is not None:GLib.source_remove(cancellation['watch'])
+            emit('cancelable',allowed=False)
+        if cancellation['requested'] and result['exit']!=1:
+            raise OperationStopped('A operação terminou após o pedido de cancelamento. '+
+                ('; '.join(result['errors']) or 'Confira o estado do aplicativo antes de tentar novamente.'))
         if result['errors'] or result['exit']!=1:
             raise ValueError('; '.join(result['errors']) or 'O gerenciador não concluiu a transação: '+str(result['exit']))
         return result['packages']
+
+    def request_cancel(self,proxy):
+        allowed=proxy.get_cached_property('AllowCancel')
+        if not allowed or allowed.unpack() is not True:
+            emit('output',text='O gerenciador não permite cancelar esta etapa. Aguarde sua conclusão.\n')
+            emit('cancelable',allowed=False);return False
+        try:
+            proxy.call_sync('Cancel',None,self.Gio.DBusCallFlags.NONE,5000,None)
+        except Exception:
+            emit('output',text='O gerenciador não aceitou o pedido de cancelamento. Acompanhe o resultado da operação.\n')
+            return False
+        emit('cancelable',allowed=False)
+        emit('output',text='Pedido de cancelamento enviado ao gerenciador. Aguarde a confirmação; os processos não foram encerrados à força.\n')
+        return True
 
     def perform(self,request):
         action=request['action'];package=request['target']
@@ -259,6 +300,8 @@ def execute(request,identifier):
             else:run_flatpak(request)
         record.update(status='success',error='')
         emit('output',text='Operação concluída pelo gerenciador.\n')
+    except OperationStopped as error:
+        record.update(status='stopped',error=str(error));emit('output',text=str(error)+'\n')
     except Exception as error:
         record.update(status='failed',error=str(error))
         emit('output',text=str(error)+'\n')

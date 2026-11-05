@@ -1,0 +1,11 @@
+{
+  "candidate": "source05",
+  "installed_release": "1.0.0~rc1",
+  "scope": "user",
+  "created": true,
+  "listed": true,
+  "run_literal_arguments": true,
+  "disable_enable": true,
+  "removed": true,
+  "status": "PASS"
+}

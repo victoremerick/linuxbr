@@ -21,6 +21,8 @@ def catalog():
     if value.get('schema')!=1:raise ValueError('Versão desconhecida do catálogo de compatibilidade.')
     recipes=value.get('recipes',[]);seen=set()
     for item in recipes:
+        from compatibility_records import checked_records
+        checked_records(item)
         if item['id'] in seen or item['status'] not in STATUS or item['windows_version'] not in VERSIONS:
             raise ValueError('Receita de compatibilidade inválida.')
         if item['architecture'] not in ('win32','win64') or not 72<=item['dpi']<=240:

@@ -227,6 +227,14 @@ def package_metadata(item):
         return result
     if kind=='windows':
         result['version']='Consulte Sobre / Ajuda no próprio programa.'
+        if item.get('recipe_id'):
+            try:
+                from windows_recipes import recipe
+                from compatibility_records import assessment
+                entry=recipe(item['recipe_id']);result['compatibility']=assessment(entry)['label']
+                result['version']=entry['application_version']+' (receita; confira a versão do instalador)'
+            except (OSError,ValueError,KeyError):
+                result['compatibility']='Registro de compatibilidade indisponível.'
         if item.get('program_id'):
             from windows_runner import read_program
             try:

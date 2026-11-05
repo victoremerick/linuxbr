@@ -1,0 +1,4 @@
+PASS: real D-Bus session, native Dolphin Places, KIO redirect, persistent aliases across service restart
+PASS: KIO loads linuxbr worker and redirects to native filesystem
+dbus-daemon[7862]: [session uid=1000 pid=7862 pidfd=6] Activating service name='org.linuxbr.DriveManager1' requested by ':1.0' (uid=1000 pid=7863 comm="python3 /home/brasil/qa10/source04/tests/test-driv")
+dbus-daemon[7862]: [session uid=1000 pid=7862 pidfd=6] Successfully activated service 'org.linuxbr.DriveManager1'

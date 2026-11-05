@@ -1,0 +1,15 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "context": "actual installed Qt UI; controlled partial-result fixture; no package changes",
+  "partial_rows_retained": true,
+  "error_visible": true,
+  "retry_visible": true,
+  "status": "PASS",
+  "retry_click_repeated_query": true,
+  "error_cleared_after_success": true,
+  "queries": [
+    "linuxbrteste",
+    "linuxbrteste"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "returncode": 0,
+  "request": "linuxbr-release=1.0.0~rc1",
+  "selected_packages": [
+    "linuxbr-release",
+    "linuxbr-desktop-edition",
+    "linuxbr-branding",
+    "linuxbr-file-properties",
+    "linuxbr-system",
+    "linuxbr-desktop",
+    "linuxbr-sddm-theme",
+    "linuxbr-drive-manager",
+    "linuxbr-boot-tools",
+    "linuxbr-device-manager",
+    "linuxbr-boot-theme"
+  ],
+  "candidate": "source05",
+  "natural_upgrade": true,
+  "forced_reinstall": false
+}

@@ -1,0 +1,127 @@
+{
+  "candidate": "source02",
+  "version": "1.0.0~rc1",
+  "syntax": "PASS",
+  "rows": [
+    {
+      "script": "test-release-10.py",
+      "returncode": 0,
+      "seconds": 0.06
+    },
+    {
+      "script": "test-onboarding-compatibility-10.py",
+      "returncode": 0,
+      "seconds": 0.07
+    },
+    {
+      "script": "test-store-cancel-10.py",
+      "returncode": 0,
+      "seconds": 0.14
+    },
+    {
+      "script": "test-recovery-setup.py",
+      "returncode": 0,
+      "seconds": 0.16
+    },
+    {
+      "script": "test-store-windows-07.py",
+      "returncode": 0,
+      "seconds": 0.32
+    },
+    {
+      "script": "test-store-windows-08.py",
+      "returncode": 0,
+      "seconds": 0.25
+    },
+    {
+      "script": "test-platform-085.py",
+      "returncode": 0,
+      "seconds": 1.36
+    },
+    {
+      "script": "test-platform-ui-085.py",
+      "returncode": 0,
+      "seconds": 0.54
+    },
+    {
+      "script": "test-webapps.py",
+      "returncode": 0,
+      "seconds": 0.16
+    },
+    {
+      "script": "test-webapps-07.py",
+      "returncode": 0,
+      "seconds": 0.26
+    },
+    {
+      "script": "test-webapps-desktop-08.py",
+      "returncode": 0,
+      "seconds": 0.92
+    },
+    {
+      "script": "test-webapp-icons.py",
+      "returncode": 0,
+      "seconds": 0.13
+    },
+    {
+      "script": "test-signed-catalog-09.py",
+      "returncode": 0,
+      "seconds": 0.1
+    },
+    {
+      "script": "test-services-09.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-startup-09.py",
+      "returncode": 0,
+      "seconds": 0.08
+    },
+    {
+      "script": "test-user-environment-09.py",
+      "returncode": 0,
+      "seconds": 0.07
+    },
+    {
+      "script": "test-network-details.py",
+      "returncode": 0,
+      "seconds": 0.05
+    },
+    {
+      "script": "test-features-09.py",
+      "returncode": 0,
+      "seconds": 0.07
+    },
+    {
+      "script": "test-boot-09.py",
+      "returncode": 0,
+      "seconds": 0.07
+    },
+    {
+      "script": "test-live-editions-09.py",
+      "returncode": 0,
+      "seconds": 0.09
+    },
+    {
+      "script": "test-basic-video.py",
+      "returncode": 0,
+      "seconds": 0.05
+    },
+    {
+      "script": "test-build-entrypoints.py",
+      "returncode": 0,
+      "seconds": 11.43
+    },
+    {
+      "script": "test-version-06.py",
+      "returncode": 0,
+      "seconds": 0.26
+    },
+    {
+      "script": "test-update-status.py",
+      "returncode": 0,
+      "seconds": 0.07
+    }
+  ]
+}

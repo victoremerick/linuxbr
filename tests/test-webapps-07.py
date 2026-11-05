@@ -22,7 +22,7 @@ APP=QApplication.instance() or QApplication([])
 
 class Profiles07(unittest.TestCase):
     def setUp(self):
-        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+        temporary=tempfile.TemporaryDirectory(prefix='linuxbr perfis ');self.addCleanup(temporary.cleanup)
         self.directory=Path(temporary.name)
         for mocked in (patch.dict(os.environ,{'XDG_DATA_HOME':str(self.directory/'data')}),
                        patch.object(backend,'CATALOG',FILES/'usr/share/linuxbr/webapps/catalog.json'),
@@ -98,6 +98,25 @@ class Profiles07(unittest.TestCase):
         with patch.object(backend,'running_profiles',return_value=set()):backend.delete_profile(first)
         self.assertFalse(backend.record_path(first).exists())
         self.assertNotIn(first,json.dumps(backend._profile_preferences()))
+
+    def test_chromium_single_process_title_preserves_spaces_and_profile_boundaries(self):
+        first=self.profile();second=self.profile('Trabalho')
+        proc=self.directory/'proc';proc.mkdir()
+        first_path=str(backend.record_path(first)/'profile')
+        second_path=str(backend.record_path(second)/'profile')
+        commands={
+            '51':'/usr/lib/chromium/chromium --no-first-run --user-data-dir='+first_path+' --app=https://web.whatsapp.com/',
+            '52':'/usr/lib/chromium/chromium --type=renderer --user-data-dir='+second_path,
+            '53':'/usr/bin/editor --user-data-dir='+second_path,
+            '54':'/usr/lib/chromium/chromium --user-data-dir='+second_path+'-other --app=https://example.org/',
+            '55':'/usr/lib/chromium/chromium --user-data-dir='+second_path+'/child',
+        }
+        for pid,title in commands.items():
+            path=proc/pid;path.mkdir();(path/'cmdline').write_bytes((title+'\0').encode())
+        with patch('os.geteuid',return_value=(proc/'51').stat().st_uid):
+            self.assertEqual(backend.running_profiles(backend.installed(),proc),{first})
+            (proc/'51'/'cmdline').write_bytes(('/usr/lib/chromium/chromium --user-data-dir '+second_path+'\0').encode())
+            self.assertEqual(backend.running_profiles(backend.installed(),proc),{second})
 
     def test_manager_search_and_status_refresh_keep_selected_profile(self):
         first=self.profile();second=self.profile('Trabalho');backend.set_preferred_profile(second)

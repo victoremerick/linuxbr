@@ -43,6 +43,8 @@ else:
         try:
             for attempt in range(100):
                 try:
+                    if not dbus.SessionBus().name_has_owner('org.linuxbr.DriveManager1'):
+                        time.sleep(.1);continue
                     proxy=dbus.Interface(dbus.SessionBus().get_object('org.linuxbr.DriveManager1','/org/linuxbr/DriveManager1'),'org.linuxbr.DriveManager1')
                     state=json.loads(proxy.GetState())
                     if state['rows']:break

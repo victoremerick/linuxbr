@@ -267,6 +267,7 @@ class WindowsCompatibility(QWidget):
 
     def recipes_page(self):
         from windows_recipes import catalog,STATUS
+        from compatibility_records import assessment
         page=self.page('Receitas e compatibilidade',True)
         self.note(page,'Receitas por aplicativo e versão','Cada receita informa o que foi verificado e seus limites. '
             'Testes anteriores não comprovam outras versões nem desempenho em hardware físico.')
@@ -274,7 +275,7 @@ class WindowsCompatibility(QWidget):
         self.recipe_choices=QComboBox();self.recipe_choices.setAccessibleName('Receita de compatibilidade')
         try:
             values=catalog()
-            for item in values['recipes']:self.recipe_choices.addItem(item['name']+' · '+STATUS[item['status']],item)
+            for item in values['recipes']:self.recipe_choices.addItem(item['name']+' · '+assessment(item)['label'],item)
         except (OSError,ValueError,KeyError) as error:values={'games':[]};self.recipe_choices.addItem('Catálogo indisponível: '+str(error),None)
         information.addWidget(self.recipe_choices)
         self.recipe_detail=QLabel();self.recipe_detail.setWordWrap(True);self.recipe_detail.setTextFormat(Qt.TextFormat.PlainText)
@@ -307,7 +308,8 @@ class WindowsCompatibility(QWidget):
         if not item:
             self.recipe_detail.setText('Não há uma receita disponível.');self.recipe_settings.clear();self.recipe_dependencies.clear();return
         dependencies='; '.join(value['name'] for value in item['dependencies']) or 'Nenhuma dependência adicional indicada.'
-        self.recipe_detail.setText('Versão do aplicativo: '+item['application_version']+'\n\n'
+        from compatibility_records import details
+        self.recipe_detail.setText('Versão do aplicativo: '+item['application_version']+'\n\n'+details(item)+'\n\n'
             +item['evidence']+'\n\nLimites: '+item['limits']+'\n\nAlternativa: '+item['alternative']+
             '\n\nOrigem: '+item['source'])
         self.recipe_settings.setText(item['architecture']+' · '+item['windows_version']+' · '+str(item['dpi'])+' DPI\n'

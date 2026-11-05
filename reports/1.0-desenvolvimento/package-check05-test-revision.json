@@ -1,0 +1,6 @@
+{
+  "build_candidate": "source05",
+  "test_file": "verification/tests/test-packages.py",
+  "sha256": "bcb25a153d0335bef022e98a2eba808d517f1ec332fc632c4101e60ceb24d5ec",
+  "change": "Use shared release label parser for RC as well as Beta"
+}

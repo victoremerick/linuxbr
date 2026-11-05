@@ -1,0 +1,34 @@
+{
+  "scenario": "Actual PackageKit read-only GetPackages cancellation",
+  "version": "1.0.0~rc1",
+  "package_changes": false,
+  "outcome": "manager stopped after cancellation request",
+  "detail": "A opera\u00e7\u00e3o terminou ap\u00f3s o pedido de cancelamento. Confira o estado do aplicativo antes de tentar novamente.",
+  "events": [
+    {
+      "event": "cancelable",
+      "allowed": true
+    },
+    {
+      "event": "cancelable",
+      "allowed": false
+    },
+    {
+      "event": "cancel-request",
+      "accepted": true
+    },
+    {
+      "event": "cancelable",
+      "allowed": false
+    },
+    {
+      "event": "cancelable",
+      "allowed": true
+    },
+    {
+      "event": "cancelable",
+      "allowed": false
+    }
+  ],
+  "status": "PASS"
+}

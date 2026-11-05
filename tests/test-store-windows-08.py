@@ -183,7 +183,8 @@ class StoreWindows08(unittest.TestCase):
     def test_recipe_matrix_distinguishes_prior_evidence_and_missing_tests(self):
         value=recipes.catalog();self.assertEqual(value['schema'],1)
         self.assertEqual({item['status'] for item in value['recipes']},{'tested','partial','untested'})
-        self.assertIn('Revalidação',recipes.recipe('7zip-26.05-x64')['evidence'])
+        from compatibility_records import assessment
+        self.assertFalse(assessment(recipes.recipe('7zip-26.05-x64'),'1.0.0~rc1')['current'])
         self.assertTrue(all(item['status']=='untested' for item in value['games']))
 
     def test_steam_inventory_is_readonly_and_does_not_claim_validation(self):

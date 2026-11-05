@@ -1,0 +1,68 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "status": "PASS",
+  "checked": 1505,
+  "versions": {
+    "dolphin-data": "4:25.04.3-1+deb13u1+linuxbr2",
+    "dolphin": "4:25.04.3-1+deb13u1+linuxbr2",
+    "kio6": "6.13.0-6+linuxbr0.9.1",
+    "libdolphinvcs6": "4:25.04.3-1+deb13u1+linuxbr2",
+    "libkf6kiocore6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiofilewidgets6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiogui6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiowidgets6": "6.13.0-6+linuxbr0.9.1",
+    "linuxbr-boot-theme": "1.0.0~rc1",
+    "linuxbr-boot-tools": "1.0.0~rc1",
+    "linuxbr-branding": "1.0.0~rc1",
+    "linuxbr-desktop-edition": "1.0.0~rc1",
+    "linuxbr-desktop": "1.0.0~rc1",
+    "linuxbr-device-manager": "1.0.0~rc1",
+    "linuxbr-drive-manager": "1.0.0~rc1",
+    "linuxbr-file-properties": "1.0.0~rc1",
+    "linuxbr-release": "1.0.0~rc1",
+    "linuxbr-sddm-theme": "1.0.0~rc1",
+    "linuxbr-system": "1.0.0~rc1"
+  },
+  "unexpected_payload_changes": [],
+  "preserved_configuration_differences": [],
+  "personal_files": 1793,
+  "personal_changes": [],
+  "dpkg_audit": "",
+  "recovery_state": {
+    "last-success.json": {
+      "status": "created",
+      "packages": [
+        "linuxbr-boot-theme",
+        "linuxbr-boot-tools",
+        "linuxbr-branding",
+        "linuxbr-desktop",
+        "linuxbr-desktop-edition",
+        "linuxbr-device-manager",
+        "linuxbr-drive-manager",
+        "linuxbr-file-properties",
+        "linuxbr-release",
+        "linuxbr-sddm-theme",
+        "linuxbr-system"
+      ],
+      "time": "2026-11-05T13:52:06.550060+00:00"
+    },
+    "last.json": {
+      "status": "created",
+      "packages": [
+        "linuxbr-boot-theme",
+        "linuxbr-boot-tools",
+        "linuxbr-branding",
+        "linuxbr-desktop",
+        "linuxbr-desktop-edition",
+        "linuxbr-device-manager",
+        "linuxbr-drive-manager",
+        "linuxbr-file-properties",
+        "linuxbr-release",
+        "linuxbr-sddm-theme",
+        "linuxbr-system"
+      ],
+      "time": "2026-11-05T13:52:06.550060+00:00"
+    }
+  }
+}

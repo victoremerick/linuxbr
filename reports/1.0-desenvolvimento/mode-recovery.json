@@ -1,0 +1,167 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "mode": "recovery",
+  "cmdline": "BOOT_IMAGE=/boot/vmlinuz-6.12.113+deb13-amd64 root=UUID=9b1fe9b0-6ed8-4c2c-a562-0e2e327e3a2c ro quiet splash resume=UUID=d08010b4-6c27-48f6-b9e8-4b66f91a0c79 loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0 linuxbr.mode=recovery systemd.unit=linuxbr-safe.target",
+  "uid": 0,
+  "checks": {
+    "ssh.service-masked": true,
+    "smbd.service-masked": true,
+    "libvirtd.socket-masked": true,
+    "cron.service-masked": true,
+    "linuxbr-acceptance10.service-masked": true,
+    "linuxbr-acceptance10.socket-masked": true,
+    "linuxbr-acceptance10.timer-masked": true,
+    "linuxbr-acceptance10.path-masked": true,
+    "linuxbr-acceptance10.service-activation-refused": true,
+    "linuxbr-acceptance10.socket-activation-refused": true,
+    "linuxbr-acceptance10.timer-activation-refused": true,
+    "linuxbr-acceptance10.path-activation-refused": true,
+    "network-policy": true,
+    "firewall-preserved": true,
+    "no-plasma": true,
+    "autostart-blocked": true,
+    "minimal-window-manager": true,
+    "product-policy-unchanged": true
+  },
+  "units": {
+    "ssh.service": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "smbd.service": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "libvirtd.socket": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "cron.service": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "NetworkManager.service": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "firewalld.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "sddm.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "UnitFileState": "enabled"
+    },
+    "linuxbr-acceptance10.service": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "linuxbr-acceptance10.socket": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "linuxbr-acceptance10.timer": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    },
+    "linuxbr-acceptance10.path": {
+      "LoadState": "masked",
+      "ActiveState": "inactive",
+      "UnitFileState": "masked-runtime"
+    }
+  },
+  "activation_attempts": {
+    "linuxbr-acceptance10.service": {
+      "code": 1,
+      "out": "",
+      "err": "Failed to start linuxbr-acceptance10.service: Unit linuxbr-acceptance10.service is masked."
+    },
+    "linuxbr-acceptance10.socket": {
+      "code": 1,
+      "out": "",
+      "err": "Failed to start linuxbr-acceptance10.socket: Unit linuxbr-acceptance10.socket is masked."
+    },
+    "linuxbr-acceptance10.timer": {
+      "code": 1,
+      "out": "",
+      "err": "Failed to start linuxbr-acceptance10.timer: Unit linuxbr-acceptance10.timer is masked."
+    },
+    "linuxbr-acceptance10.path": {
+      "code": 1,
+      "out": "",
+      "err": "Failed to start linuxbr-acceptance10.path: Unit linuxbr-acceptance10.path is masked."
+    }
+  },
+  "addresses": [
+    {
+      "ifindex": 1,
+      "ifname": "lo",
+      "flags": [
+        "LOOPBACK",
+        "UP",
+        "LOWER_UP"
+      ],
+      "mtu": 65536,
+      "qdisc": "noqueue",
+      "operstate": "UNKNOWN",
+      "group": "default",
+      "txqlen": 1000,
+      "link_type": "loopback",
+      "address": "00:00:00:00:00:00",
+      "broadcast": "00:00:00:00:00:00",
+      "addr_info": [
+        {
+          "family": "inet",
+          "local": "127.0.0.1",
+          "prefixlen": 8,
+          "scope": "host",
+          "label": "lo",
+          "valid_life_time": 4294967295,
+          "preferred_life_time": 4294967295
+        },
+        {
+          "family": "inet6",
+          "local": "::1",
+          "prefixlen": 128,
+          "scope": "host",
+          "noprefixroute": true,
+          "valid_life_time": 4294967295,
+          "preferred_life_time": 4294967295
+        }
+      ]
+    },
+    {
+      "ifindex": 2,
+      "ifname": "enp0s1",
+      "flags": [
+        "BROADCAST",
+        "MULTICAST"
+      ],
+      "mtu": 1500,
+      "qdisc": "noop",
+      "operstate": "DOWN",
+      "group": "default",
+      "txqlen": 1000,
+      "link_type": "ether",
+      "address": "52:54:00:12:34:56",
+      "broadcast": "ff:ff:ff:ff:ff:ff",
+      "altnames": [
+        "enx525400123456"
+      ],
+      "addr_info": []
+    }
+  ],
+  "status": "PASS",
+  "context": "unmodified installed boot policy; inspection executed through local authenticated terminal; no network exception"
+}

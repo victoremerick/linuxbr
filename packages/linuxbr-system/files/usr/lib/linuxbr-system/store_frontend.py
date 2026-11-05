@@ -6,9 +6,9 @@ import os
 from pathlib import Path
 import sys
 from PyQt6.QtCore import Qt,QSize,QTimer
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon,QFont,QFontMetrics
 from PyQt6.QtWidgets import (QApplication,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QListWidget,
-    QListWidgetItem,QStackedWidget,QSplitter,QPushButton,QCheckBox,QFormLayout,QMessageBox,QStyledItemDelegate,QStyleOptionViewItem,QStyle)
+    QListWidgetItem,QStackedWidget,QSplitter,QPushButton,QCheckBox,QFormLayout,QMessageBox,QStyledItemDelegate,QStyleOptionViewItem,QStyle,QSizePolicy)
 from store import Window as OperationsWindow
 import store_backend as backend
 import catalog_sources
@@ -19,7 +19,7 @@ from firmware_page import Firmware
 
 
 def category_icon(name):
-    return {'Imagem e criação':'applications-graphics','Internet e comunicação':'applications-internet','Jogos':'applications-games','Música e vídeo':'applications-multimedia','Escritório':'applications-office','Produtividade':'applications-office','Utilitários':'applications-utilities','Desenvolvimento':'applications-development','Educação':'applications-education','Sistema':'applications-system'}.get(name,'applications-other')
+    return {'Imagem e criação':'applications-graphics','Internet e comunicação':'applications-internet','Jogos':'applications-games','Música e vídeo':'applications-multimedia','Trabalho e estudo':'applications-office','Escritório':'applications-office','Produtividade':'applications-office','Utilitários':'applications-utilities','Desenvolvimento':'applications-development','Educação':'applications-education','Sistema':'applications-system'}.get(name,'applications-other')
 
 
 class CardDelegate(QStyledItemDelegate):
@@ -32,7 +32,7 @@ class Window(OperationsWindow):
     def __init__(self):
         from desktop_theme import initialize
         initialize()
-        self.ready=False;self.queries=set();self.repository_cache={};self.requested=set();self.only_favorites=False;self.dialogs=[];self.metadata_cache={};self.metadata_requested=set()
+        self.ready=False;self.queries=set();self.repository_cache={};self.repository_errors={};self.requested=set();self.only_favorites=False;self.dialogs=[];self.metadata_cache={};self.metadata_requested=set()
         self.preferences_path=Path(os.environ.get('XDG_CONFIG_HOME',str(Path.home()/'.config')))/'linuxbr/store.json'
         try:self.preferences=json.loads(self.preferences_path.read_text())
         except (OSError,ValueError):self.preferences={}
@@ -43,12 +43,20 @@ class Window(OperationsWindow):
             if self.category.findData(category)<0:self.category.addItem(category,category)
         self.search_timer=QTimer(self);self.search_timer.setSingleShot(True);self.search_timer.setInterval(450);self.search_timer.timeout.connect(self.start_repository_search)
         old=self.takeCentralWidget();splitter=old.findChild(QSplitter);main=QWidget();self.setCentralWidget(main);layout=QHBoxLayout(main);layout.setContentsMargins(0,0,0,0);layout.setSpacing(0)
-        side=QWidget();side.setFixedWidth(196);column=QVBoxLayout(side);column.setContentsMargins(12,22,12,16)
-        brand=QLabel('Loja Linux BR');brand.setStyleSheet('font-size:20px;font-weight:700;padding:8px 6px');column.addWidget(brand)
+        side=QWidget();side.setFixedWidth(max(196,min(300,self.fontMetrics().horizontalAdvance('Configurações')+64)));self.navigation_side=side
+        column=QVBoxLayout(side);column.setContentsMargins(12,22,12,16)
+        title_font=QFont(self.font());title_font.setPointSizeF(max(12,self.font().pointSizeF()+2))
+        brand=QLabel('Loja Linux BR');brand.setFont(title_font);brand.setStyleSheet('font-weight:700;padding:8px 6px');column.addWidget(brand)
         self.navigation=QListWidget();self.navigation.setFrameShape(self.navigation.Shape.NoFrame);self.navigation.setSpacing(4);self.navigation.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff);self.navigation.setWordWrap(True);self.navigation.setTextElideMode(Qt.TextElideMode.ElideNone);column.addWidget(self.navigation,1);layout.addWidget(side)
         right=QWidget();body=QVBoxLayout(right);body.setContentsMargins(24,20,24,16);body.setSpacing(12);layout.addWidget(right,1)
-        self.hero=QLabel('Encontre seu próximo aplicativo\nProgramas Linux, sites com janela própria e opções para Windows.');self.hero.setWordWrap(True);self.hero.setMinimumHeight(96);self.hero.setStyleSheet('font-size:19px;font-weight:600;padding:20px;border-radius:12px;color:white;background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #095ba7,stop:1 #267d94);');body.addWidget(self.hero)
+        self.hero=QLabel('Encontre seu próximo aplicativo\nProgramas Linux, sites com janela própria e opções para Windows.');self.hero.setFont(title_font);self.hero.setWordWrap(True);self.hero.setMinimumHeight(96);self.hero.setStyleSheet('font-weight:600;padding:20px;border-radius:12px;color:white;background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #095ba7,stop:1 #267d94);');body.addWidget(self.hero)
         filters=QHBoxLayout();self.query.setPlaceholderText('Pesquisar aplicativos, sites e programas…');self.query.setMinimumHeight(38);filters.addWidget(self.query,1);filters.addWidget(self.kind);filters.addWidget(self.category);body.addLayout(filters)
+        for control in (self.kind,self.category):
+            control.setSizeAdjustPolicy(control.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon);control.setMinimumContentsLength(10)
+            for index in range(control.count()):control.setItemData(index,control.itemText(index),Qt.ItemDataRole.ToolTipRole)
+            control.setToolTip(control.currentText());control.currentTextChanged.connect(control.setToolTip)
+        self.repository_note=QLabel();self.repository_note.setWordWrap(True);self.repository_note.setTextFormat(Qt.TextFormat.PlainText)
+        self.repository_note.setAccessibleName('Estado da consulta nas fontes');self.repository_note.hide();body.addWidget(self.repository_note)
         self.view.setParent(main);self.view.hide();self.pages=QStackedWidget();body.addWidget(self.pages,1);self.pages.addWidget(splitter);splitter.setSizes([540,350])
         self.results.setViewMode(self.results.ViewMode.IconMode);self.results.setResizeMode(self.results.ResizeMode.Adjust);self.results.setMovement(self.results.Movement.Static);self.results.setWrapping(True);self.results.setSpacing(10);self.results.setGridSize(QSize(238,158));self.results.setMinimumWidth(270)
         self.results.setItemDelegate(CardDelegate(self.results))
@@ -60,20 +68,32 @@ class Window(OperationsWindow):
             self.detail_layout.removeWidget(widget);detail.addWidget(widget)
         self.primary.setMinimumHeight(38);self.primary.setStyleSheet('QPushButton { background:palette(highlight);color:palette(highlighted-text);border:0;border-radius:6px;padding:8px; } QPushButton:disabled { background:palette(mid); }')
         detail.addWidget(detail_area,1)
+        self.heading.setStyleSheet('font-weight:600;');self.heading.setFont(title_font)
+        for label in (self.heading,self.description,self.note,self.source,self.metadata):
+            label.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred);label.setMinimumWidth(0)
+        self.installer.setText('Abrir EXE / MSI…');self.installer.setToolTip('Escolha o arquivo EXE ou MSI que você já baixou para abrir no Wine.')
+        self.manage_native.setText('Gerenciar aplicativo…');self.manage_windows.setText('Ambiente Wine…')
+        self.remove_button.setText('Remover atalho…')
+        for button in detail_area.widget().findChildren(QPushButton):
+            button.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred);button.setMinimumWidth(0);button.setToolTip(button.text())
         self.sources=Sources(self);self.pages.addWidget(self.sources)
         preferences=QWidget();form=QFormLayout(preferences);self.compact=QCheckBox('Usar cartões compactos');self.compact.setChecked(bool(self.preferences.get('compact')));self.compact.toggled.connect(self.save_preferences);form.addRow(QLabel('Preferências da Loja'));form.addRow(self.compact)
         note=QLabel('Instalações e atualizações são confirmadas pelos gerenciadores nativos. Os programas Windows usam o site oficial e o ambiente escolhido. Sites mantêm contas em perfis separados do Chromium.');note.setWordWrap(True);form.addRow(note);self.pages.addWidget(preferences)
         self.firmware_page=Firmware(self);self.pages.addWidget(self.firmware_page)
         from webapp_updates import WebUpdates
         self.web_updates=WebUpdates(self);self.pages.addWidget(self.web_updates)
-        footer=QHBoxLayout();footer.addWidget(self.count,1);refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo');refresh.clicked.connect(self.reload_catalog);footer.addWidget(refresh);body.addLayout(footer)
+        footer=QHBoxLayout();footer.addWidget(self.count,1)
+        self.retry_search=QPushButton(QIcon.fromTheme('view-refresh'),'Repetir consulta')
+        self.retry_search.setAccessibleName('Repetir consulta nas fontes de aplicativos');self.retry_search.clicked.connect(self.repeat_repository_search);self.retry_search.hide();footer.addWidget(self.retry_search)
+        refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo');refresh.clicked.connect(self.reload_catalog);footer.addWidget(refresh);body.addLayout(footer)
         self.links={}
         for caption,icon,data in [('Início','go-home',('catalog','')),('Biblioteca','applications-all',('installed','')),('Favoritos','rating',('favorites','')),('Downloads e histórico','folder-download',('downloads','')),('Atualizações','system-software-update',('updates','')),('Revisões de webapps','internet-web-browser',('web-updates','')),('Firmware','preferences-devices-cpu',('firmware','')),('Fontes','network-server',('sources','')),('Configurações','configure',('preferences',''))]:self.nav_item(caption,icon,data)
         for category in sorted({item['category'] for item in self.base_entries}):self.nav_item(category,category_icon(category),('category',category))
         self.navigation.currentItemChanged.connect(self.navigate);old.deleteLater();self.ready=True;self.navigation.setCurrentRow(0);self.refresh()
 
     def nav_item(self,caption,icon,data):
-        item=QListWidgetItem(QIcon.fromTheme(icon),caption);item.setToolTip(caption);item.setData(Qt.ItemDataRole.UserRole,data);item.setSizeHint(QSize(150,50 if len(caption)>20 else 42));self.navigation.addItem(item);self.links[data[0]+':'+data[1]]=item
+        height=self.fontMetrics().boundingRect(0,0,max(100,self.navigation_side.width()-76),2000,int(Qt.TextFlag.TextWordWrap),caption).height()+20
+        item=QListWidgetItem(QIcon.fromTheme(icon),caption);item.setToolTip(caption);item.setData(Qt.ItemDataRole.UserRole,data);item.setSizeHint(QSize(150,max(42,height)));self.navigation.addItem(item);self.links[data[0]+':'+data[1]]=item
 
     def navigate(self,item,*_):
         if not item:return
@@ -94,29 +114,48 @@ class Window(OperationsWindow):
         query=self.query.text().strip();extra=self.repository_cache.get(query,[])
         self.entries=self.base_entries+extra
         if self.only_favorites:self.entries=[entry for entry in self.entries if entry['id'] in self.favorites]
-        super().refresh();self.count.setText(str(self.results.count())+' resultados'+(' · consultando fontes…' if query in self.requested else ''))
+        super().refresh();errors=self.repository_errors.get(query,[])
+        self.count.setText(str(self.results.count())+' resultados'+(' · consultando fontes…' if query in self.requested else ' · consulta incompleta' if errors else ''))
+        self.count.setToolTip('\n'.join(errors));self.retry_search.setVisible(bool(errors));self.retry_search.setEnabled(query not in self.requested)
+        self.repository_note.setText(' '.join(errors));self.repository_note.setVisible(bool(errors))
+        card_width=max(228,min(420,self.fontMetrics().horizontalAdvance('Aplicativos e programas')+48))
+        card_height=132 if self.compact.isChecked() else 148
         for index in range(self.results.count()):
-            item=self.results.item(index);entry=item.data(Qt.ItemDataRole.UserRole);item.setData(Qt.ItemDataRole.AccessibleTextRole,entry['name']);card=QWidget();card.setAccessibleName(entry['name']);card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents);card.setStyleSheet('background:transparent;');body=QVBoxLayout(card);body.setContentsMargins(16,12,16,10);header=QHBoxLayout();icon=QLabel();icon.setPixmap(item.icon().pixmap(40,40));icon.setObjectName('appIcon');header.addWidget(icon);header.addStretch();badge=QLabel({'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']]);badge.setStyleSheet('font-size:11px;color:palette(mid);');header.addWidget(badge);body.addLayout(header)
-            name=QLabel(entry['name']);name.setTextFormat(Qt.TextFormat.PlainText);name.setWordWrap(True);name.setStyleSheet('font-weight:600;font-size:14px;');body.addWidget(name);label=QLabel(entry['category']);label.setTextFormat(Qt.TextFormat.PlainText);label.setWordWrap(True);label.setStyleSheet('font-size:11px;');body.addWidget(label);body.addStretch();item.setSizeHint(QSize(228,132 if self.compact.isChecked() else 148));item.setToolTip(entry['name']+'\n'+entry['description']);self.results.setItemWidget(item,card)
-        self.results.setGridSize(QSize(238,142 if self.compact.isChecked() else 158))
+            item=self.results.item(index);entry=item.data(Qt.ItemDataRole.UserRole);item.setData(Qt.ItemDataRole.AccessibleTextRole,entry['name']);card=QWidget();card.setFixedWidth(card_width);card.setAccessibleName(entry['name']);card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents);card.setStyleSheet('background:transparent;');body=QVBoxLayout(card);body.setContentsMargins(16,12,16,10);header=QHBoxLayout();icon=QLabel();icon.setPixmap(item.icon().pixmap(40,40));icon.setObjectName('appIcon');header.addWidget(icon);header.addStretch();badge=QLabel({'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']]);header.addWidget(badge);body.addLayout(header)
+            name=QLabel(entry['name']);name.setTextFormat(Qt.TextFormat.PlainText);name.setWordWrap(True);name.setStyleSheet('font-weight:600;');body.addWidget(name);label=QLabel(entry['category']);label.setTextFormat(Qt.TextFormat.PlainText);label.setWordWrap(True);body.addWidget(label);body.addStretch();item.setToolTip(entry['name']+'\n'+entry['description']);self.results.setItemWidget(item,card)
+            card_height=max(card_height,body.totalHeightForWidth(card_width))
+        for index in range(self.results.count()):self.results.item(index).setSizeHint(QSize(card_width,card_height))
+        self.results.setGridSize(QSize(card_width+10,card_height+10))
         if 2<=len(query)<=100 and self.view.currentData()!='installed' and not self.only_favorites and query not in self.repository_cache and query not in self.requested:self.search_timer.start()
 
     def start_repository_search(self):
         query=self.query.text().strip()
         if len(self.queries)>=2:self.search_timer.start();return
         if query in self.requested or query in self.repository_cache or len(query)<2:return
-        self.requested.add(query);task=Query(lambda:store_repository.search(query),self);self.queries.add(task)
-        def loaded(rows):
+        self.requested.add(query);task=Query(lambda:store_repository.search(query,with_status=True),self);self.queries.add(task)
+        def loaded(value):
+            rows=value.get('rows',[]) if isinstance(value,dict) else value
+            self.repository_errors[query]=value.get('errors',[]) if isinstance(value,dict) else []
             self.repository_cache[query]=rows;self.requested.discard(query)
+            while len(self.repository_cache)>40:
+                oldest=next(iter(self.repository_cache));self.repository_cache.pop(oldest);self.repository_errors.pop(oldest,None)
             if self.query.text().strip()==query:self.refresh()
-        task.result.connect(loaded);task.failed.connect(lambda _:loaded([]));task.finished.connect(lambda:self.queries.discard(task));task.finished.connect(task.deleteLater);task.start()
+        task.result.connect(loaded);task.failed.connect(lambda _:loaded(dict(rows=[],errors=['A consulta não terminou. Confira as fontes e tente novamente.'])));task.finished.connect(lambda:self.queries.discard(task));task.finished.connect(task.deleteLater);task.start()
+
+    def repeat_repository_search(self):
+        query=self.query.text().strip()
+        if query in self.requested:return
+        self.repository_cache.pop(query,None);self.repository_errors.pop(query,None)
+        self.start_repository_search();self.refresh()
 
     def select(self,*args):
         super().select(*args)
         if not getattr(self,'ready',False):return
-        item=self.selected();self.favorite.setVisible(bool(item));self.favorite.setText('Remover dos favoritos' if item and item['id'] in self.favorites else 'Adicionar aos favoritos')
+        item=self.selected();self.favorite.setVisible(bool(item));self.favorite.setText('Remover favorito' if item and item['id'] in self.favorites else 'Favoritar')
         self.note.setText(self.note.text().replace('O Discover oferece outras fontes e pacotes.','Consulte as fontes configuradas na Loja.'))
         self.metadata.setText(self.metadata.text().replace('ou o Discover','na origem da instalação'))
+        if self.primary.text().startswith('Baixar instalador'):
+            self.primary.setToolTip(self.primary.text());self.primary.setText('Baixar instalador…')
         details=self.metadata_cache.get(item['id'],{}) if item else {};self.license_button.setVisible(bool(details.get('copyright_file')))
         if details:self.show_metadata(details)
         if not item:self.description.setText('Tente outro nome, finalidade ou categoria. Para pesquisar nas fontes, digite pelo menos dois caracteres.')
@@ -134,7 +173,9 @@ class Window(OperationsWindow):
         return basic
 
     def show_metadata(self,details):
-        self.metadata.setText('\n'.join(label+': '+details.get(key,'Não informado.') for key,label in [('type','Tipo'),('origin','Origem'),('version','Versão'),('size','Tamanho'),('publisher','Fornecedor / mantenedor'),('license','Licença')]))
+        fields=[('type','Tipo'),('origin','Origem'),('version','Versão'),('size','Tamanho'),('publisher','Fornecedor / mantenedor'),('license','Licença')]
+        if details.get('compatibility'):fields.append(('compatibility','Compatibilidade'))
+        self.metadata.setText('\n'.join(label+': '+details.get(key,'Não informado.') for key,label in fields))
         self.license_button.setVisible(bool(details.get('copyright_file')))
 
     def show_license(self):
@@ -171,7 +212,7 @@ class Window(OperationsWindow):
         self.save_preferences();self.select()
 
     def reload_catalog(self):
-        self.base_entries=backend.catalog()+catalog_sources.entries();self.repository_cache.clear()
+        self.base_entries=backend.catalog()+catalog_sources.entries();self.repository_cache.clear();self.repository_errors.clear()
         current=self.category.currentData();self.category.blockSignals(True)
         for index in range(self.navigation.count()-1,-1,-1):
             item=self.navigation.item(index);kind,value=item.data(Qt.ItemDataRole.UserRole)

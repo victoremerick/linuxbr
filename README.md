@@ -1,18 +1,35 @@
-# Linux BR 0.9 Beta 1
+# Linux BR 1.0 RC 2
 
 Distribuição experimental baseada em Debian 13, KDE Plasma 6 e Calamares, com interface em português e uso familiar para quem vem do Windows.
 
-A 0.9 acrescenta recursos opcionais, controle de inicialização, criação e administração gráfica de serviços, modos de segurança e recuperação e uma edição Servidor com console próprio. O catálogo público de webapps usa PHP, MySQL e painel Angular, com publicações assinadas e atualizações de metadados que preservam os perfis locais.
+A 1.0 está em desenvolvimento como candidata RC 2, a partir da 0.9 Beta 1. O trabalho concentra configuração inicial, consistência da interface, Loja, compatibilidade documentada e critérios verificáveis de publicação. Consulte o [escopo e a matriz da 1.0](docs/VERSAO-1.0.md). Esta identificação ainda não representa uma versão estável aprovada.
 
 A Loja Linux BR, o gerenciador gráfico de máquinas virtuais, as propriedades de arquivos e as ferramentas de migração continuam integrados ao sistema. O histórico abaixo reúne as alterações de cada versão.
 
-A versão permanece Beta. A validação em máquinas virtuais não substitui homologação de vídeo, Wi-Fi, Bluetooth, áudio, periféricos ou suspensão em equipamentos físicos. Compatibilidade com programas e jogos Windows varia por aplicativo.
+A versão é candidata. A validação em máquinas virtuais não substitui homologação de vídeo, Wi-Fi, Bluetooth, áudio, periféricos ou suspensão em equipamentos físicos. Compatibilidade com programas e jogos Windows varia por aplicativo.
 
 Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperação](docs/SERVIDOR-RECUPERACAO-0.9.md), as [máquinas virtuais](docs/MAQUINAS-VIRTUAIS-0.8.5.md), as [propriedades de arquivos](docs/PROPRIEDADES-0.8.md) e o [catálogo de webapps](server/webapps/README.md). As evidências e checksums entregues com os artefatos identificam os cenários efetivamente executados.
 
 ## Histórico de versões — notas de lançamento
 
 As entradas abaixo distinguem imagens ISO, revisões de código e atualizações por pacote. As revisões incrementais não alteram retroativamente uma ISO já construída. Este histórico reúne os registros disponíveis; a ausência de uma validação não equivale à aprovação daquele recurso.
+
+### 1.0 RC 2 — 1.0.0~rc2 — em desenvolvimento
+
+- Detecção de perfis web em execução compatível com o formato de título de processo usado pelo Chromium atual, inclusive quando o caminho contém espaços.
+- Identificação de perfis separados mantém a distinção entre o navegador principal, processos de renderização e diretórios com nomes semelhantes.
+- Verificador de pacotes usa o mesmo parser de rótulos Alpha/Beta/RC/Estável da compilação.
+- Compilação verifica o espaço disponível antes de iniciar o container e recusa prosseguir abaixo de 32 GiB livres.
+- A nova candidata terá seus próprios pacotes, hashes e ensaios da ISO; as evidências da RC 1 permanecem identificadas como históricas.
+
+### 1.0 RC 1 — 1.0.0~rc1 — candidata anterior
+
+- Identificação Alpha/Beta/RC/Estável nas ferramentas de compilação e metadados.
+- Conferência de artefatos, versões, hashes e evidências antes de preparar uma publicação estável; ausência de instalação pela ISO exata permanece pendência.
+- Assistente inicial com consultas de estado separadas das marcações pessoais, sem alterar configurações durante a conferência.
+- Loja com avisos de consulta incompleta, nova tentativa e histórico de resultados; cancelamento DEB solicitado ao gerenciador somente quando permitido.
+- Registros de compatibilidade por aplicativo e versão do Linux BR. Testes antigos permanecem históricos e não aprovam uma nova versão.
+- Validação da candidata em andamento. Consulte a matriz da 1.0 para os critérios de lançamento.
 
 ### 0.9 Beta 1 — 0.9.0~beta1
 
@@ -205,13 +222,13 @@ sudo dnf install podman qemu-system-x86 qemu-img edk2-ovmf xorriso
 ./init-build.sh
 ```
 
-O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-0.7.0~beta3.XXXXXX`, sem apagar a compilação anterior. Reserve espaço para múltiplos chroots. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
+O container de build é privilegiado e monta este repositório em `/src`. Cada execução cria um diretório novo `build/linuxbr-VERSAO.XXXXXX`, sem apagar a compilação anterior. São exigidos 32 GiB livres no volume do projeto; recomenda-se reservar pelo menos 40 GiB, além do espaço para VMs e compilações anteriores. A verificação inicial não reserva espaço: evite instalar VMs ou executar outros trabalhos que consumam o mesmo volume durante a compilação. Para uma sessão remota longa, execute o trabalho em um serviço de sistema que sobreviva ao encerramento da sessão gráfica. O processo não é reproduzível byte a byte: os repositórios Debian e a imagem `debian:trixie` podem atualizar.
 
 Saídas:
 
-- `dist/linuxbr-0.7.0~beta3-amd64.iso`
-- `dist/linuxbr-0.7.0~beta3-amd64.iso.sha256`
-- `dist/linuxbr-0.7.0~beta3-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
+- `dist/linuxbr-VERSAO-amd64.iso`
+- `dist/linuxbr-VERSAO-amd64.iso.sha256`
+- `dist/linuxbr-VERSAO-upstream.sha256`, hashes dos pacotes de origem do Calamares e Breeze
 - `dist/SHA256SUMS`, preservando entradas das outras versões
 
 A ISO 0.2 existente permanece como referência. `apply-stage2.sh` é histórico e recusa execução no projeto atual.

@@ -16,12 +16,12 @@ class BuildEntrypoints(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'scripts').mkdir()
         (self.root / 'bin').mkdir()
-        for name in ['build.sh', 'init-build.sh', 'VERSION', 'README.md', 'scripts/build-output.sh', 'scripts/build-in-container.sh', 'scripts/Containerfile.build']:
+        for name in ['build.sh', 'init-build.sh', 'VERSION', 'README.md', 'scripts/build-output.sh', 'scripts/build-in-container.sh', 'scripts/build_preflight.py', 'scripts/Containerfile.build']:
             shutil.copy2(ROOT / name, self.root / name)
             if name.endswith('.sh'):
                 (self.root / name).chmod(0o755)
         self.env = {**os.environ, 'PATH': str(self.root / 'bin') + ':' + os.environ['PATH'],
-                    'CONTAINER_ENGINE': 'fake-engine'}
+                    'CONTAINER_ENGINE': 'fake-engine', 'LINUXBR_MIN_BUILD_FREE_GIB': '1'}
         self.stub('fake-engine', 'echo full-detail-marker\nexit "${FAKE_EXIT:-0}"')
 
     def stub(self, name, body):
@@ -40,6 +40,14 @@ class BuildEntrypoints(unittest.TestCase):
         log = next((self.root / '.cache/logs').glob('*.log'))
         self.assertIn('full-detail-marker', log.read_text())
 
+    def test_invalid_space_requirement_stops_before_starting_the_engine(self):
+        self.env['LINUXBR_MIN_BUILD_FREE_GIB']='invalid'
+        self.stub('fake-engine','echo invoked >> engine-calls\nexit 0')
+        result=self.run_build()
+        self.assertNotEqual(result.returncode,0)
+        self.assertFalse((self.root/'engine-calls').exists())
+        self.assertNotIn('ISO pronta',result.stdout)
+
     def test_progress_tracks_stage_and_failure_does_not_complete(self):
         self.stub('fake-engine', 'echo "LINUXBR_STAGE 4"\nsleep 1.2\nexit 7')
         result = self.run_build()
@@ -52,7 +60,7 @@ class BuildEntrypoints(unittest.TestCase):
         result = self.run_build()
         version=(self.root / 'VERSION').read_text().strip()
         import re
-        label=re.sub(r'~beta(\d+)$',r' Beta \1',version)
+        label=re.sub(r'~(alpha|beta|rc)(\d+)$',lambda m: ' '+{'alpha':'Alpha','beta':'Beta','rc':'RC'}[m[1]]+' '+m[2],version)
         self.assertIn(label, result.stdout)
         self.assertIn('ISO pronta:', result.stdout)
 

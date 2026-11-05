@@ -86,7 +86,7 @@ def prepare_tls(directory, hostname, addresses, reuse=False):
         identity_check, hostname, str(directory / 'server.crt'))
 
 
-def prepare(packages, output, fingerprint, tls_dir, hostname='localhost', port=8443, addresses=(), reuse_tls=False):
+def prepare(packages, output, fingerprint, tls_dir, hostname='localhost', port=8443, addresses=(), reuse_tls=False, acceptance_report=None):
     hostname = host_name(hostname)
     if not 1 <= port <= 65535:
         raise ValueError('Use uma porta entre 1 e 65535.')
@@ -110,7 +110,7 @@ def prepare(packages, output, fingerprint, tls_dir, hostname='localhost', port=8
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     base_url = f'https://{hostname}:{port}'
-    count = module.build(packages, output, fingerprint, base_url)
+    count = module.build(packages, output, fingerprint, base_url, acceptance_report=acceptance_report)
     shutil.copyfile(tls_dir / 'ca.crt', output / 'linuxbr-local-ca.crt')
     shutil.copyfile(output / 'linuxbr-archive-keyring.gpg', output / 'client-archive-keyring.gpg')
     (output / 'client.sources').write_text('Types: deb\nURIs: ' + base_url + '\nSuites: trixie\nComponents: main\n'
@@ -146,10 +146,11 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=8443)
     parser.add_argument('--address', action='append', default=[])
     parser.add_argument('--reuse-tls', action='store_true')
+    parser.add_argument('--acceptance-report', type=Path)
     args = parser.parse_args()
     try:
         result = prepare(args.packages, args.output, args.fingerprint, args.tls_dir, args.hostname,
-                         args.port, args.address, args.reuse_tls)
+                         args.port, args.address, args.reuse_tls, args.acceptance_report)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         print('Iniciar somente neste computador:')
         print(shlex.join(['php', str(Path(__file__).with_name('repository-server.php').resolve()),

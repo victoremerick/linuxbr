@@ -1,0 +1,34 @@
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  linuxbr-boot-theme linuxbr-boot-tools linuxbr-branding linuxbr-desktop
+  linuxbr-desktop-edition linuxbr-device-manager linuxbr-drive-manager
+  linuxbr-file-properties linuxbr-sddm-theme linuxbr-system
+The following packages will be upgraded:
+  linuxbr-boot-theme linuxbr-boot-tools linuxbr-branding linuxbr-desktop
+  linuxbr-desktop-edition linuxbr-device-manager linuxbr-drive-manager
+  linuxbr-file-properties linuxbr-release linuxbr-sddm-theme linuxbr-system
+11 upgraded, 0 newly installed, 0 to remove and 17 not upgraded.
+Inst linuxbr-release [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-desktop-edition [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-branding [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-file-properties [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [amd64]) [linuxbr-system:amd64 ]
+Inst linuxbr-system [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-desktop [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [amd64]) []
+Inst linuxbr-sddm-theme [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-drive-manager [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [amd64]) []
+Inst linuxbr-boot-tools [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [amd64]) []
+Inst linuxbr-device-manager [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all]) []
+Inst linuxbr-boot-theme [0.9.0~beta1] (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-release (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-desktop-edition (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-branding (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-file-properties (1.0.0~rc1 Linux BR:trixie [amd64])
+Conf linuxbr-system (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-desktop (1.0.0~rc1 Linux BR:trixie [amd64])
+Conf linuxbr-sddm-theme (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-drive-manager (1.0.0~rc1 Linux BR:trixie [amd64])
+Conf linuxbr-boot-tools (1.0.0~rc1 Linux BR:trixie [amd64])
+Conf linuxbr-device-manager (1.0.0~rc1 Linux BR:trixie [all])
+Conf linuxbr-boot-theme (1.0.0~rc1 Linux BR:trixie [all])

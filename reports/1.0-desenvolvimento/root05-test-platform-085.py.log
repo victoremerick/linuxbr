@@ -1,0 +1,28 @@
+test_bundle_file_paths_cannot_escape_or_follow_links (__main__.Bundles.test_bundle_file_paths_cannot_escape_or_follow_links) ... ok
+test_existing_desktop_links_route_to_store (__main__.Bundles.test_existing_desktop_links_route_to_store) ... ok
+test_external_and_backing_images_are_rejected_before_import (__main__.Bundles.test_external_and_backing_images_are_rejected_before_import) ... ok
+test_firmware_descriptor_supports_libvirt_json_parser (__main__.Bundles.test_firmware_descriptor_supports_libvirt_json_parser) ... ok
+test_firmware_refuses_a_certificate_changed_after_review (__main__.Bundles.test_firmware_refuses_a_certificate_changed_after_review) ... ok
+test_host_preferences_are_private_and_reject_password_urls (__main__.Bundles.test_host_preferences_are_private_and_reject_password_urls) ... ok
+test_imported_nvram_cannot_reference_an_external_host_file (__main__.Bundles.test_imported_nvram_cannot_reference_an_external_host_file) ... ok
+test_local_secure_template_does_not_depend_on_daemon_firmware_cache (__main__.Bundles.test_local_secure_template_does_not_depend_on_daemon_firmware_cache) ... ok
+test_secure_firmware_preserves_keys_and_same_names_in_different_namespaces (__main__.Bundles.test_secure_firmware_preserves_keys_and_same_names_in_different_namespaces) ... ok
+test_categories_have_unique_routes_and_familiar_search (__main__.DesktopSettings.test_categories_have_unique_routes_and_familiar_search) ... ok
+test_permissions_are_only_fixed_argv (__main__.DesktopSettings.test_permissions_are_only_fixed_argv) ... ok
+test_scheduler_escapes_expansion_without_using_shell (__main__.DesktopSettings.test_scheduler_escapes_expansion_without_using_shell) ... ok
+test_user_environment_treats_shell_metacharacters_as_data (__main__.DesktopSettings.test_user_environment_treats_shell_metacharacters_as_data) ... ok
+test_custom_cpu_topology_is_not_silently_overwritten (__main__.Domains.test_custom_cpu_topology_is_not_silently_overwritten) ... ok
+test_domain_definition_uses_managed_volume_and_loopback_console (__main__.Domains.test_domain_definition_uses_managed_volume_and_loopback_console) ... ok
+test_invalid_names_do_not_become_xml_or_paths (__main__.Domains.test_invalid_names_do_not_become_xml_or_paths) ... ok
+test_private_internal_and_bridge_networks_are_distinct (__main__.Domains.test_private_internal_and_bridge_networks_are_distinct) ... ok
+test_remote_uri_cannot_smuggle_ssh_commands (__main__.Domains.test_remote_uri_cannot_smuggle_ssh_commands) ... ok
+test_resources_preserve_unknown_hardware_and_metadata (__main__.Domains.test_resources_preserve_unknown_hardware_and_metadata) ... ok
+test_apt_edit_refuses_changed_file_without_overwriting (__main__.Repositories.test_apt_edit_refuses_changed_file_without_overwriting) ... ok
+test_catalogs_cannot_introduce_executable_commands (__main__.Repositories.test_catalogs_cannot_introduce_executable_commands) ... ok
+test_local_install_request_requires_hash_and_correct_scope (__main__.Repositories.test_local_install_request_requires_hash_and_correct_scope) ... ok
+test_transport_and_credentials_are_checked (__main__.Repositories.test_transport_and_credentials_are_checked) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 1.786s
+
+OK

@@ -1,0 +1,46 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "iso_sha256": "8b4ae93190d0a19dca089cdcff070c84b8c9b1f01b2b58d9f8e14f4e275d0f29",
+  "scenario": "clean Desktop UEFI installation from final candidate ISO",
+  "installed_from_blank_virtual_disk": true,
+  "root_uuid": "fdac6422-fada-434e-985a-861db4ea11b2",
+  "kernel": "6.12.115+deb13.1-amd64",
+  "secure_boot_enabled": true,
+  "authenticated_plasma": [
+    "1509"
+  ],
+  "checked_payload_files": 1505,
+  "unexpected_payload_changes": [],
+  "preserved_configuration_differences": [],
+  "versions": {
+    "dolphin-data": "4:25.04.3-1+deb13u1+linuxbr2",
+    "dolphin": "4:25.04.3-1+deb13u1+linuxbr2",
+    "kio6": "6.13.0-6+linuxbr0.9.1",
+    "libdolphinvcs6": "4:25.04.3-1+deb13u1+linuxbr2",
+    "libkf6kiocore6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiofilewidgets6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiogui6": "6.13.0-6+linuxbr0.9.1",
+    "libkf6kiowidgets6": "6.13.0-6+linuxbr0.9.1",
+    "linuxbr-boot-theme": "1.0.0~rc1",
+    "linuxbr-boot-tools": "1.0.0~rc1",
+    "linuxbr-branding": "1.0.0~rc1",
+    "linuxbr-desktop-edition": "1.0.0~rc1",
+    "linuxbr-desktop": "1.0.0~rc1",
+    "linuxbr-device-manager": "1.0.0~rc1",
+    "linuxbr-drive-manager": "1.0.0~rc1",
+    "linuxbr-file-properties": "1.0.0~rc1",
+    "linuxbr-release": "1.0.0~rc1",
+    "linuxbr-sddm-theme": "1.0.0~rc1",
+    "linuxbr-system": "1.0.0~rc1"
+  },
+  "dpkg_audit": "",
+  "failed_system_units": "",
+  "memory": {
+    "MemTotal": "3928064 kB",
+    "MemAvailable": "2366156 kB"
+  },
+  "disk": "Sist. Arq.     Blocos de 1B       Usado  Dispon\u00edvel Uso% Montado em\n/dev/vda2       33068511232 10912321536 20450222080  35% /\n",
+  "qa_only_ssh_dependency": true,
+  "status": "PASS"
+}

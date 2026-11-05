@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0~rc1",
+  "authenticated_plasma": [
+    "3238"
+  ],
+  "failed_system_units": "",
+  "boot_id": "6bcf446a-c3e5-4e85-9ea1-e64517cf6d89"
+}

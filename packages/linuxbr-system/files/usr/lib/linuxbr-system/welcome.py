@@ -76,7 +76,7 @@ TOPICS = {
         <tr><td>Explorador de Arquivos</td><td>Dolphin, com a visão Este computador</td></tr>
         <tr><td>Configurações / Painel de Controle</td><td>Central do Sistema</td></tr>
         <tr><td>Microsoft Store</td><td>Loja Linux BR: Linux, aplicativos web e Windows</td></tr>
-        <tr><td>Windows Update</td><td>Atualizações na Central ou no Discover</td></tr>
+        <tr><td>Windows Update</td><td>Atualizações na Loja Linux BR</td></tr>
         <tr><td>Word, Excel e PowerPoint</td><td>LibreOffice Writer, Calc e Impress</td></tr>
         <tr><td>Paint, Calculadora e Bloco de Notas</td><td>KolourPaint, KCalc e Kate</td></tr>
         <tr><td>Fotos e Reprodutor de mídia</td><td>Gwenview e VLC</td></tr>

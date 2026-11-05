@@ -1,0 +1,30 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "status": "PASS",
+  "context": "actual libvirt networks inside isolated installed VM; physical host interfaces untouched",
+  "networks": [
+    {
+      "mode": "private",
+      "activated": true,
+      "active_edit_refused": true,
+      "offline_edit_and_restart": true,
+      "removed": true
+    },
+    {
+      "mode": "internal",
+      "activated": true,
+      "active_edit_refused": true,
+      "offline_edit_and_restart": true,
+      "removed": true
+    },
+    {
+      "mode": "nat",
+      "activated": true,
+      "active_edit_refused": true,
+      "offline_edit_and_restart": true,
+      "removed": true
+    }
+  ],
+  "original_ipv4_forwarding_restored": true
+}

@@ -1,0 +1,7 @@
+PASS: native Wi-Fi/Bluetooth on and off, volume/mute, external volume synchronization
+QObject: Cannot create children for a parent that is in a different thread.
+(Parent is QGuiApplication(0x309c9d70), parent's thread is QThread(0x30834640), current thread is QThread(0x309d56e0)
+QObject::installEventFilter(): Cannot filter events for objects in a different thread.
+kf.windowsystem: Could not find any platform plugin
+kf.kirigami.platform: Failed to find a Kirigami platform plugin for style "Fusion"
+org.kde.pulseaudio: No object for name "linuxbr_qa10_null.monitor"

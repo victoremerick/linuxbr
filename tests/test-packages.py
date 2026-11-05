@@ -112,8 +112,9 @@ for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6
     assert name+' (>= 6.13.0-6+linuxbr0.9.1)' in (work/'work/linuxbr-file-properties/DEBIAN/control').read_text()
 assert 'dolphin (>= 4:25.04.3-1+deb13u1+linuxbr2)' in (work/'work/linuxbr-drive-manager/DEBIAN/control').read_text()
 print('PASS: atualização da edição seleciona os componentes exatos e o KIO com Aplicar')
-import re
-display_version=re.sub(r'~beta(\d+)$',r' Beta \1',version)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from release_info import release_info
+display_version=release_info(Path(__file__).resolve().parents[1])['display_version']
 assert branding['strings']['shortVersion'] == version.split('~')[0]
 assert f'Linux BR {display_version}' in (work / 'work/linuxbr-release/usr/share/linuxbr/release/issue').read_text()
 assert f'VERSION_ID="{version}"' in (work / 'work/linuxbr-release/etc/linuxbr-release').read_text()

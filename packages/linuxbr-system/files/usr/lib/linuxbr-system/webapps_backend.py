@@ -281,6 +281,19 @@ def running_profiles(items=None, proc_root=Path('/proc')):
                 continue
             with (process/'cmdline').open('rb') as stream:
                 args = stream.read(65536).decode('utf-8', errors='replace').rstrip('\0').split('\0')
+            if len(args)==1 and ' ' in args[0]:
+                # Chromium can replace argv with a single process title. Match
+                # our known paths directly so spaces in a profile stay intact.
+                program, _, title = args[0].partition(' ')
+                if Path(program).name not in ('chromium', 'chromium-browser', 'chrome'):
+                    continue
+                for directory, identifier in profiles.items():
+                    match = re.search(r'(?:^|\s)--user-data-dir(?:=|\s+)'+re.escape(directory)+r'(?=\s--|$)', title)
+                    if match:
+                        remaining = title[:match.start()]+' '+title[match.end():]
+                        if not re.search(r'(?:^|\s)--type=\S+', remaining):
+                            running.add(identifier)
+                continue
             if not args or Path(args[0]).name not in ('chromium', 'chromium-browser', 'chrome'):
                 continue
             if any(arg.startswith('--type=') for arg in args):

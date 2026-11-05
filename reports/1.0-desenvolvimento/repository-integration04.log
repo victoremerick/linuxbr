@@ -1,0 +1,7 @@
+dpkg-scanpackages: informação: Escreveu 1 entradas no ficheiro Packages de resultado.
+PASS: preparação, SAN localhost/127.0.0.1, chave externa, TLS reutilizável e cliente não ativado.
+PASS: APT validou TLS e Signed-By e baixou pacote com hash correspondente.
+PASS: APT recusou autoridade TLS desconhecida sem desativar verificação.
+PASS: APT recusou metadados alterados após a assinatura.
+PASS: APT recusou pacote alterado após a indexação.
+{"status": "PASS", "tls": true, "signed_by": true, "download": true, "unknown_ca_rejected": true, "tampered_metadata_rejected": true, "tampered_package_rejected": true, "existing_output_preserved": true, "client_activated": false}

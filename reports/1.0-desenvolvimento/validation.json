@@ -1,0 +1,15 @@
+{
+  "network_adapters": 2,
+  "service_form": true,
+  "startup_entries": 31,
+  "service_inventory": 97,
+  "scope": "user",
+  "render": "offscreen",
+  "duplicate_refused": true,
+  "literal_arguments_and_environment": true,
+  "create_execute": true,
+  "stale_edit_refused": true,
+  "edit_restore_without_restart": true,
+  "edit_form_roundtrip": true,
+  "temporary_service_removed": true
+}

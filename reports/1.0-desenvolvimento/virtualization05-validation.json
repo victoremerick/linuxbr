@@ -1,0 +1,21 @@
+{
+  "candidate": "source05",
+  "version": "1.0.0~rc1",
+  "scope": "qemu:///session",
+  "context": "actual libvirt lifecycle of a disposable blank guest; no guest operating system installed",
+  "capabilities": {
+    "kind": "kvm",
+    "machine": "q35",
+    "host": "Cascadelake-Server-v3",
+    "uri": "qemu:///session"
+  },
+  "created": true,
+  "offline_resources_and_adapter_edited": true,
+  "started": true,
+  "active_hardware_edit_refused": true,
+  "pause_resume": true,
+  "save_resume": true,
+  "checkpoint_restore": true,
+  "definition_removal_preserved_disk": true,
+  "status": "PASS"
+}

@@ -1,0 +1,15 @@
+PASS: pacotes, sequencia Calamares e helpers preservados
+PASS: tradução compilada preserva modelo de teclado e fuso horário
+PASS: fuso, teclado e logo centralizada do instalador
+PASS: pacote Drive Manager e entrada no menu
+PASS: Plymouth libera o terminal antes de iniciar SDDM
+PASS: Central, serviço de sessão e plugin KIO nativo empacotados
+PASS: dispositivos, helper isolado, política polkit e integração da Central
+PASS: atualização da edição seleciona os componentes exatos e o KIO com Aplicar
+PASS: versão única no release, banner e instalador
+PASS: detector NVIDIA e visão Este computador no Dolphin
+PASS: propriedades Linux BR e protecao da configuracao KDE
+PASS: perfil interativo, configuracao de terminal e KIO FUSE empacotados
+PASS: tema global de janelas e aplicação por usuário empacotados
+PASS: estilo nativo e manutenção dos layouts Plasma empacotados
+PASS: propriedade única dos arquivos e dependências de backup da 0.5

@@ -1,0 +1,14 @@
+{
+  "candidate": "working-tree-after-source05",
+  "version": "1.0.0~rc1",
+  "backend_path": "/home/brasil/qa10/webapps-preview/webapps_backend.py",
+  "context": "actual Chromium app windows; synthetic cookies at example.org; isolated temporary user directories",
+  "single_profile_opened_directly": true,
+  "running_profile_deletion_refused": true,
+  "two_concurrent_profiles_isolated": true,
+  "picker_multiple_selection": true,
+  "picker_keyboard_selection": true,
+  "persistent_cookies_after_restart": true,
+  "distinct_profile_directories": true,
+  "status": "PASS"
+}

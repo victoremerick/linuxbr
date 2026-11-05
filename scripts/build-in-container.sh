@@ -5,7 +5,7 @@ main() {
     export DEBIAN_FRONTEND=noninteractive
     cd /src
     VERSION=$(cat VERSION)
-    [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(~beta[1-9][0-9]*)?$ ]] || { echo 'Versao invalida' >&2; exit 1; }
+    [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(~(alpha|beta|rc)[1-9][0-9]*)?$ ]] || { echo 'Versao invalida' >&2; exit 1; }
     ISO_VOLUME=$(printf 'LINUXBR_%s' "$VERSION" | tr '[:lower:].~' '[:upper:]__')
     echo "LINUXBR_STAGE 0"
     # Unique workspaces prevent live-build stamps/cache from hiding source changes.

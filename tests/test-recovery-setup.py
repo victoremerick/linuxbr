@@ -35,7 +35,7 @@ class RecoverySetup(unittest.TestCase):
     def test_wizard_never_launches_tools_without_user_action(self):
         with patch.object(setup_flow,'launch') as launch:
             wizard=setup_flow.SetupWizard()
-            self.assertEqual(len(wizard.checks),9)
+            self.assertEqual(len(wizard.checks),10)
             self.assertFalse(any(check.isChecked() for check in wizard.checks.values()))
             launch.assert_not_called();wizard.close()
 

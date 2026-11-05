@@ -1,0 +1,279 @@
+{
+  "candidate": "source03",
+  "version": "1.0.0~rc1",
+  "context": "source UI on isolated installed 0.9 Wayland session",
+  "status": "PASS",
+  "cases": [
+    {
+      "step": "accounts",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "migration",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "network",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "region",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "display",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "devices",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "daily",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "backup",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "updates",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "apps",
+      "font_points": 10,
+      "actual_button_points": 10.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "accounts",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "migration",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "network",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 480,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "region",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "display",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "devices",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "daily",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "backup",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "updates",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "apps",
+      "font_points": 14,
+      "actual_button_points": 14.0,
+      "width": 730,
+      "height": 522,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "accounts",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 580,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "migration",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 580,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "network",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 580,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "region",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "display",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "devices",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "daily",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "backup",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "updates",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    },
+    {
+      "step": "apps",
+      "font_points": 20,
+      "actual_button_points": 20.0,
+      "width": 730,
+      "height": 643,
+      "fits": true,
+      "icon_present": true
+    }
+  ],
+  "marks_unchanged": true
+}
