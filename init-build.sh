@@ -16,7 +16,7 @@ main() {
     build_banner "$VERSION"
     ENGINE="${CONTAINER_ENGINE:-podman}"
     # Dependencias usadas pelo build no host e pela verificacao da ISO.
-    DEPENDENCIES=("$ENGINE" cat dirname mkdir sha256sum realpath basename wc flock file xorriso awk grep tail tee mktemp chmod chown)
+    DEPENDENCIES=("$ENGINE" python3 cat dirname mkdir sha256sum realpath basename wc flock file xorriso awk grep tail tee mktemp chmod chown)
     PACKAGES=()
     MISSING=()
     for dependency in "${DEPENDENCIES[@]}"; do
@@ -28,7 +28,7 @@ main() {
             podman) package=podman ;;
             docker) package=/usr/bin/docker ;;
             cat|dirname|mkdir|sha256sum|realpath|basename|wc|tail|tee|mktemp|chmod|chown) package=coreutils ;;
-            file|xorriso|grep) package="$dependency" ;;
+            python3|file|xorriso|grep) package="$dependency" ;;
             awk) package=gawk ;;
             flock) package=util-linux ;;
             *)

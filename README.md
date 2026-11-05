@@ -215,10 +215,10 @@ As entradas abaixo distinguem imagens ISO, revisões de código e atualizações
 
 ## Construir no Fedora
 
-Dependências do host: Podman, QEMU/KVM, qemu-img, edk2-ovmf e xorriso. Os nomes dos pacotes QEMU podem variar na versão do Fedora.
+Dependências do host: Python 3, Podman, QEMU/KVM, qemu-img, edk2-ovmf e xorriso. Os nomes dos pacotes QEMU podem variar na versão do Fedora.
 
 ```bash
-sudo dnf install podman qemu-system-x86 qemu-img edk2-ovmf xorriso
+sudo dnf install python3 podman qemu-system-x86 qemu-img edk2-ovmf xorriso
 ./init-build.sh
 ```
 
