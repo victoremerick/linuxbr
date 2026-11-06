@@ -2,7 +2,8 @@
 Type=Application
 Name=Loja de aplicativos
 Comment=Programas Linux, aplicativos web e programas Windows com Wine
-Exec=linuxbr-store
+Exec=linuxbr-store %u
+MimeType=x-scheme-handler/linuxbr-store;
 Icon=system-software-install
 Terminal=false
 Categories=System;PackageManager;

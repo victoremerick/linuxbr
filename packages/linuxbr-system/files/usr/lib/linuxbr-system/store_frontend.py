@@ -237,12 +237,33 @@ class Window(OperationsWindow):
         super().closeEvent(event)
 
 
+def open_store_link(window, value):
+    from store_links import parse_link, find_entry
+    try:
+        source, identifier = parse_link(value)
+        entry = find_entry(window.base_entries, source, identifier)
+        if entry is None:
+            window.navigation.setCurrentItem(window.links['sources:'])
+            QMessageBox.information(window, 'Aplicativo não encontrado',
+                'O aplicativo não está nos catálogos habilitados deste computador. Confira e atualize as fontes da Loja. Nenhuma fonte foi adicionada pelo link.')
+            return
+        window.navigation.setCurrentItem(window.links['catalog:'])
+        window.query.setText(entry['name'])
+        for index in range(window.results.count()):
+            if window.results.item(index).data(Qt.ItemDataRole.UserRole)['id'] == entry['id']:
+                window.results.setCurrentRow(index)
+                break
+    except ValueError as error:
+        QMessageBox.warning(window, 'Link da Loja', str(error))
+
+
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--installed',action='store_true');parser.add_argument('--updates',action='store_true');parser.add_argument('--sources',action='store_true');parser.add_argument('--firmware',action='store_true');parser.add_argument('--search',default='');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('uri',nargs='?');parser.add_argument('--installed',action='store_true');parser.add_argument('--updates',action='store_true');parser.add_argument('--sources',action='store_true');parser.add_argument('--firmware',action='store_true');parser.add_argument('--search',default='');args=parser.parse_args()
     app=QApplication(sys.argv);app.setDesktopFileName('linuxbr-store')
     if not QIcon.themeName():QIcon.setThemeName('breeze')
     window=Window();window.show()
     if args.search:window.query.setText(args.search)
     for flag,key in [(args.installed,'installed'),(args.updates,'updates'),(args.sources,'sources'),(args.firmware,'firmware')]:
         if flag:window.navigation.setCurrentItem(window.links[key+':'])
+    if args.uri:QTimer.singleShot(0,lambda:open_store_link(window,args.uri))
     sys.exit(app.exec())

@@ -213,7 +213,7 @@ def entries():
         active=[app for app in data['apps'] if app['status']=='published']
         rows=checked({'apps':active},source['name'])
         for row,app in zip(rows,active):
-            row.update(id='signed:'+source['name']+':'+app['id'],signed_source=source['name'],signed_app=app['id'],
+            row.update(id='signed:'+source['name']+':'+app['id'],signed_source=source['name'],signed_source_id=data['source_id'],signed_app=app['id'],
                        revision=app['revision'],favicon=app['favicon'],screenshots=app.get('screenshots',[]),
                        note=('Cópia local expirada; atualize a fonte. ' if data['expired'] else '')+'Fonte assinada: '+source['name']+'. Revisão '+str(app['revision']))
         result.extend(rows)

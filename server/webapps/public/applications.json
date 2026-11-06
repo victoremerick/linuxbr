@@ -1,0 +1,259 @@
+{
+  "reviewed": "2026-10-28",
+  "apps": [
+    {
+      "id": "libreoffice",
+      "name": "LibreOffice",
+      "kind": "linux",
+      "category": "Trabalho e estudo",
+      "description": "Documentos, planilhas e apresentações.",
+      "source": "https://www.libreoffice.org/"
+    },
+    {
+      "id": "okular",
+      "name": "Okular",
+      "kind": "linux",
+      "category": "Trabalho e estudo",
+      "description": "Leia documentos PDF e faça anotações.",
+      "source": "https://okular.kde.org/"
+    },
+    {
+      "id": "vlc",
+      "name": "VLC",
+      "kind": "linux",
+      "category": "Música e vídeo",
+      "description": "Reproduza vídeos, músicas e legendas.",
+      "source": "https://www.videolan.org/vlc/"
+    },
+    {
+      "id": "gimp",
+      "name": "GIMP",
+      "kind": "linux",
+      "category": "Imagem e criação",
+      "description": "Edite fotos e imagens.",
+      "source": "https://www.gimp.org/"
+    },
+    {
+      "id": "inkscape",
+      "name": "Inkscape",
+      "kind": "linux",
+      "category": "Imagem e criação",
+      "description": "Crie ilustrações, desenhos vetoriais e logotipos.",
+      "source": "https://inkscape.org/"
+    },
+    {
+      "id": "krita",
+      "name": "Krita",
+      "kind": "linux",
+      "category": "Imagem e criação",
+      "description": "Pintura e desenho digital.",
+      "source": "https://krita.org/"
+    },
+    {
+      "id": "kdenlive",
+      "name": "Kdenlive",
+      "kind": "linux",
+      "category": "Música e vídeo",
+      "description": "Monte e edite vídeos.",
+      "source": "https://kdenlive.org/"
+    },
+    {
+      "id": "obs",
+      "name": "OBS Studio",
+      "kind": "linux",
+      "category": "Música e vídeo",
+      "description": "Grave a tela e faça transmissões ao vivo.",
+      "source": "https://obsproject.com/"
+    },
+    {
+      "id": "firefox",
+      "name": "Firefox",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Navegue na internet.",
+      "source": "https://www.mozilla.org/firefox/"
+    },
+    {
+      "id": "chromium",
+      "name": "Chromium",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Navegador integrado aos aplicativos web do Linux BR.",
+      "source": "https://www.chromium.org/"
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Mensagens e chamadas na versão para Linux.",
+      "source": "https://desktop.telegram.org/"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Comunidades, mensagens e chamadas.",
+      "source": "https://discord.com/download",
+      "note": "A disponibilidade na Loja depende das fontes configuradas. O fornecedor também oferece download para Linux no site oficial."
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Comunicação e colaboração em equipes.",
+      "source": "https://slack.com/downloads/linux",
+      "note": "A disponibilidade na Loja depende das fontes configuradas. Confira também o download Linux do fornecedor."
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "kind": "linux",
+      "category": "Música e vídeo",
+      "description": "Ouça músicas e podcasts.",
+      "source": "https://www.spotify.com/download/linux/",
+      "note": "Pode exigir fonte adicional e conta. Confira a origem na Loja Linux BR ou siga as instruções oficiais para Linux."
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "kind": "linux",
+      "category": "Jogos",
+      "description": "Loja e biblioteca de jogos, com Proton para títulos Windows compatíveis.",
+      "source": "https://store.steampowered.com/about/",
+      "note": "O Linux BR inclui o instalador Steam. A compatibilidade de cada jogo varia; antitrapaça e DRM podem impedir a execução."
+    },
+    {
+      "id": "supertux",
+      "name": "SuperTux",
+      "kind": "linux",
+      "category": "Jogos",
+      "description": "Jogo de plataforma com o pinguim Tux. Prefira esta versão nativa.",
+      "source": "https://www.supertux.org/download.html"
+    },
+    {
+      "id": "ark",
+      "name": "Ark",
+      "kind": "linux",
+      "category": "Utilitários",
+      "description": "Abra e crie arquivos compactados.",
+      "source": "https://apps.kde.org/ark/"
+    },
+    {
+      "id": "kate",
+      "name": "Kate",
+      "kind": "linux",
+      "category": "Utilitários",
+      "description": "Editor de texto e código.",
+      "source": "https://kate-editor.org/"
+    },
+    {
+      "id": "kcalc",
+      "name": "KCalc",
+      "kind": "linux",
+      "category": "Utilitários",
+      "description": "Calculadora para contas do dia a dia e cálculos científicos.",
+      "source": "https://apps.kde.org/kcalc/"
+    },
+    {
+      "id": "kolourpaint",
+      "name": "KolourPaint",
+      "kind": "linux",
+      "category": "Imagem e criação",
+      "description": "Desenhe, pinte e faça edições simples em imagens.",
+      "source": "https://apps.kde.org/kolourpaint/"
+    },
+    {
+      "id": "skanpage",
+      "name": "Skanpage",
+      "kind": "linux",
+      "category": "Trabalho e estudo",
+      "description": "Digitalize páginas e reúna documentos em PDF.",
+      "source": "https://apps.kde.org/skanpage/"
+    },
+    {
+      "id": "gwenview",
+      "name": "Gwenview",
+      "kind": "linux",
+      "category": "Imagem e criação",
+      "description": "Abra suas fotos e navegue por coleções de imagens.",
+      "source": "https://apps.kde.org/gwenview/"
+    },
+    {
+      "id": "filelight",
+      "name": "Filelight",
+      "kind": "linux",
+      "category": "Utilitários",
+      "description": "Veja quais pastas e arquivos ocupam mais espaço no disco.",
+      "source": "https://apps.kde.org/filelight/"
+    },
+    {
+      "id": "kde-connect",
+      "name": "KDE Connect",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Conecte o celular para compartilhar arquivos, links e notificações.",
+      "source": "https://kdeconnect.kde.org/"
+    },
+    {
+      "id": "keepassxc",
+      "name": "KeePassXC",
+      "kind": "linux",
+      "category": "Utilitários",
+      "description": "Organize senhas em um cofre criptografado no computador.",
+      "source": "https://keepassxc.org/"
+    },
+    {
+      "id": "filezilla",
+      "name": "FileZilla",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Transfira arquivos entre seu computador e servidores FTP ou SFTP.",
+      "source": "https://filezilla-project.org/"
+    },
+    {
+      "id": "thunderbird",
+      "name": "Thunderbird",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Reúna e-mails, agenda e contatos em um aplicativo.",
+      "source": "https://www.thunderbird.net/"
+    },
+    {
+      "id": "audacity",
+      "name": "Audacity",
+      "kind": "linux",
+      "category": "Música e vídeo",
+      "description": "Grave e edite áudio, voz e músicas.",
+      "source": "https://www.audacityteam.org/"
+    },
+    {
+      "id": "transmission",
+      "name": "Transmission",
+      "kind": "linux",
+      "category": "Internet e comunicação",
+      "description": "Gerencie downloads e compartilhamento de arquivos por BitTorrent.",
+      "source": "https://transmissionbt.com/"
+    },
+    {
+      "id": "7zip-wine",
+      "name": "7-Zip (Windows)",
+      "kind": "windows",
+      "category": "Utilitários",
+      "description": "Versão gráfica do compactador para executar com Wine.",
+      "source": "https://www.7-zip.org/download.html",
+      "note": "Testado em laboratório na base anterior: 7-Zip 26.05, instalação, compactação e extração em Wine. Conferência nesta versão pendente. Outras versões podem se comportar de forma diferente. Alternativa Linux: Ark. Baixe o EXE no site oficial e depois escolha o arquivo em Programas Windows."
+    },
+    {
+      "id": "supertux-wine",
+      "name": "SuperTux (Windows)",
+      "kind": "windows",
+      "category": "Jogos",
+      "description": "Edição Windows para uso em um ambiente Wine.",
+      "source": "https://www.supertux.org/download.html",
+      "note": "Parcial: SuperTux 0.7.0 MSI teve instalação e primeira fase com teclado verificadas em laboratório na base anterior. Campanha completa, GPU real e conferência nesta versão pendentes. Prefira a versão Linux. Baixe o instalador oficial e selecione-o em Programas Windows."
+    }
+  ]
+}
