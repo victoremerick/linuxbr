@@ -53,6 +53,10 @@ do Wine/Proton, DXVK e dependências específicas. Instale componentes como Visu
 C++ ou .NET apenas quando o aplicativo exigir, usando as opções do próprio Bottles.
 Os ambientes do Bottles são separados dos ambientes Wine da ferramenta Linux BR.
 
+Para programas com falhas ao minimizar ou maximizar, consulte o
+[perfil de janelas individuais](OFFICE-E-JANELAS.md). Ele oferece um lançador
+com X11/Xwayland da sessão sem trocar o modo gráfico de outros aplicativos.
+
 ## Limites e validação
 
 Não há compatibilidade universal. Antitrapaça, DRM, drivers próprios, alguns

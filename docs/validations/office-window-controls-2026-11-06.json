@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-06",
+  "scope": "Word Microsoft 365 desktop; controles de janela; revisão posterior à ISO RC 2",
+  "environment": {
+    "os": "Linux BR 1.0.0~rc2",
+    "desktop": "KDE Plasma Wayland / KWin / Xwayland",
+    "bottles": "67.6 Development",
+    "flatpak_id": "com.usebottles.bottles.Devel",
+    "flatpak_commit": "5d98575d5e3b19a5f394f6938019086c2ab4719edfa98cfb068893171b560083",
+    "runner": "soda-11.0-36-experimental",
+    "dxvk": "3.1.1"
+  },
+  "method": "Cliques nos controles do Word e na barra de tarefas; leitura de estado e geometria pelo KWin; repetição após reiniciar com linuxbr-bottles-window",
+  "checks": [
+    {"action": "restore", "result": "PASS", "width": 1200, "height": 640, "minimized": false},
+    {"action": "maximize", "result": "PASS", "width": 1600, "height": 854, "minimized": false},
+    {"action": "minimize", "result": "PASS", "minimized": true},
+    {"action": "taskbar_restore", "result": "PASS", "minimized": false},
+    {"command": "python3 tests/test-bottles-window.py", "tests": 4, "result": "PASS"},
+    {"command": "QT_QPA_PLATFORM=offscreen python3 tests/test-windows-compat.py", "tests": 8, "result": "PASS"},
+    {"command": "desktop-file-validate", "shortcuts": 7, "result": "PASS"},
+    {"command": "Secret Service no Flatpak Development", "result": "PASS", "scope": "Gravação, leitura e remoção de entrada temporária exclusiva; sem leitura de credenciais existentes"}
+  ],
+  "rejected_profile": {"driver": "Wine native Wayland", "action": "minimize", "result": "FAIL", "width": 160, "height": 31, "minimized": false},
+  "limitations": [
+    "Sem nova ISO ou compilação completa de pacotes.",
+    "Não aprova ativação, edição, gravação ou todos os aplicativos do Office.",
+    "Bottles estável não foi ensaiado com Microsoft 365 nesta rodada.",
+    "Retorno de login direcionado à edição correta; nova autenticação completa não foi ensaiada nesta rodada."
+  ]
+}
