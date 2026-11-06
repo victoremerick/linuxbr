@@ -19,7 +19,11 @@ def observe(section):
         import pwd
         try:name=pwd.getpwuid(os.getuid()).pw_name
         except KeyError:name='não identificada'
-        return dict(state='information',text='Conta desta sessão: '+name+'. Confira suas opções de acesso nas Configurações. Nenhuma senha é consultada por esta verificação.')
+        from credentials import status
+        credentials = status()
+        return dict(state='information' if credentials['state']=='ready' else 'attention',
+                    text='Conta desta sessão: '+name+'. '+credentials['text']+
+                    ' Nenhuma senha salva é consultada por esta verificação.')
     if section == 'network':
         state = command(['nmcli', '-t', '-f', 'STATE', 'general'])
         internet = command(['nmcli', '-t', '-f', 'CONNECTIVITY', 'general'])

@@ -16,6 +16,7 @@ As entradas abaixo distinguem imagens ISO, revisões de código e atualizações
 
 ### 1.0 RC 2 — 1.0.0~rc2 — em desenvolvimento
 
+- Revisão posterior à ISO: preparação do cofre seguro no início da sessão, desbloqueio pelo provedor nativo e diagnóstico de gravação/leitura com entrada temporária. Cofres existentes são preservados. Dependências do serviço e integração PAM explícitas; compilação e conferência da imagem rejeitam cofres de usuário pré-criados em contas novas. Consulte [Credenciais e logins](docs/CREDENCIAIS.md).
 - Detecção de perfis web em execução compatível com o formato de título de processo usado pelo Chromium atual, inclusive quando o caminho contém espaços.
 - Identificação de perfis separados mantém a distinção entre o navegador principal, processos de renderização e diretórios com nomes semelhantes.
 - Verificador de pacotes usa o mesmo parser de rótulos Alpha/Beta/RC/Estável da compilação.

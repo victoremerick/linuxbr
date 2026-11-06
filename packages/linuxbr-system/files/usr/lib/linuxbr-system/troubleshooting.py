@@ -3,6 +3,11 @@ import shutil
 from protection_status import command
 
 PROBLEMS = {
+    'Login e senhas dos aplicativos': {
+        'checks': [('Armazenamento seguro da sessão', ['linuxbr-credentials', '--check', '--probe'])],
+        'actions': [('Desbloquear o cofre de credenciais', ['linuxbr-credentials', '--unlock'], 'wallet-open'),
+                    ('Gerenciar senhas e cofres', ['seahorse'], 'dialog-password')],
+        'help': 'O retorno de um login Microsoft pode abrir o Bottles para entregar a autenticação ao programa Windows. O cofre precisa estar disponível e desbloqueado para lembrar a conta. Use o desbloqueio seguro; se a senha do usuário foi redefinida por um administrador, o cofre pode continuar usando a senha anterior. Não apague cofres que contenham senhas. Uma entrada bem-sucedida não comprova a ativação da licença do aplicativo.'},
     'Som e microfone': {
         'checks': [('Servidor de áudio', ['pactl', 'info']), ('Saídas de som', ['pactl', 'list', 'short', 'sinks']),
                    ('Entradas de som', ['pactl', 'list', 'short', 'sources'])],

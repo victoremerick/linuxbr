@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 from release_info import release_info
+from credential_policy import reject_seeded_credentials
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / 'VERSION').read_text().strip()
@@ -61,6 +62,7 @@ def optional_metadata(text):
         lines.insert(index,'Recommends: '+', '.join(dict.fromkeys(recommended)))
     return '\n'.join(lines)+'\n'
 
+
 def build(output, work, calamares_deb, breeze_deb):
     output.mkdir(parents=True, exist_ok=True)
     work.mkdir(parents=True, exist_ok=True)
@@ -72,8 +74,9 @@ def build(output, work, calamares_deb, breeze_deb):
         source = ROOT / 'packages' / name / 'files'
         if source.exists():
             shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        reject_seeded_credentials(root)
     # Executable launchers must retain their mode even when edited on Windows.
-    for command in ('linuxbr-welcome','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows'):
+    for command in ('linuxbr-welcome','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows','linuxbr-credentials'):
         (roots['linuxbr-system'] / 'usr/bin' / command).chmod(0o755)
     extensions = roots['linuxbr-system'] / 'usr/share/chromium/extensions'
     timers = roots['linuxbr-system'] / 'usr/lib/systemd/user/timers.target.wants'
@@ -177,7 +180,7 @@ remove|purge)
     ;;
 esac
 ''', True)
-    control(roots['linuxbr-system'], 'linuxbr-system', 'chromium, chromium-sandbox, python3, python3-cryptography, libnotify-bin, python3-pyqt6, python3-gi, libglib2.0-bin, linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, krdp, flatpak, powerdevil, kde-config-screenlocker, kscreen, libkscreen-bin, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd, kcalc, kate, kolourpaint, kup-backup, bup, rsync, timeshift, icoutils')
+    control(roots['linuxbr-system'], 'linuxbr-system', 'chromium, chromium-sandbox, python3, python3-cryptography, libnotify-bin, python3-pyqt6, python3-gi, libglib2.0-bin, linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, krdp, flatpak, powerdevil, kde-config-screenlocker, kscreen, libkscreen-bin, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd, kcalc, kate, kolourpaint, kup-backup, bup, rsync, timeshift, icoutils, gnome-keyring, libpam-gnome-keyring, gir1.2-secret-1, seahorse')
     system_control = roots['linuxbr-system'] / 'DEBIAN/control'
     system_control.write_text(system_control.read_text().replace('Depends: ',f'Depends: linuxbr-boot-tools (= {VERSION}), ',1))
     boot=roots['linuxbr-boot-tools']
@@ -499,6 +502,7 @@ install -m 0755 /usr/share/applications/calamares-install-linuxbr.desktop "$desk
         manifest.append(f'{hashlib.sha256(deb.read_bytes()).hexdigest()}  {deb.name}')
     for name, root in roots.items():
         # Optional desktop capabilities remain installed by default but removable.
+        reject_seeded_credentials(root)
         metadata=root/'DEBIAN/control'
         metadata.write_text(optional_metadata(metadata.read_text()))
         conffiles = sorted('/' + str(p.relative_to(root)) for p in (root / 'etc').rglob('*') if p.is_file())

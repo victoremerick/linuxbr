@@ -5,7 +5,11 @@ import configparser
 import json
 from pathlib import Path
 import shlex
+import sys
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from credential_policy import reject_seeded_credentials
 
 parser = argparse.ArgumentParser()
 parser.add_argument('root', type=Path)
@@ -48,6 +52,14 @@ sddm_background = sddm_theme.get('General', 'background', fallback='(ausente)')
 require(sddm_background == wallpaper,
         f'fundo SDDM grafite 4K: esperado {wallpaper!r}; encontrado {sddm_background!r}')
 require('LookAndFeelPackage=org.linuxbr.desktop' in read('etc/skel/.config/kdeglobals'), 'tema inicial KDE')
+try:
+    reject_seeded_credentials(root)
+except ValueError as error:
+    require(False, str(error))
+for path in ('usr/bin/linuxbr-credentials', 'usr/lib/linuxbr-system/credentials.py',
+             'etc/xdg/autostart/linuxbr-credentials.desktop',
+             'usr/share/applications/linuxbr-credentials.desktop'):
+    require((root / path).is_file(), 'cofre de credenciais: '+path)
 for path in ('usr/bin/linuxbr-welcome', 'usr/bin/linuxbr-task-manager', 'usr/lib/linuxbr-system/welcome.py',
              'usr/share/applications/linuxbr-welcome.desktop',
              'usr/share/applications/linuxbr-task-manager.desktop',
@@ -66,7 +78,8 @@ plymouth_config = configparser.ConfigParser(interpolation=None)
 plymouth_config.read_string(read('etc/plymouth/plymouthd.conf'))
 require(plymouth_config.get('Daemon', 'Theme', fallback='') == 'linuxbr', 'tema Plymouth ativo')
 status = read('var/lib/dpkg/status')
-for package in ('chromium','chromium-l10n','chromium-sandbox','kup-backup','bup','rsync'):
+for package in ('chromium','chromium-l10n','chromium-sandbox','kup-backup','bup','rsync',
+                'gnome-keyring','libpam-gnome-keyring','gir1.2-secret-1','seahorse'):
     require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
                 for stanza in status.split('\n\n')), 'aplicativos web: '+package)
 metadata=json.loads(read('usr/share/linuxbr/release-info.json'))

@@ -43,6 +43,8 @@ add('system','environment','Variáveis de ambiente','Preferências de ambiente d
 add('system','scheduler','Agendador de Tarefas','Programas, argumentos, horários e execução das tarefas agendadas.','appointment-new','tool','administration','3')
 add('system','system-configuration','Configuração do Sistema','Inicialização normal, diagnóstica, serviços, programas automáticos e ferramentas.','preferences-system','app','linuxbr-msconfig',keywords='msconfig configuração seletiva boot')
 add('system','boot-options','Configurações de inicialização','Modo de segurança, terminal, vídeo básico, diagnóstico e manutenção no próximo boot.','system-reboot','app','linuxbr-boot-options',keywords='F8 segurança recuperação shift reiniciar')
+add('accounts','credentials-unlock','Desbloquear credenciais e senhas','Preparar o cofre seguro antes de entrar nos aplicativos.','wallet-open','app','linuxbr-credentials','--unlock',keywords='Office Microsoft Bottles autenticação login cofre')
+add('accounts','credentials-store','Gerenciar senhas e cofres','Consultar o cofre seguro e alterar sua senha no gerenciador nativo.','dialog-password','app','seahorse',keywords='keyring credenciais segredos login')
 native('devices',[
  ('bluetooth','Bluetooth','Parear, conectar e remover dispositivos Bluetooth.','preferences-system-bluetooth','kcm_bluetooth'),
  ('printers','Impressoras e scanners','Adicionar impressoras, padrões, propriedades e filas.','printer','kcm_printer_manager'),
