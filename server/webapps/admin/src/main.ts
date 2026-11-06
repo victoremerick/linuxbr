@@ -6,7 +6,7 @@ interface Application {kind?:string; builtin?:boolean; id:string; name:string; d
 const empty=():Application=>({id:'',name:'',description:'',category:'Produtividade',url:'https://',source:'https://',favicon:'https://',screenshots:[],linux_available:'unknown',changelog:'',upstream_version:null,upstream_release_url:null,revision:0,status:'draft'});
 
 @Component({selector:'catalog-root',standalone:true,imports:[FormsModule],template:`
-<div class="shell"><aside><div class="brand"><span class="brandmark">BR</span><div>Linux BR<small>{{user()?'Gerenciamento de aplicativos':'Loja de aplicativos'}}</small></div></div>
+<div class="shell" [class.public-store]="!user()"><aside><div class="brand"><span class="brandmark"><img src="/assets/linuxbr-symbol.svg" width="42" height="42" alt=""></span><div>Linux BR<small>{{user()?'Gerenciamento de aplicativos':'Loja de aplicativos'}}</small></div></div>
 <a class="home-link" href="/">← Conheça o Linux BR</a><a class="home-link" href="https://github.com/victoremerick/linuxbr/releases" target="_blank" rel="noopener noreferrer">Versões e Releases ↗</a><nav aria-label="Seções"><button [class.selected]="tab()==='catalog'" (click)="tab.set('catalog')">▦ &nbsp; Aplicativos</button>
 @if(user()){<button [class.selected]="tab()==='checks'" (click)="openChecks()">✓ &nbsp; Verificações</button><button [class.selected]="tab()==='audit'" (click)="openAudit()">◷ &nbsp; Histórico</button><button [class.selected]="tab()==='submissions'" (click)="openSubmissions()">☆ &nbsp; Sugestões</button>}
 <button [class.selected]="tab()==='source'" (click)="sourceInfo()">⇄ &nbsp; Conectar à Loja</button></nav>

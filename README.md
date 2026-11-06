@@ -16,6 +16,7 @@ As entradas abaixo distinguem imagens ISO, revisões de código e atualizações
 
 ### 1.0 RC 3 — 1.0.0~rc3 — em validação
 
+- Revisão independente do site: identidade própria com o símbolo oficial do sistema, paleta grafite/amarelo/violeta/verde e loja pública integrada visualmente. A fonte da ISO permanece fixada na branch `codex/release-1.0-rc3`. Consulte as [evidências do site](docs/validations/website-identity-2026-11-06.json).
 - Nova candidata com os ajustes posteriores à ISO RC 2, sem reaproveitar o sistema live de uma compilação anterior.
 - Cofre de credenciais preparado na sessão, diagnóstico de gravação/leitura e proteção contra inclusão de cofres pré-criados na imagem.
 - Integração de janelas do Bottles com o desktop, recuperação do catálogo do menu Iniciar e registro dos limites conhecidos do Microsoft 365.

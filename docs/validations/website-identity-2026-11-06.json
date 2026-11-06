@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-06",
+  "scope": "Revisão independente da identidade visual do site e da loja pública Linux BR",
+  "site": "https://linuxbr.homedeveloper.com.br",
+  "identity": {
+    "symbol": "Símbolo oficial existente na identidade do sistema",
+    "palette": ["#182026", "#e4df91", "#9690d9", "#8edb91"],
+    "layout": "Navegação e apresentação próprias, seções numeradas, contraste de áreas grafite e claras"
+  },
+  "checks": [
+    {"action": "Compilação Angular", "result": "PASS"},
+    {"action": "Navegador em 1440 px e 390 px", "result": "PASS", "horizontal_overflow": false, "script_errors": 0},
+    {"action": "Carregamento dos símbolos SVG locais", "result": "PASS"},
+    {"action": "Loja com 33 aplicativos, busca e filtros", "result": "PASS"},
+    {"action": "Tela administrativa acessível e consulta anônima protegida", "result": "PASS", "anonymous_admin_http": 401},
+    {"action": "Cinco caminhos privados continuam inacessíveis pelo domínio", "result": "PASS", "http_status": 404},
+    {"action": "Chave pública de assinatura do catálogo preservada", "result": "PASS"}
+  ],
+  "deployment": {"result": "PASS", "files": 17, "previous_files_backed_up_outside_public_root": true},
+  "iso_build": {
+    "source_commit": "aae6b9d4101ac1b05046e2e1ebb3615764e88624",
+    "branch": "codex/release-1.0-rc3",
+    "note": "A fonte da ISO permanece fixada. Esta revisão altera somente o site e os registros de sua identidade visual."
+  }
+}
