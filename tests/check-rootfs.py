@@ -60,6 +60,14 @@ for path in ('usr/bin/linuxbr-credentials', 'usr/lib/linuxbr-system/credentials.
              'etc/xdg/autostart/linuxbr-credentials.desktop',
              'usr/share/applications/linuxbr-credentials.desktop'):
     require((root / path).is_file(), 'cofre de credenciais: '+path)
+require(read('var/lib/linuxbr/credential-session-policy-v1').strip() == 'pam-dbus',
+        'cofre inicializado depois da autenticação PAM')
+for unit, target in (('gnome-keyring-daemon.service', 'graphical-session-pre.target'),
+                     ('gnome-keyring-daemon.socket', 'sockets.target')):
+    require(not (root / 'etc/systemd/user' / (target + '.wants') / unit).is_symlink(),
+            'cofre sem inicialização global antecipada: ' + unit)
+    require('disable ' + unit in read('usr/lib/systemd/user-preset/50-linuxbr-credentials.preset'),
+            'política padrão de credenciais: ' + unit)
 for path in ('usr/bin/linuxbr-welcome', 'usr/bin/linuxbr-task-manager', 'usr/lib/linuxbr-system/welcome.py',
              'usr/share/applications/linuxbr-welcome.desktop',
              'usr/share/applications/linuxbr-task-manager.desktop',

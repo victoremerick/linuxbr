@@ -256,6 +256,14 @@ if [ "$1" = configure ] || [ "$1" = triggered ]; then
     fi
 fi
 if [ "$1" = configure ]; then
+    # PAM creates and unlocks the login store before D-Bus initializes secrets.
+    # Apply the default once; later administrator choices remain intact.
+    credential_policy=/var/lib/linuxbr/credential-session-policy-v1
+    if [ ! -e "$credential_policy" ]; then
+        systemctl --global disable gnome-keyring-daemon.service gnome-keyring-daemon.socket
+        install -d -m 0755 /var/lib/linuxbr
+        printf 'pam-dbus\\n' > "$credential_policy"
+    fi
     for path in '''+store_paths+'''; do
         owner=$(dpkg-divert --listpackage "$path")
         if [ -z "$owner" ]; then

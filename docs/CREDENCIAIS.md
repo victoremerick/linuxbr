@@ -4,6 +4,8 @@ O armazenamento seguro da sessão deve estar disponível antes de entrar em apli
 
 Ao entrar no desktop, `linuxbr-credentials --prepare-session` consulta o cofre padrão. Se estiver bloqueado, o próprio provedor apresenta a solicitação de desbloqueio. Se não existir, o provedor pode solicitar a criação de um cofre protegido. Cancelar não bloqueia o desktop. Nenhuma senha é recebida pelo comando do Linux BR, passada como argumento ou registrada em arquivo.
 
+A RC 3 também corrige a ordem de inicialização em contas novas: o PAM prepara e desbloqueia o cofre no login, e a ativação D-Bus inicializa o serviço depois. As unidades globais antecipadas do GNOME Keyring são desabilitadas uma vez na configuração do pacote. A política não reinicia processos da sessão nem modifica arquivos de cofres; contas já abertas recebem a nova ordem no próximo login. Preferências posteriores do administrador são preservadas.
+
 A senha do cofre pode ser diferente da senha atual da conta depois de uma redefinição administrativa. Nessa situação, use a senha anterior do cofre e altere-a pelo gerenciador de credenciais. O sistema não apaga, substitui ou redefine automaticamente cofres existentes, mesmo que pareçam vazios. Entradas e logins de outros aplicativos são preservados.
 
 ## Conferência e recuperação

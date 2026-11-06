@@ -8,7 +8,9 @@ ou programas Windows.
 ## O que mudou
 
 - Cofre de credenciais: preparação na sessão, desbloqueio pelo provedor nativo,
-  diagnóstico com entrada temporária e dependências explícitas. Cofres existentes
+  diagnóstico com entrada temporária e dependências explícitas. A ordem entre
+  autenticação PAM e ativação D-Bus evita o cofre indisponível no primeiro login.
+  Cofres existentes
   são preservados e a compilação rejeita cofres pré-criados em contas novas.
 - Janelas de programas Windows: lançador de perfil X11/Xwayland para Bottles,
   mantendo as janelas sob controle do desktop. O ensaio do Word no computador
