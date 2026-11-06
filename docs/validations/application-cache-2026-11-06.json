@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-06",
+  "scope": "Linux BR 1.0 RC 2 instalado; recuperação do catálogo de aplicativos; revisão posterior à ISO",
+  "reported_sequence": "Falha percebida após recarga do stream PiKVM e mudança temporária de resolução.",
+  "observations": [
+    "Pasta /home/victor existente e acessível; HOME e diretório de trabalho corretos na sessão Plasma.",
+    "Clique no Explorador pela barra reproduziu Pasta de aplicativos desconhecida; ícones fixados estavam genéricos.",
+    "A sessão utiliza XDG_MENU_PREFIX=plasma- e /etc/xdg/menus/plasma-applications.menu.",
+    "Reconstrução anterior pela manutenção remota não transportava XDG_MENU_PREFIX e XDG_CONFIG_DIRS.",
+    "Reconstrução com as variáveis do menu restaurou ícones e abertura dos atalhos sem reiniciar a sessão."
+  ],
+  "checks": [
+    {"command": "python3 tests/test-application-cache.py", "tests": 4, "result": "PASS"},
+    {"command": "python3 tests/test-maintenance-08.py", "tests": 13, "result": "PASS"},
+    {"command": "linuxbr-refresh-applications", "environment": "manutenção SSH sem variáveis gráficas do Plasma", "exit": 0, "result": "PASS"},
+    {"action": "Abrir Explorador, Configurações e Loja pela barra de tarefas", "result": "PASS"},
+    {"action": "HDMI-A-1: 1600x900 → 1280x720 → 1600x900", "result": "PASS", "original_resolution_restored": true},
+    {"action": "Abrir Explorador pela barra após mudança de resolução", "result": "PASS"}
+  ],
+  "implementation": [
+    "linuxbr-refresh-applications valida a existência da definição do menu antes de chamar kbuildsycoca6.",
+    "Na ausência de XDG_MENU_PREFIX, seleciona plasma-; inclui os diretórios de exportação Flatpak no ambiente da reconstrução.",
+    "Execução como root recusada; preferências, atalhos e arquivos pessoais preservados.",
+    "Ação de recuperação disponível em Solução de problemas → Atalhos e menu Iniciar."
+  ],
+  "limitations": [
+    "A sequência relatada não comprova que a mudança de resolução corrompeu o catálogo.",
+    "O teste de resolução não reproduz desconexão física HDMI nem todas as etapas de recarga do PiKVM.",
+    "Sem nova ISO ou compilação completa de pacotes nesta revisão."
+  ]
+}

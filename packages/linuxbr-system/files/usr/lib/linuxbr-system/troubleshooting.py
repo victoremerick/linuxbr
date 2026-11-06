@@ -3,6 +3,10 @@ import shutil
 from protection_status import command
 
 PROBLEMS = {
+    'Atalhos e menu Iniciar': {
+        'checks': [('Definição do catálogo de aplicativos', ['linuxbr-refresh-applications', '--check'])],
+        'actions': [('Reconstruir catálogo de aplicativos', ['linuxbr-refresh-applications'], 'view-refresh')],
+        'help': 'Se os ícones ficarem genéricos ou aparecer Pasta de aplicativos desconhecida, reconstrua o catálogo. A operação preserva atalhos, preferências e arquivos pessoais. A existência da definição do menu não comprova que o cache atual está íntegro.'},
     'Login e senhas dos aplicativos': {
         'checks': [('Armazenamento seguro da sessão', ['linuxbr-credentials', '--check', '--probe'])],
         'actions': [('Desbloquear o cofre de credenciais', ['linuxbr-credentials', '--unlock'], 'wallet-open'),

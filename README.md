@@ -16,6 +16,7 @@ As entradas abaixo distinguem imagens ISO, revisões de código e atualizações
 
 ### 1.0 RC 2 — 1.0.0~rc2 — em desenvolvimento
 
+- Revisão posterior à ISO: recuperação do catálogo de aplicativos com definição de menu Plasma validada antes da reconstrução, incluindo fontes Flatpak. A opção aparece em Solução de problemas → Atalhos e menu Iniciar. O ensaio de mudança temporária de resolução preservou a abertura dos atalhos; a reconexão completa do PiKVM ainda não foi reproduzida. Consulte as [evidências do catálogo](docs/validations/application-cache-2026-11-06.json).
 - Revisão posterior à ISO: lançador de janelas individuais para Bottles, com X11/Xwayland limitado ao aplicativo e preparação opcional sem área de trabalho virtual. Minimizar, restaurar e maximizar o Word foram conferidos no gerenciador de janelas do computador de referência; isso não aprova todos os recursos do Microsoft 365. Consulte [Office e janelas](docs/OFFICE-E-JANELAS.md).
 - Revisão posterior à ISO: preparação do cofre seguro no início da sessão, desbloqueio pelo provedor nativo e diagnóstico de gravação/leitura com entrada temporária. Cofres existentes são preservados. Dependências do serviço e integração PAM explícitas; compilação e conferência da imagem rejeitam cofres de usuário pré-criados em contas novas. Consulte [Credenciais e logins](docs/CREDENCIAIS.md).
 - Detecção de perfis web em execução compatível com o formato de título de processo usado pelo Chromium atual, inclusive quando o caminho contém espaços.
