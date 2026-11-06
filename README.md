@@ -1,8 +1,8 @@
-# Linux BR 1.0 RC 2
+# Linux BR 1.0 RC 3
 
 Distribuição experimental baseada em Debian 13, KDE Plasma 6 e Calamares, com interface em português e uso familiar para quem vem do Windows.
 
-A 1.0 está em desenvolvimento como candidata RC 2, a partir da 0.9 Beta 1. O trabalho concentra configuração inicial, consistência da interface, Loja, compatibilidade documentada e critérios verificáveis de publicação. Consulte o [escopo e a matriz da 1.0](docs/VERSAO-1.0.md). Esta identificação ainda não representa uma versão estável aprovada.
+A 1.0 está em desenvolvimento como candidata RC 3, a partir da 0.9 Beta 1. O trabalho concentra configuração inicial, consistência da interface, Loja, compatibilidade documentada e critérios verificáveis de publicação. Consulte o [escopo e a matriz da 1.0](docs/VERSAO-1.0.md). Esta identificação ainda não representa uma versão estável aprovada.
 
 A Loja Linux BR, o gerenciador gráfico de máquinas virtuais, as propriedades de arquivos e as ferramentas de migração continuam integrados ao sistema. O histórico abaixo reúne as alterações de cada versão.
 
@@ -14,7 +14,16 @@ Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperaç
 
 As entradas abaixo distinguem imagens ISO, revisões de código e atualizações por pacote. As revisões incrementais não alteram retroativamente uma ISO já construída. Este histórico reúne os registros disponíveis; a ausência de uma validação não equivale à aprovação daquele recurso.
 
-### 1.0 RC 2 — 1.0.0~rc2 — em desenvolvimento
+### 1.0 RC 3 — 1.0.0~rc3 — em validação
+
+- Nova candidata com os ajustes posteriores à ISO RC 2, sem reaproveitar o sistema live de uma compilação anterior.
+- Cofre de credenciais preparado na sessão, diagnóstico de gravação/leitura e proteção contra inclusão de cofres pré-criados na imagem.
+- Integração de janelas do Bottles com o desktop, recuperação do catálogo do menu Iniciar e registro dos limites conhecidos do Microsoft 365.
+- Links da loja web abrem fichas de aplicativos Linux ou webapps de fontes já habilitadas, preservando a confirmação de instalação.
+- Publicação das versões pelo GitHub Releases, com notas, partes de ISO quando necessário e checksums dos arquivos originais e enviados.
+- As evidências da ISO RC 3 serão identificadas pelo hash do novo artefato. O estado de candidata permanece; resultados de versões anteriores não aprovam esta imagem.
+
+### 1.0 RC 2 — 1.0.0~rc2 — candidata anterior
 
 - Revisão posterior à ISO: site de apresentação do sistema, loja pública Linux/web/Windows e administração preservada. Links `linuxbr-store://` selecionam aplicativos de fontes já habilitadas sem instalar silenciosamente. Fluxo de publicação no GitHub Releases com notas, checksums e divisão de ISOs grandes; consulta automática das versões no site. Consulte [Publicação no GitHub](docs/PUBLICACAO-GITHUB.md).
 - Revisão posterior à ISO: recuperação do catálogo de aplicativos com definição de menu Plasma validada antes da reconstrução, incluindo fontes Flatpak. A opção aparece em Solução de problemas → Atalhos e menu Iniciar. O ensaio de mudança temporária de resolução preservou a abertura dos atalhos; a reconexão completa do PiKVM ainda não foi reproduzida. Consulte as [evidências do catálogo](docs/validations/application-cache-2026-11-06.json).
