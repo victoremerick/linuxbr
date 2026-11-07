@@ -6,6 +6,8 @@ Ao entrar no desktop, `linuxbr-credentials --prepare-session` consulta o cofre p
 
 A RC 3 também corrige a ordem de inicialização em contas novas: o PAM prepara e desbloqueia o cofre no login, e a ativação D-Bus inicializa o serviço depois. As unidades globais antecipadas do GNOME Keyring são desabilitadas uma vez na configuração do pacote. A política não reinicia processos da sessão nem modifica arquivos de cofres; contas já abertas recebem a nova ordem no próximo login. Preferências posteriores do administrador são preservadas.
 
+O KWallet fornecido pela distribuição grava as alterações do cofre antes de responder aos aplicativos, em vez de adiar a gravação. Isso evita perder entradas recém-criadas quando o reinício é solicitado logo em seguida. O formato dos cofres e as credenciais existentes são mantidos. O pacote é recompilado da fonte Debian 6.13.0-1, com origem e patch registrados na compilação.
+
 A senha do cofre pode ser diferente da senha atual da conta depois de uma redefinição administrativa. Nessa situação, use a senha anterior do cofre e altere-a pelo gerenciador de credenciais. O sistema não apaga, substitui ou redefine automaticamente cofres existentes, mesmo que pareçam vazios. Entradas e logins de outros aplicativos são preservados.
 
 ## Conferência e recuperação

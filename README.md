@@ -18,7 +18,7 @@ As entradas abaixo distinguem imagens ISO, revisões de código e atualizações
 
 - Revisão independente do site: identidade própria com o símbolo oficial do sistema, paleta grafite/amarelo/violeta/verde e loja pública integrada visualmente. A fonte da ISO permanece fixada na branch `codex/release-1.0-rc3`. Consulte as [evidências do site](docs/validations/website-identity-2026-11-06.json).
 - Nova candidata com os ajustes posteriores à ISO RC 2, sem reaproveitar o sistema live de uma compilação anterior.
-- Cofre de credenciais preparado na sessão, ordem de inicialização PAM/D-Bus corrigida para o primeiro login, diagnóstico de gravação/leitura e proteção contra inclusão de cofres pré-criados na imagem.
+- Cofre de credenciais preparado na sessão, ordem de inicialização PAM/D-Bus corrigida para o primeiro login, diagnóstico de gravação/leitura e proteção contra inclusão de cofres pré-criados na imagem. O KWallet grava as alterações antes de confirmar a operação, inclusive em reinícios imediatos.
 - Integração de janelas do Bottles com o desktop, recuperação do catálogo do menu Iniciar e registro dos limites conhecidos do Microsoft 365.
 - Links da loja web abrem fichas de aplicativos Linux ou webapps de fontes já habilitadas, preservando a confirmação de instalação.
 - Publicação das versões pelo GitHub Releases, com notas, partes de ISO quando necessário e checksums dos arquivos originais e enviados.

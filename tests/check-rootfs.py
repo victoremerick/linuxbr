@@ -90,6 +90,11 @@ for package in ('chromium','chromium-l10n','chromium-sandbox','kup-backup','bup'
                 'gnome-keyring','libpam-gnome-keyring','gir1.2-secret-1','seahorse'):
     require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
                 for stanza in status.split('\n\n')), 'aplicativos web: '+package)
+for package in ('kwallet6', 'libkf6wallet-data', 'libkf6wallet6', 'libkf6walletbackend6'):
+    require(any(f'Package: {package}\n' in stanza and 'Status: install ok installed' in stanza
+                and 'Version: 6.13.0-1+linuxbr2\n' in stanza + '\n'
+                for stanza in status.split('\n\n')), 'cofre com gravação persistente: ' + package)
+
 metadata=json.loads(read('usr/share/linuxbr/release-info.json'))
 require(metadata['version']==version,'metadados da distribuição')
 for path in ('usr/bin/linuxbr-recovery','usr/bin/linuxbr-setup','usr/bin/linuxbr-session-actions',

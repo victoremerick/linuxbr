@@ -12,6 +12,8 @@ ou programas Windows.
   autenticação PAM e ativação D-Bus evita o cofre indisponível no primeiro login.
   Cofres existentes
   são preservados e a compilação rejeita cofres pré-criados em contas novas.
+- Persistência do cofre: KWallet recompilado para gravar as alterações antes de
+  confirmar a operação, evitando perder entradas recém-criadas em reinícios imediatos.
 - Janelas de programas Windows: lançador de perfil X11/Xwayland para Bottles,
   mantendo as janelas sob controle do desktop. O ensaio do Word no computador
   de referência confirmou minimizar, maximizar e restaurar. Microsoft 365 é

@@ -1,0 +1,10 @@
+--- a/src/runtime/kwalletd/kwalletd.cpp
++++ b/src/runtime/kwalletd/kwalletd.cpp
+@@ -947,5 +947,4 @@
+ {
+-    // add a timer and reset it right away
+-    _syncTimers.addTimer(handle, _syncTime);
+-    _syncTimers.resetTimer(handle, _syncTime);
++    // Commit changes before a successful mutation can be followed by shutdown.
++    timedOutSync(handle);
+ }
