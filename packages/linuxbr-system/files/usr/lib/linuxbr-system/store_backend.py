@@ -350,7 +350,11 @@ def local_action(item):
     if not item:return None
     if item.get('desktop_id'):
         from gi.repository import Gio
-        app=Gio.DesktopAppInfo.new(item['desktop_id'])
+        try:
+            app = Gio.DesktopAppInfo.new(item['desktop_id'])
+        except TypeError:
+            # PyGObject raises when the launcher disappears during package removal.
+            app = None
         if not app or not app.should_show():raise ValueError('Este aplicativo não está mais disponível.')
         return ['/usr/bin/gio','launch',app.get_filename()]
     if item.get('profile_id'):return ['linuxbr-webapps','--launch',web.checked_id(item['profile_id'])]

@@ -156,6 +156,13 @@ class OptionalSources11(unittest.TestCase):
             self.assertEqual(rows[0]['optional_target']['manager'], 'snap')
             self.assertEqual(rows[0]['desktop_file'], entry['desktop_file'])
 
+    def test_removed_desktop_launcher_is_reported_as_unavailable(self):
+        from gi.repository import Gio
+
+        with patch.object(Gio.DesktopAppInfo, 'new', side_effect=TypeError('constructor returned NULL')):
+            with self.assertRaisesRegex(ValueError, 'aplicativo não está mais disponível'):
+                store_backend.local_action({'desktop_id': 'example-app_main.desktop'})
+
     def test_installed_snap_reports_scheduler_information(self):
         info = {'refresh': {'next': '2026-11-11T01:30:00Z', 'hold': '2026-11-11T01:00:00Z'}}
         with patch.object(optional, 'snap_get', side_effect=[[SNAP], info]):
