@@ -16,6 +16,13 @@ from threading import Thread
 import time
 
 
+def login_screen(text):
+    actions = ('suspender', 'reiniciar', 'desligar', 'outros')
+    return ('senha' in text and
+            (sum(action in text for action in actions) >= 2 or
+             'plasma' in text and 'teclado virtual' in text))
+
+
 def guest_probe(marker, firmware, version):
     return f'''#!/bin/sh
 set -eu
@@ -70,6 +77,7 @@ class Monitor:
     def __init__(self, path, process):
         self.path = path
         self.process = process
+        self.last_ocr = ''
 
     def command(self, operation, **arguments):
         with socket.socket(socket.AF_UNIX) as connection:
@@ -106,16 +114,34 @@ class Monitor:
                 self.keys(character)
         self.keys('ret')
 
+    def read_screen(self, screen):
+        self.command('screendump', filename=str(screen))
+        self.last_ocr = subprocess.check_output(
+            ['tesseract', str(screen), 'stdout', '--psm', '11'],
+            text=True, stderr=subprocess.DEVNULL, timeout=15).lower()
+        screen.with_suffix('.ocr.txt').write_text(self.last_ocr)
+        return self.last_ocr
+
+    def failure_screen(self, screen, reason):
+        print('Falha na navegação. '+str(reason), flush=True)
+        try:
+            if self.path.is_socket() and self.process.poll() is None:
+                self.read_screen(screen)
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+            print('Captura adicional indisponível. '+str(error), flush=True)
+        print('Último texto reconhecido na tela\n'+(self.last_ocr[-6000:] or '(vazio)'), flush=True)
+        print('Captura e OCR em '+str(screen)+' e '+str(screen.with_suffix('.ocr.txt')), flush=True)
+
     def wait_screen(self, screen, deadline, predicate, description):
+        print('Aguardando '+description+'.', flush=True)
         while time.monotonic() < deadline:
             if self.process.poll() is not None:
                 raise RuntimeError('QEMU encerrou antes de '+description+'.')
             if self.path.is_socket():
-                self.command('screendump', filename=str(screen))
-                text = subprocess.check_output(
-                    ['tesseract', str(screen), 'stdout', '--psm', '11'],
-                    text=True, stderr=subprocess.DEVNULL, timeout=15).lower()
+                text = self.read_screen(screen)
                 if predicate(text):
+                    print('Reconhecido '+description+'.', flush=True)
+                    print('Texto reconhecido\n'+text[-6000:], flush=True)
                     return text
             time.sleep(3)
         raise RuntimeError('Tempo excedido aguardando '+description+'.')
@@ -149,9 +175,17 @@ def check_boot(iso, evidence, version, firmware, timeout):
             with (evidence / f'{firmware}-qemu.log').open('wb') as output:
                 process = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=output,
                                            stderr=subprocess.STDOUT)
+                monitor = Monitor(qmp, process)
                 try:
-                    verify_session(Monitor(qmp, process), screen, serial, evidence,
+                    verify_session(monitor, screen, serial, evidence,
                                    firmware, version, marker, time.monotonic()+timeout, use_kvm)
+                except Exception as error:
+                    monitor.failure_screen(screen, error)
+                    if serial.exists():
+                        print('Última saída serial\n'+serial.read_text(errors='replace')[-6000:], flush=True)
+                    print('Última saída do QEMU\n'+(evidence / f'{firmware}-qemu.log').read_text(errors='replace')[-6000:],
+                          flush=True)
+                    raise
                 finally:
                     if process.poll() is None:
                         process.terminate()
@@ -168,9 +202,6 @@ def check_boot(iso, evidence, version, firmware, timeout):
 def verify_session(monitor, screen, serial, evidence, firmware, version, marker, deadline, kvm):
     print(f'Iniciando Live {firmware.upper()} com {"KVM" if kvm else "TCG"}.', flush=True)
 
-    def login_screen(text):
-        return 'senha' in text and re.search(r'linux\s*br', text)
-
     boot = monitor.wait_screen(screen, deadline, lambda text: login_screen(text)
                                or re.search(r'iniciar\s+linux\s*br', text),
                                'menu de boot ou login gráfico')
@@ -179,10 +210,12 @@ def verify_session(monitor, screen, serial, evidence, firmware, version, marker,
         monitor.keys('ret')
         monitor.wait_screen(screen, deadline, login_screen, 'login gráfico')
     shutil.copyfile(screen, evidence / f'{firmware}-greeter.ppm')
+    print('Enviando a senha da conta temporária Live.', flush=True)
     monitor.type_command('live')
     monitor.wait_screen(screen, deadline, lambda text: not login_screen(text), 'entrada no desktop')
     time.sleep(25 if kvm else 45)
     monitor.command('screendump', filename=str(evidence / f'{firmware}-desktop.ppm'))
+    print('Abrindo o console Live no TTY6.', flush=True)
     monitor.keys('ctrl', 'alt', 'f6')
     console = monitor.wait_screen(screen, deadline, lambda text: re.search(
         r'user\s*[@©]\s*linuxbr|linuxbr\s+login\s*:\s*$', text, re.M), 'console Live')
@@ -196,6 +229,7 @@ def verify_session(monitor, screen, serial, evidence, firmware, version, marker,
     monitor.type_command('curl -fsS http://10.0.2.100:8888/probe.sh -o /tmp/probe.sh')
     time.sleep(4)
     monitor.type_command('sudo sh /tmp/probe.sh')
+    print('Verificação enviada. Aguardando confirmação do guest no serial.', flush=True)
     while time.monotonic() < deadline:
         data = serial.read_text(errors='replace') if serial.exists() else ''
         outcome = re.search(re.escape(marker)+r' ([^\r\n]+)', data)
