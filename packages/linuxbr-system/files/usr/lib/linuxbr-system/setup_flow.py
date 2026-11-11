@@ -74,6 +74,11 @@ class SetupWizard(QWizard):
             page=QWizardPage();page.setTitle(title)
             page.setSubTitle(f'Etapa {index+1} de {len(STEPS)} · Você pode fechar e retomar quando quiser.')
             body=QVBoxLayout(page);body.setSpacing(18)
+            if key == 'accounts':
+                organization = QPushButton(QIcon.fromTheme('network-server'), 'Preparar para trabalho ou escola…')
+                organization.clicked.connect(lambda: launch(self, ['/usr/bin/python3',
+                    str(Path(__file__).with_name('organization_preparation.py'))]))
+                body.addWidget(organization)
             text=QLabel(description);text.setWordWrap(True);body.addWidget(text)
             if key=='region':
                 field=QLineEdit();field.setPlaceholderText('Experimente: ação, açúcar, R$ 1.234,56, / e ?')

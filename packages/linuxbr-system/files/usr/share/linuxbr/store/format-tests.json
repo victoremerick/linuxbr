@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "tests": [
+    {
+      "manager": "brew",
+      "target": "hello",
+      "origin": "https://formulae.brew.sh/formula/",
+      "artifact": "ab40f4006173c63e0d138bdd2b6634ee467f4685c2b130a3edaa712bfee0809a",
+      "linuxbr": "1.1 em desenvolvimento",
+      "version": "2.12.3, pacote binário 1",
+      "architecture": "x86_64",
+      "date": "2026-11-10",
+      "environment": "laboratory",
+      "result": "pass",
+      "checks": "Instalação, identificação na biblioteca, execução e remoção pela integração Homebrew Core.",
+      "evidence": "Contêiner Debian 13. O comando hello executou Hello, world! e ficou ausente após a remoção."
+    }
+  ]
+}

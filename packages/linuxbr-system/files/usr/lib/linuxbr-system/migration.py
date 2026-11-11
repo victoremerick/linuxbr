@@ -7,7 +7,7 @@ import threading
 from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (QApplication, QComboBox, QFileDialog, QHBoxLayout, QLabel,
-    QLineEdit, QListWidget, QMainWindow, QMessageBox, QProgressBar, QPushButton,
+    QInputDialog, QLineEdit, QListWidget, QMainWindow, QMessageBox, QProgressBar, QPushButton,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QHeaderView)
 from migration_backend import Cancelled, prepare, save_report, transfer
 from visual_style import BUTTONS
@@ -64,6 +64,7 @@ class MigrationWindow(QMainWindow):
         self.policy = QComboBox(); self.policy.addItem('Manter ambos com nomes diferentes', 'keep')
         self.policy.setAccessibleName('O que fazer quando um nome já existe no destino')
         self.policy.addItem('Ignorar o arquivo da origem', 'skip'); self.policy.addItem('Substituir o arquivo do destino', 'replace')
+        self.policy.currentIndexChanged.connect(self.invalidate)
         row.addWidget(self.policy, 1)
         self.preview = QTableWidget(0, 3); self.preview.setHorizontalHeaderLabels(['Pasta no destino', 'Arquivos', 'Tamanho'])
         self.preview.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -81,7 +82,23 @@ class MigrationWindow(QMainWindow):
         self.start.setEnabled(False); self.start.clicked.connect(self.start_copy); row.addWidget(self.start)
         self.stop = SettingsButton('Cancelar operação'); self.stop.setIcon(QIcon.fromTheme('process-stop'))
         self.stop.setEnabled(False); self.stop.clicked.connect(self.cancel); row.addWidget(self.stop)
-        for control in (self.add, self.remove, self.pick, self.scan, self.start, self.stop):
+        self.bookmarks = SettingsButton('Preparar favoritos do navegador…')
+        self.bookmarks.setIcon(QIcon.fromTheme('bookmarks'))
+        self.bookmarks.clicked.connect(self.prepare_bookmarks)
+        self.alternatives = SettingsButton('Encontrar alternativas para programas…')
+        self.alternatives.setIcon(QIcon.fromTheme('system-software-install'))
+        self.alternatives.clicked.connect(self.suggest_programs)
+        if not restore:
+            extras = QHBoxLayout()
+            extras.addWidget(self.bookmarks)
+            extras.addWidget(self.alternatives)
+            extras.addStretch()
+            body.addLayout(extras)
+        else:
+            self.bookmarks.hide()
+            self.alternatives.hide()
+        for control in (self.add, self.remove, self.pick, self.scan, self.start, self.stop,
+                        self.bookmarks, self.alternatives):
             control.setAutoDefault(False)
 
     def invalidate(self, *_):
@@ -99,8 +116,55 @@ class MigrationWindow(QMainWindow):
         folder = QFileDialog.getExistingDirectory(self, 'Escolher destino da cópia', self.destination.text())
         if folder: self.destination.setText(folder)
 
+    def prepare_bookmarks(self):
+        from migration_bookmarks import browser_file, load_bookmarks
+
+        source, _ = QFileDialog.getOpenFileName(self, 'Escolher favoritos exportados', '', 'HTML (*.html *.htm)')
+        if not source:
+            return
+        try:
+            links = load_bookmarks(source)
+            if QMessageBox.question(self, 'Preparar favoritos',
+                    f'Foram encontrados {len(links)} endereços web. Salvar uma cópia para importar pelo navegador?'
+                    ) != QMessageBox.StandardButton.Yes:
+                return
+            target, _ = QFileDialog.getSaveFileName(self, 'Salvar favoritos para importação',
+                str(Path.home() / 'linuxbr-favoritos.html'), 'HTML (*.html)')
+            if not target:
+                return
+            with Path(target).open('x', encoding='utf-8') as output:
+                output.write(browser_file(links))
+            QMessageBox.information(self, 'Favoritos preparados',
+                'Abra o gerenciador de favoritos do navegador e escolha Importar de um arquivo HTML.')
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Favoritos não preparados', str(error))
+
+    def suggest_programs(self):
+        from PyQt6.QtCore import QProcess
+
+        alternatives = {'word': 'LibreOffice', 'excel': 'LibreOffice', 'powerpoint': 'LibreOffice',
+                        'photoshop': 'GIMP', 'winrar': 'Ark', '7-zip': 'Ark',
+                        'notepad++': 'Kate', 'outlook': 'Thunderbird', 'paint': 'KolourPaint'}
+        text, accepted = QInputDialog.getMultiLineText(self, 'Programas que você usa',
+            'Informe um nome por linha para consultar alternativas na Loja.')
+        if not accepted:
+            return
+        names = list(dict.fromkeys(line.strip()[:100] for line in text.splitlines()[:30] if line.strip()))
+        if not names:
+            return
+        suggestions = {f'{name} → {alternatives.get(name.casefold(), name)}':
+                       alternatives.get(name.casefold(), name) for name in names}
+        selected, accepted = QInputDialog.getItem(self, 'Consultar na Loja',
+            'Escolha um programa ou uma alternativa para pesquisar.', list(suggestions), editable=False)
+        if accepted:
+            started, _ = QProcess.startDetached('linuxbr-store', ['--search', suggestions[selected]])
+            if not started:
+                QMessageBox.information(self, 'Loja Linux BR',
+                                        'Abra a Loja e pesquise por ' + suggestions[selected] + '.')
+
     def busy(self, active):
-        for item in (self.add, self.remove, self.pick, self.destination, self.sources, self.policy, self.scan):
+        for item in (self.add, self.remove, self.pick, self.destination, self.sources,
+                     self.policy, self.scan, self.bookmarks, self.alternatives):
             item.setEnabled(not active)
         self.stop.setEnabled(active); self.start.setEnabled(not active and bool(self.plan and self.plan['enough_space']))
 
@@ -113,8 +177,9 @@ class MigrationWindow(QMainWindow):
     def scan_sources(self):
         sources = [self.sources.item(i).text() for i in range(self.sources.count())]
         target = self.destination.text(); self.invalidate(); self.status.setText('Conferindo pastas e espaço…')
+        policy = self.policy.currentData()
         self.progress.setRange(0, 0)
-        self.run_job(lambda cancel, progress: prepare(sources, target, cancel, progress), self.scanned)
+        self.run_job(lambda cancel, progress: prepare(sources, target, cancel, progress, policy=policy), self.scanned)
 
     def scanned(self, plan):
         self.plan = plan; self.preview.setRowCount(len(plan['sources']))
@@ -122,6 +187,8 @@ class MigrationWindow(QMainWindow):
             for column, value in enumerate((item['label'], str(item['files']), size_text(item['bytes']))):
                 self.preview.setItem(row, column, QTableWidgetItem(value))
         message = f"{len(plan['files'])} arquivos · {size_text(plan['bytes'])} · {size_text(plan['available'])} livres · {plan['conflicts']} nomes já existentes."
+        if plan['resume_bytes']:
+            message += f" {size_text(plan['resume_bytes'])} já conferidos no destino."
         if plan['skipped']: message += f" {len(plan['skipped'])} links ou arquivos especiais serão ignorados."
         if plan['errors']: message += f" {len(plan['errors'])} erros de leitura; o resultado será parcial."
         if not plan['enough_space']: message += ' Escolha um destino com mais espaço.'
@@ -145,7 +212,8 @@ class MigrationWindow(QMainWindow):
         states = {'completed': 'Importação concluída e conferida.', 'partial': 'Importação parcial; confira os erros no relatório.',
                   'cancelled': 'Importação cancelada. Os arquivos já concluídos foram mantidos.'}
         self.status.setText(states.get(report['status'], report['status']) +
-                            f" {len(report['copied'])} copiados, {len(report['skipped'])} ignorados e {len(report['errors'])} erros." + ending)
+                            f" {len(report['copied'])} copiados, {len(report.get('already_verified', []))} já conferidos, "
+                            f"{len(report['skipped'])} ignorados e {len(report['errors'])} erros." + ending)
         self.plan = None
 
     def show_progress(self, info):

@@ -51,12 +51,13 @@ def beneath(root_fd, parts, create=False):
         raise
 
 
-def prepare(sources, destination, cancel=None, notify=None):
+def prepare(sources, destination, cancel=None, notify=None, *, policy=None):
     destination = Path(destination).expanduser().resolve(strict=True)
     if not destination.is_dir():
         raise ValueError('Escolha uma pasta de destino existente.')
     result = {'destination': str(destination), 'sources': [], 'files': [], 'directories': [],
-              'bytes': 0, 'hashed_bytes': 0, 'skipped': [], 'errors': [], 'conflicts': 0}
+              'bytes': 0, 'hashed_bytes': 0, 'skipped': [], 'errors': [], 'conflicts': 0,
+              'resume_bytes': 0}
     labels = set()
     for raw in sources:
         check_cancel(cancel)
@@ -128,6 +129,16 @@ def prepare(sources, destination, cancel=None, notify=None):
                         target = destination / label / relative / name
                         if target.exists() or target.is_symlink():
                             result['conflicts'] += 1
+                            if policy == 'keep':
+                                try:
+                                    existing_fd = directory_fd(target.parent)
+                                    try:
+                                        if verified_copy(existing_fd, name, item, cancel):
+                                            result['resume_bytes'] += item['size']
+                                    finally:
+                                        os.close(existing_fd)
+                                except OSError:
+                                    pass
                         if len(result['files']) > 200000:
                             raise ValueError('Selecione menos de 200.000 arquivos por importação.')
                     except OSError as problem:
@@ -139,7 +150,8 @@ def prepare(sources, destination, cancel=None, notify=None):
     if not result['sources']:
         raise ValueError('Escolha ao menos uma pasta de origem.')
     result['available'] = shutil.disk_usage(destination).free
-    result['enough_space'] = result['available'] >= result['bytes'] + 16 * 1024**2
+    result['required_bytes'] = result['bytes'] - result['resume_bytes']
+    result['enough_space'] = result['available'] >= result['required_bytes'] + 16 * 1024**2
     return result
 
 
@@ -198,6 +210,35 @@ def conflict_name(fd, name, policy):
         if entry_info(fd, candidate) is None:
             return candidate, None
     raise ValueError('Não foi possível escolher um nome livre para ' + name)
+
+
+def verified_copy(fd, name, item, cancel):
+    """Find an unchanged copy created under the keep-both naming policy."""
+    original = Path(name)
+    for number in range(1, 100000):
+        candidate = name if number == 1 else f'{original.stem} ({number}){original.suffix}'
+        info = entry_info(fd, candidate)
+        if info is None:
+            return None
+        if not stat.S_ISREG(info.st_mode) or info.st_size != item['size']:
+            continue
+        try:
+            descriptor = os.open(candidate, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+                                 dir_fd=fd)
+        except (FileNotFoundError, PermissionError):
+            continue
+        try:
+            if fingerprint(os.fstat(descriptor)) != fingerprint(info):
+                continue
+            if digest_fd(descriptor, cancel) != item['sha256']:
+                continue
+            current = entry_info(fd, candidate)
+            if (current is not None and fingerprint(current) == fingerprint(info)
+                    and fingerprint(os.fstat(descriptor)) == fingerprint(info)):
+                return candidate
+        finally:
+            os.close(descriptor)
+    return None
 
 
 def copy_file(source_fd, destination_fd, item, name, previous, cancel, progress):
@@ -313,7 +354,7 @@ def transfer(plan, policy='keep', cancel=None, notify=None):
     if not plan.get('enough_space'):
         raise ValueError('Não há espaço livre suficiente no destino.')
     report = {'version': 1, 'started_at': datetime.now(timezone.utc).isoformat(),
-              'status': 'running', 'copied': [], 'skipped': [], 'errors': [], 'bytes': 0}
+              'status': 'running', 'copied': [], 'skipped': [], 'already_verified': [], 'errors': [], 'bytes': 0}
     roots = []
     destination_fd = directory_fd(plan['destination'])
     processed = 0
@@ -333,9 +374,22 @@ def transfer(plan, policy='keep', cancel=None, notify=None):
             try:
                 source_parent = beneath(roots[item['source']], item['parts'][:-1])
                 target_parent = beneath(destination_fd, [label] + item['parts'][:-1], create=True)
+                if policy == 'keep':
+                    existing = verified_copy(target_parent, item['parts'][-1], item, cancel)
+                    if existing is not None:
+                        source_info = entry_info(source_parent, item['parts'][-1])
+                        if source_info is None or fingerprint(source_info) != (
+                                item['device'], item['inode'], item['size'], item['mtime_ns'], item['ctime_ns']):
+                            raise ValueError('O arquivo de origem mudou após a conferência: ' + relative)
+                        report['already_verified'].append(str(Path(label, *item['parts'][:-1], existing)))
+                        processed += item['size']
+                        continue
                 name, previous = conflict_name(target_parent, item['parts'][-1], policy)
                 if name is None:
                     report['skipped'].append(relative); processed += item['size']; continue
+                space = os.fstatvfs(target_parent)
+                if space.f_bavail * space.f_frsize < item['size']:
+                    raise OSError('Espaço insuficiente para concluir a cópia.')
                 def progress(size):
                     nonlocal processed
                     processed += size

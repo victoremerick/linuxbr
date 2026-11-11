@@ -71,6 +71,12 @@ FLATPAK_PACKAGES = {
 def package_targets(item):
     """Explicit manager, origin and scope choices using observed local records."""
     if not item or item.get('kind')!='linux':return []
+    if item.get('optional_target'):
+        from store_optional import enabled
+        target = item['optional_target']
+        return [target] if enabled(target['manager']) else []
+    if item.get('provider_hint') == 'snap':
+        return []
     result=[]
     package=NATIVE_PACKAGES.get(item.get('id'))
     candidate=item.get('repository_package','')
@@ -109,6 +115,10 @@ def native_launch(item):
     """Return a fixed local argv, or None; absence is not proof of no installation."""
     if not item or item.get('kind') != 'linux':
         return None
+    target = item.get('optional_target')
+    if target and target['manager'] == 'snap':
+        from store_optional import snap_launch
+        return snap_launch(target)
     for command in NATIVE_LAUNCHERS.get(item.get('id'), ()):
         executable = Path(command[0])
         if executable.is_file() and os.access(executable, os.X_OK):
@@ -159,10 +169,29 @@ def action(item):
 
 def installed_entries(entries):
     result=desktop_applications()
+    snap_entries = {item['optional_target']['target']: item for item in entries
+                    if item.get('optional_target') and item['optional_target']['manager'] == 'snap'
+                    and item['optional_target']['installed']}
+    linked_snaps = set()
+    for item in result:
+        if item.get('provider_hint') == 'snap':
+            name = Path(item['desktop_file']).name.split('_', 1)[0]
+            if name in snap_entries:
+                source = snap_entries[name]
+                for field in ('optional_target', 'version', 'publisher', 'source', 'note', 'keywords'):
+                    item[field] = source[field]
+                linked_snaps.add(name)
     # Desktop entries can share an executable but select different components
     # through arguments (Writer, Calc, Impress). Preserve every visible entry.
     known={item.pop('_executable',None) for item in result}
     for item in entries:
+        if item.get('optional_target'):
+            from store_optional import enabled
+            target = item['optional_target']
+            if (target['installed'] and enabled(target['manager']) and
+                    not (target['manager'] == 'snap' and target['target'] in linked_snaps)):
+                result.append(dict(item, local=True))
+            continue
         command=native_launch(item)
         if command and str(Path(command[0]).resolve()) not in known:
             result.append(dict(item,local=True))
@@ -198,7 +227,8 @@ def desktop_applications():
         result.append(dict(id='desktop:'+identifier,desktop_id=identifier,name=app.get_display_name(),
             kind='linux',category='Aplicativos instalados',description=app.get_description() or 'Aplicativo deste computador.',
             source='Registro de aplicativos deste computador',local=True,
-            desktop_file=filename,flatpak_id=app.get_string('X-Flatpak') if hasattr(app,'get_string') else None,
+            desktop_file=filename,provider_hint='snap' if Path(filename).parent == Path('/var/lib/snapd/desktop/applications') else '',
+            flatpak_id=app.get_string('X-Flatpak') if hasattr(app,'get_string') else None,
             icon=app.get_string('Icon') if hasattr(app,'get_string') else None,
             _executable=str(Path(shutil.which(executable) or executable).resolve()),
             note='Inclui aplicativos registrados pelo sistema e pelo Flatpak. Escolha a origem e o alcance para gerenciar a instalação.'))
@@ -221,6 +251,15 @@ def package_metadata(item):
             'version':'Não informada; consulte o fornecedor ou a origem da instalação.',
             'size':'Não informado; confira antes de instalar.',
             'publisher':'Não informado nos metadados locais.','license':'Consulte a licença fornecida pelo aplicativo.'}
+    if item.get('optional_target'):
+        target = item['optional_target']
+        result.update(type='Snap' if target['manager'] == 'snap' else 'Fórmula Homebrew',
+                      origin=target['label'], version=item['version'],
+                      publisher=item['publisher'] or 'Não informado pela fonte.')
+        return result
+    if item.get('provider_hint') == 'snap':
+        result.update(type='Snap', origin='Snap instalado. Habilite a fonte para gerenciar pela Loja.')
+        return result
     if kind=='web':
         result.update(version='Serviço online; atualizado pelo fornecedor.',
             size='Variável: dados de cada perfil e cache; Chromium compartilhado.',license='Termos do serviço disponíveis no site oficial.')

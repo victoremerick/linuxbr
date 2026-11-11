@@ -1,0 +1,14 @@
+[Unit]
+Description=Enviar inventário de atualização à organização
+After=network-online.target
+ConditionPathExists=/etc/linuxbr/update-waves.json
+ConditionKernelCommandLine=!boot=live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/update_waves.py heartbeat
+TimeoutStartSec=30
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes

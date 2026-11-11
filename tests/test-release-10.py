@@ -9,7 +9,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
 from release_info import release_info
-from release_gate import REQUIRED, verify, publication_acceptance
+from release_gate import REQUIRED, VERSION_11_CHECKS, verify, publication_acceptance
 
 
 class ReleaseAcceptance(unittest.TestCase):
@@ -38,6 +38,22 @@ class ReleaseAcceptance(unittest.TestCase):
 
     def test_complete_fixture_checks_all_artifacts(self):
         self.assertEqual(self.run_manifest()['scenarios'], len(REQUIRED))
+
+    def test_11_requires_screen_sharing_evidence_from_the_iso(self):
+        self.version = self.value['version'] = '1.1.0'
+        for row in self.value['checks']:
+            row['version'] = self.version
+        with self.assertRaisesRegex(ValueError, 'screen-sharing-first-login'):
+            self.run_manifest()
+
+        template = self.value['checks'][0]
+        self.value['checks'].extend(dict(template, id=name) for name in sorted(VERSION_11_CHECKS))
+        self.assertEqual(self.run_manifest()['scenarios'], len(REQUIRED | VERSION_11_CHECKS))
+
+        next(row for row in self.value['checks'] if row['id'] == 'screen-sharing-first-login').update(
+            artifact='packages', artifact_sha256=self.artifacts['packages']['sha256'])
+        with self.assertRaisesRegex(ValueError, 'Compartilhamento de tela precisa identificar a ISO'):
+            self.run_manifest()
 
     def test_modified_iso_and_modified_evidence_are_rejected(self):
         (self.root/'iso').write_bytes(b'other')

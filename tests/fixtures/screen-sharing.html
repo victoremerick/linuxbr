@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Teste de compartilhamento de tela — Linux BR</title>
+<style>
+  body { margin: 0; min-height: 100vh; background: #f000f0; font: 18px system-ui; }
+  main { background: white; padding: 1rem; max-width: 45rem; }
+  button { font: inherit; margin-right: .5rem; }
+  video { position: fixed; width: 1px; height: 1px; bottom: 0; right: 0; }
+  pre { white-space: pre-wrap; }
+</style>
+<main>
+  <h1>Teste de captura do monitor</h1>
+  <p>Maximize esta janela. Inicie o teste e escolha o monitor inteiro no seletor do sistema.
+     A captura fica nesta página e termina ao concluir a verificação.</p>
+  <button id="start">Testar tela inteira</button>
+  <button id="cancel">Verificar cancelamento</button>
+  <pre id="result" aria-live="polite">Aguardando.</pre>
+</main>
+<video id="capture" autoplay muted playsinline></video>
+<script>
+  const start = document.querySelector('#start');
+  const cancel = document.querySelector('#cancel');
+  const result = document.querySelector('#result');
+  const video = document.querySelector('#capture');
+  const colors = [[240, 0, 240], [0, 230, 80]];
+  const canvas = document.createElement('canvas');
+  canvas.width = 48;
+  canvas.height = 32;
+  const pixels = canvas.getContext('2d', { willReadFrequently: true });
+  let phase = 0;
+  setInterval(() => {
+    phase = (phase + 1) % colors.length;
+    document.body.style.background = 'rgb(' + colors[phase].join(',') + ')';
+  }, 550);
+
+  function observe(track) {
+    return new Promise((resolve, reject) => {
+      const samples = new Set();
+      let frames = 0;
+      let request;
+      const timer = setTimeout(() => {
+        video.cancelVideoFrameCallback(request);
+        reject(new Error('As duas cores da área de trabalho não chegaram à captura.'));
+      }, 12000);
+      const check = () => {
+        frames++;
+        pixels.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const data = pixels.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (const [index, color] of colors.entries()) {
+          let matches = 0;
+          for (let offset = 0; offset < data.length; offset += 4) {
+            if (color.every((value, channel) => Math.abs(value - data[offset + channel]) < 35)) matches++;
+          }
+          if (matches > canvas.width * canvas.height / 5) samples.add(index);
+        }
+        if (samples.size === colors.length) {
+          clearTimeout(timer);
+          resolve({frames, width: video.videoWidth, height: video.videoHeight,
+                   displaySurface: track.getSettings().displaySurface, distinctColors: samples.size});
+        } else {
+          request = video.requestVideoFrameCallback(check);
+        }
+      };
+      request = video.requestVideoFrameCallback(check);
+    });
+  }
+
+  async function test(expectCancel) {
+    let stream;
+    start.disabled = cancel.disabled = true;
+    result.textContent = 'Aguardando o seletor do sistema…';
+    try {
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
+      } catch (error) {
+        if (!expectCancel || error.name !== 'NotAllowedError') throw error;
+        result.textContent = JSON.stringify({result: 'PASS', case: 'permission-denied',
+          operatorMustConfirmPickerWasCancelled: true}, null, 2);
+        return;
+      }
+      if (expectCancel) throw new Error('O seletor permitiu a captura em vez de cancelar.');
+      const [track] = stream.getVideoTracks();
+      if (track?.getSettings().displaySurface !== 'monitor') throw new Error('Selecione o monitor inteiro.');
+      result.textContent = 'Conferindo quadros de vídeo…';
+      video.srcObject = stream;
+      video.play().catch(() => {});
+      result.textContent = JSON.stringify({result: 'PASS', case: 'monitor', ...await observe(track)}, null, 2);
+    } catch (error) {
+      result.textContent = JSON.stringify({result: 'FAIL', error: error.message}, null, 2);
+    } finally {
+      stream?.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      start.disabled = cancel.disabled = false;
+    }
+  }
+  start.addEventListener('click', () => test(false));
+  cancel.addEventListener('click', () => test(true));
+</script>
+</html>

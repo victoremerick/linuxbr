@@ -7,12 +7,13 @@ from pathlib import Path
 import sys
 from PyQt6.QtCore import Qt,QSize,QTimer
 from PyQt6.QtGui import QIcon,QFont,QFontMetrics
-from PyQt6.QtWidgets import (QApplication,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QListWidget,
+from PyQt6.QtWidgets import (QApplication,QDialog,QDialogButtonBox,QFileDialog,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QListWidget,
     QListWidgetItem,QStackedWidget,QSplitter,QPushButton,QCheckBox,QFormLayout,QMessageBox,QStyledItemDelegate,QStyleOptionViewItem,QStyle,QSizePolicy)
 from store import Window as OperationsWindow
 import store_backend as backend
 import catalog_sources
 import store_repository
+import store_optional
 from store_source_page import Sources
 from desktop_jobs import Query,Command
 from firmware_page import Firmware
@@ -33,13 +34,18 @@ class Window(OperationsWindow):
         from desktop_theme import initialize
         initialize()
         self.ready=False;self.queries=set();self.repository_cache={};self.repository_errors={};self.requested=set();self.only_favorites=False;self.dialogs=[];self.metadata_cache={};self.metadata_requested=set()
+        self.optional_entries = []
+        self.optional_errors = []
+        self.optional_epoch = 0
+        self.optional_query = None
         self.preferences_path=Path(os.environ.get('XDG_CONFIG_HOME',str(Path.home()/'.config')))/'linuxbr/store.json'
         try:self.preferences=json.loads(self.preferences_path.read_text())
         except (OSError,ValueError):self.preferences={}
         if not isinstance(self.preferences,dict):self.preferences={}
         self.favorites={v for v in self.preferences.get('favorites',[]) if isinstance(v,str)} if isinstance(self.preferences.get('favorites',[]),list) else set();super().__init__()
         self.base_entries=self.entries+catalog_sources.entries();self.entries=self.base_entries;self.resize(1180,680)
-        for category in sorted({item['category'] for item in self.base_entries}):
+        for category in sorted({item['category'] for item in self.base_entries}
+                               | {'Fontes configuradas', 'Ferramentas de terminal'}):
             if self.category.findData(category)<0:self.category.addItem(category,category)
         self.search_timer=QTimer(self);self.search_timer.setSingleShot(True);self.search_timer.setInterval(450);self.search_timer.timeout.connect(self.start_repository_search)
         old=self.takeCentralWidget();splitter=old.findChild(QSplitter);main=QWidget();self.setCentralWidget(main);layout=QHBoxLayout(main);layout.setContentsMargins(0,0,0,0);layout.setSpacing(0)
@@ -77,12 +83,20 @@ class Window(OperationsWindow):
         for button in detail_area.widget().findChildren(QPushButton):
             button.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred);button.setMinimumWidth(0);button.setToolTip(button.text())
         self.sources=Sources(self);self.pages.addWidget(self.sources)
+        self.sources.optional_changed.connect(self.optional_sources_changed)
         preferences=QWidget();form=QFormLayout(preferences);self.compact=QCheckBox('Usar cartões compactos');self.compact.setChecked(bool(self.preferences.get('compact')));self.compact.toggled.connect(self.save_preferences);form.addRow(QLabel('Preferências da Loja'));form.addRow(self.compact)
         note=QLabel('Instalações e atualizações são confirmadas pelos gerenciadores nativos. Os programas Windows usam o site oficial e o ambiente escolhido. Sites mantêm contas em perfis separados do Chromium.');note.setWordWrap(True);form.addRow(note);self.pages.addWidget(preferences)
         self.firmware_page=Firmware(self);self.pages.addWidget(self.firmware_page)
         from webapp_updates import WebUpdates
         self.web_updates=WebUpdates(self);self.pages.addWidget(self.web_updates)
         footer=QHBoxLayout();footer.addWidget(self.count,1)
+        self.portable_buttons = []
+        for caption, importing in [('Exportar aplicativos…', False), ('Importar aplicativos…', True)]:
+            button = QPushButton(QIcon.fromTheme('document-import' if importing else 'document-export'), caption)
+            button.clicked.connect(lambda _checked=False, mode=importing: self.portable_list(mode))
+            button.hide()
+            self.portable_buttons.append(button)
+            footer.addWidget(button)
         self.retry_search=QPushButton(QIcon.fromTheme('view-refresh'),'Repetir consulta')
         self.retry_search.setAccessibleName('Repetir consulta nas fontes de aplicativos');self.retry_search.clicked.connect(self.repeat_repository_search);self.retry_search.hide();footer.addWidget(self.retry_search)
         refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo');refresh.clicked.connect(self.reload_catalog);footer.addWidget(refresh);body.addLayout(footer)
@@ -98,6 +112,8 @@ class Window(OperationsWindow):
     def navigate(self,item,*_):
         if not item:return
         key,category=item.data(Qt.ItemDataRole.UserRole);self.only_favorites=key=='favorites'
+        for button in self.portable_buttons:
+            button.setVisible(key == 'installed')
         if key in ('sources','preferences','firmware','web-updates'):
             self.pages.setCurrentIndex({'sources':1,'preferences':2,'firmware':3,'web-updates':4}[key]);self.hero.setText(item.text());self.query.setEnabled(False);self.kind.setEnabled(False);self.category.setEnabled(False)
             if key=='sources':self.sources.refresh()
@@ -107,21 +123,195 @@ class Window(OperationsWindow):
         self.category.setCurrentIndex(max(0,self.category.findData(category)));self.hero.setText({'installed':'Sua biblioteca\nAplicativos deste computador, programas Windows e perfis web.', 'favorites':'Seus favoritos\nAcesse os aplicativos que você marcou.'}.get(key,'Encontre seu próximo aplicativo\nEscolha uma categoria ou pesquise nas fontes configuradas.'))
         if key in ('updates','downloads'):
             self.open_updates() if key=='updates' else self.downloads()
+        if key == 'installed':
+            self.query_optional_inventory()
         self.refresh()
+
+    def optional_sources_changed(self):
+        self.optional_epoch += 1
+        self.repository_cache.clear()
+        self.repository_errors.clear()
+        self.optional_entries = []
+        self.optional_errors = []
+        self.metadata_cache = {key: value for key, value in self.metadata_cache.items()
+                               if not key.startswith(('snap:', 'brew:'))}
+        if self.view.currentData() == 'installed':
+            self.query_optional_inventory()
+        if self.pages.currentIndex() == 1:
+            self.sources.refresh()
+        self.refresh()
+
+    def query_optional_inventory(self):
+        if self.optional_query or not any(store_optional.enabled(name) for name in store_optional.PROVIDERS):
+            return
+        epoch = self.optional_epoch
+        task = Query(store_optional.inventory, self)
+        self.optional_query = task
+        self.queries.add(task)
+
+        def loaded(value):
+            if epoch == self.optional_epoch:
+                self.optional_entries, self.optional_errors = value
+
+        def finished():
+            self.optional_query = None
+            self.queries.discard(task)
+            if self.view.currentData() == 'installed':
+                if epoch != self.optional_epoch:
+                    self.query_optional_inventory()
+                self.refresh()
+            task.deleteLater()
+
+        task.result.connect(loaded)
+        task.failed.connect(lambda _: loaded(([], ['Não foi possível consultar as fontes opcionais.'])))
+        task.finished.connect(finished)
+        task.start()
+
+    def portable_list(self, importing):
+        import store_portable as portable
+        if importing:
+            filename, _ = QFileDialog.getOpenFileName(self, 'Importar lista de aplicativos', '', 'JSON (*.json)')
+            if not filename:
+                return
+            callback = lambda: portable.review(portable.load(filename))
+        else:
+            callback = lambda: [(row, 'Exportável') for row in portable.exportable()]
+        query = Query(callback, self)
+        self.queries.add(query)
+        query.result.connect(lambda rows: self.review_portable_list(rows, importing))
+        query.failed.connect(lambda error: QMessageBox.warning(self, 'Lista de aplicativos', error))
+        query.finished.connect(lambda: self.queries.discard(query))
+        query.finished.connect(query.deleteLater)
+        query.start()
+
+    def review_portable_list(self, rows, importing):
+        from store_operations import Operations
+        from store_portable import INSTALLABLE, MANUAL, MAX_APPS, MAX_BYTES, install_request
+        from store_sources import atomic_write
+
+        if not rows:
+            QMessageBox.information(self, 'Lista de aplicativos', 'Nenhum aplicativo elegível na lista.')
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Revisar reinstalação' if importing else 'Selecionar aplicativos para exportar')
+        dialog.resize(740, 450)
+        layout = QVBoxLayout(dialog)
+        note = QLabel('A lista preserva origem e escopo de Flatpak, Snap e Homebrew. '
+                      'Pacotes DEB, aplicativos web e programas Wine são referências para escolha manual.')
+        note.setWordWrap(True)
+        layout.addWidget(note)
+        listing = QListWidget()
+        listing.setWordWrap(True)
+        layout.addWidget(listing)
+        for row, state in rows:
+            manager = {'flatpak': 'Flatpak', 'snap': 'Snap', 'brew': 'Homebrew',
+                       'deb': 'DEB', 'web': 'Webapp', 'windows': 'Wine'}[row.get('manager', 'flatpak')]
+            scope = 'sua conta' if row['scope'] == 'user' else 'sistema'
+            version = row.get('version') or row.get('commit', '') or 'não informada'
+            identity = f"{row.get('name', row['ref'])} · {manager} · {scope} · {row['origin']}"
+            if row.get('manager') == 'snap':
+                identity += f" · {row['channel']} · {row['confinement']}"
+            entry = QListWidgetItem(f'{identity}\nVersão registrada {version}\n{state}')
+            entry.setData(Qt.ItemDataRole.UserRole, row)
+            if state == 'Exportável' or state.startswith(INSTALLABLE):
+                entry.setFlags(entry.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                entry.setCheckState(Qt.CheckState.Unchecked)
+            else:
+                entry.setFlags(entry.flags() & ~Qt.ItemFlag.ItemIsUserCheckable)
+            listing.addItem(entry)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText(
+            'Adicionar selecionados à fila' if importing else 'Salvar seleção…')
+        if importing:
+            sources = buttons.addButton('Revisar fontes…', QDialogButtonBox.ButtonRole.ActionRole)
+            sources.setIcon(QIcon.fromTheme('network-server'))
+            def review_sources():
+                dialog.reject()
+                self.navigation.setCurrentItem(self.links['sources:'])
+            sources.clicked.connect(review_sources)
+            if any(row.get('manager') in MANUAL for row, _ in rows):
+                search = buttons.addButton('Pesquisar na Loja', QDialogButtonBox.ButtonRole.ActionRole)
+                search.setIcon(QIcon.fromTheme('edit-find'))
+
+                def search_manual():
+                    selected = listing.currentItem()
+                    if not selected:
+                        return
+                    row = selected.data(Qt.ItemDataRole.UserRole)
+                    manager = row.get('manager')
+                    if manager not in MANUAL:
+                        return
+                    dialog.reject()
+                    self.navigation.setCurrentItem(self.links['catalog:'])
+                    self.kind.setCurrentIndex(self.kind.findData('linux' if manager == 'deb' else manager))
+                    self.query.setText(row['ref'].split(':')[0] if manager == 'deb' else row['name'])
+
+                def update_search(item, *_):
+                    search.setEnabled(bool(item and item.data(Qt.ItemDataRole.UserRole).get('manager') in MANUAL))
+
+                search.clicked.connect(search_manual)
+                listing.currentItemChanged.connect(update_search)
+                update_search(listing.currentItem())
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        selected = [entry.data(Qt.ItemDataRole.UserRole) for entry in
+                    (listing.item(index) for index in range(listing.count()))
+                    if entry.checkState() == Qt.CheckState.Checked]
+        if not selected:
+            return
+        if len(selected) > MAX_APPS:
+            QMessageBox.warning(self, 'Lista de aplicativos', 'Selecione até 200 aplicativos.')
+            return
+        if importing:
+            requests = []
+            for row in selected:
+                classic = row.get('confinement') == 'classic'
+                if classic and QMessageBox.question(self, 'Confirmar Snap classic',
+                        f"Instalar “{row['ref']}” pela Snap Store em modo classic? Esse modo dá acesso ampliado "
+                        'aos arquivos e recursos do sistema. Confirme somente se confiar no publicador.',
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+                        QMessageBox.StandardButton.Cancel) != QMessageBox.StandardButton.Yes:
+                    return
+                requests.append(install_request(row, classic_confirmed=classic))
+            if not hasattr(self, 'operations'):
+                self.operations = Operations(self)
+            if not self.operations.add_requests(requests):
+                QMessageBox.information(self, 'Lista de aplicativos', 'Os aplicativos selecionados já estão na fila.')
+            return
+        filename, _ = QFileDialog.getSaveFileName(self, 'Salvar lista de aplicativos',
+            str(Path.home() / 'linuxbr-aplicativos.json'), 'JSON (*.json)')
+        if filename:
+            try:
+                data = (json.dumps(dict(schema=2, apps=selected), ensure_ascii=False, indent=2) + '\n').encode()
+                if len(data) > MAX_BYTES:
+                    raise ValueError('A lista excede o tamanho permitido. Selecione menos aplicativos.')
+                atomic_write(Path(filename), data, 0o600)
+            except (OSError, ValueError) as error:
+                QMessageBox.warning(self, 'Lista de aplicativos', str(error))
 
     def refresh(self):
         if not getattr(self,'ready',False):return super().refresh()
         query=self.query.text().strip();extra=self.repository_cache.get(query,[])
-        self.entries=self.base_entries+extra
+        installed = self.view.currentData() == 'installed'
+        optional = self.optional_entries if installed else extra
+        self.entries = self.base_entries + [item for item in optional
+            if not item.get('optional_target') or store_optional.enabled(item['optional_target']['manager'])]
         if self.only_favorites:self.entries=[entry for entry in self.entries if entry['id'] in self.favorites]
-        super().refresh();errors=self.repository_errors.get(query,[])
+        super().refresh();errors=self.optional_errors if installed else self.repository_errors.get(query,[])
         self.count.setText(str(self.results.count())+' resultados'+(' · consultando fontes…' if query in self.requested else ' · consulta incompleta' if errors else ''))
         self.count.setToolTip('\n'.join(errors));self.retry_search.setVisible(bool(errors));self.retry_search.setEnabled(query not in self.requested)
         self.repository_note.setText(' '.join(errors));self.repository_note.setVisible(bool(errors))
         card_width=max(228,min(420,self.fontMetrics().horizontalAdvance('Aplicativos e programas')+48))
         card_height=132 if self.compact.isChecked() else 148
         for index in range(self.results.count()):
-            item=self.results.item(index);entry=item.data(Qt.ItemDataRole.UserRole);item.setData(Qt.ItemDataRole.AccessibleTextRole,entry['name']);card=QWidget();card.setFixedWidth(card_width);card.setAccessibleName(entry['name']);card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents);card.setStyleSheet('background:transparent;');body=QVBoxLayout(card);body.setContentsMargins(16,12,16,10);header=QHBoxLayout();icon=QLabel();icon.setPixmap(item.icon().pixmap(40,40));icon.setObjectName('appIcon');header.addWidget(icon);header.addStretch();badge=QLabel({'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']]);header.addWidget(badge);body.addLayout(header)
+            item=self.results.item(index);entry=item.data(Qt.ItemDataRole.UserRole);item.setData(Qt.ItemDataRole.AccessibleTextRole,entry['name']);card=QWidget();card.setFixedWidth(card_width);card.setAccessibleName(entry['name']);card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents);card.setStyleSheet('background:transparent;');body=QVBoxLayout(card);body.setContentsMargins(16,12,16,10);header=QHBoxLayout();icon=QLabel();icon.setPixmap(item.icon().pixmap(40,40));icon.setObjectName('appIcon');header.addWidget(icon);header.addStretch()
+            target = entry.get('optional_target')
+            badge = QLabel(store_optional.PROVIDERS[target['manager']][0] if target else
+                           {'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']])
+            header.addWidget(badge);body.addLayout(header)
             name=QLabel(entry['name']);name.setTextFormat(Qt.TextFormat.PlainText);name.setWordWrap(True);name.setStyleSheet('font-weight:600;');body.addWidget(name);label=QLabel(entry['category']);label.setTextFormat(Qt.TextFormat.PlainText);label.setWordWrap(True);body.addWidget(label);body.addStretch();item.setToolTip(entry['name']+'\n'+entry['description']);self.results.setItemWidget(item,card)
             card_height=max(card_height,body.totalHeightForWidth(card_width))
         for index in range(self.results.count()):self.results.item(index).setSizeHint(QSize(card_width,card_height))
@@ -132,8 +322,14 @@ class Window(OperationsWindow):
         query=self.query.text().strip()
         if len(self.queries)>=2:self.search_timer.start();return
         if query in self.requested or query in self.repository_cache or len(query)<2:return
+        epoch = self.optional_epoch
         self.requested.add(query);task=Query(lambda:store_repository.search(query,with_status=True),self);self.queries.add(task)
         def loaded(value):
+            self.requested.discard(query)
+            if epoch != self.optional_epoch:
+                if self.query.text().strip() == query:
+                    self.refresh()
+                return
             rows=value.get('rows',[]) if isinstance(value,dict) else value
             self.repository_errors[query]=value.get('errors',[]) if isinstance(value,dict) else []
             self.repository_cache[query]=rows;self.requested.discard(query)
@@ -152,6 +348,12 @@ class Window(OperationsWindow):
         super().select(*args)
         if not getattr(self,'ready',False):return
         item=self.selected();self.favorite.setVisible(bool(item));self.favorite.setText('Remover favorito' if item and item['id'] in self.favorites else 'Favoritar')
+        target = item.get('optional_target') if item else None
+        if target and self.primary.text() == 'Instalar aplicativo…':
+            if target['installed']:
+                self.primary.setText('Gerenciar aplicativo…')
+            elif target.get('blocked_reason'):
+                self.primary.setText('Ver requisitos do Snap…')
         self.note.setText(self.note.text().replace('O Discover oferece outras fontes e pacotes.','Consulte as fontes configuradas na Loja.'))
         self.metadata.setText(self.metadata.text().replace('ou o Discover','na origem da instalação'))
         if self.primary.text().startswith('Baixar instalador'):

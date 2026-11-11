@@ -39,7 +39,8 @@ class Console(QMainWindow):
                  ('Atualizações','system-software-update',lambda:self.launch(['linuxbr-store','--updates']) if shutil.which('linuxbr-store') else self.launch(['pkexec','synaptic'])),
                  ('Recuperação e opções avançadas','tools-wizard',lambda:self.launch(['linuxbr-recovery-options'])),
                  ('Reiniciar','system-reboot',lambda:self.power('reboot')),
-                 ('Desligar','system-shutdown',lambda:self.power('poweroff'))]
+                 ('Desligar','system-shutdown',lambda:self.power('poweroff')),
+                 ('Recuperar atualização','edit-undo',lambda:self.launch(['linuxbr-recover-update']))]
         if Path('/run/live/medium').exists():actions.insert(1,('Instalar Linux BR','system-software-install',lambda:self.launch(['calamares-install-linuxbr'])))
         for index,(label,icon,action) in enumerate(actions):
             button=QPushButton(QIcon.fromTheme(icon),f'{index+1}. '+label);button.setAutoDefault(True);button.clicked.connect(action);grid.addWidget(button,index//3,index%3)

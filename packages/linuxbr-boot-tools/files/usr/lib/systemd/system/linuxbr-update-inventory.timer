@@ -1,0 +1,10 @@
+[Unit]
+Description=Consultar o estado das máquinas gerenciadas
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+RandomizedDelaySec=1min
+
+[Install]
+WantedBy=timers.target

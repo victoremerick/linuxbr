@@ -54,6 +54,7 @@ main() {
     bash "$WORK/source/scripts/build-dolphin.sh" "$WORK/config/packages.chroot"
     bash "$WORK/source/scripts/build-kio.sh" "$WORK/config/packages.chroot"
     bash "$WORK/source/scripts/build-kwallet.sh" "$WORK/config/packages.chroot"
+    bash "$WORK/source/scripts/stage-kwin-fix.sh" "$WORK/config/packages.chroot"
     python3 "$WORK/source/scripts/check-package-ownership.py" "$WORK/config/packages.chroot"
     python3 "$WORK/source/scripts/prepare-live-boot.py" "$WORK"
     cd "$WORK"

@@ -1,0 +1,23 @@
+[Unit]
+Description=Serviço de ondas de atualização do Linux BR
+After=network.target
+
+[Service]
+Type=simple
+User=linuxbr-waves
+Group=linuxbr-waves
+WorkingDirectory=/opt/linuxbr-waves
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/linuxbr-waves/server.env
+ExecStart=/usr/bin/gunicorn --bind 127.0.0.1:8780 --workers 2 waves_server:application
+Restart=on-failure
+UMask=0077
+StateDirectory=linuxbr-waves
+StateDirectoryMode=0700
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

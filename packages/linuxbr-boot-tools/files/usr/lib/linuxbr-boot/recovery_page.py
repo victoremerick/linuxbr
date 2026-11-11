@@ -29,7 +29,8 @@ class Recovery(QMainWindow):
                  ('Discos e partições','drive-harddisk',lambda:self.launch(['partitionmanager'])),
                  ('Escolher dispositivo nas configurações UEFI','preferences-system',self.firmware),
                  ('Reiniciar','system-reboot',lambda:self.power('reboot')),
-                 ('Desligar','system-shutdown',lambda:self.power('poweroff'))]
+                 ('Desligar','system-shutdown',lambda:self.power('poweroff')),
+                 ('Recuperar atualização','edit-undo',lambda:self.launch(['linuxbr-recover-update']))]
         for i,(text,icon,action) in enumerate(actions):
             button=QPushButton(QIcon.fromTheme(icon),text);button.setMinimumHeight(68);button.clicked.connect(action);grid.addWidget(button,i//2,i%2)
             if self.live and i in (0,1,5):button.setEnabled(False);button.setToolTip('Na mídia live, selecione o sistema no carregador de boot ou restaure um ponto do sistema instalado.')

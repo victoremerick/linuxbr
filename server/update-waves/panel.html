@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ondas de atualização · Linux BR</title>
+  <link rel="stylesheet" href="/panel.css">
+  <script src="/panel.js" defer></script>
+</head>
+<body>
+<main>
+  <header><p>Linux BR · Organização</p><h1>Ondas de atualização</h1></header>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section aria-labelledby="revision-title">
+    <h2 id="revision-title">Revisão e distribuição</h2>
+    <p id="active"></p>
+    <div class="actions">
+      <label for="revisions">Revisão cadastrada</label>
+      <select id="revisions"></select>
+      <button type="button" id="pilot">Liberar ao piloto</button>
+      <button type="button" id="promote">Promover para geral</button>
+      <button type="button" id="pause">Pausar</button>
+      <button type="button" id="resume">Retomar</button>
+      <button type="button" id="retire">Retirar revisão</button>
+      <button type="button" id="refresh">Atualizar painel</button>
+    </div>
+    <fieldset id="window-editor" disabled>
+      <legend>Janela de manutenção</legend>
+      <p id="window-summary">Selecione uma revisão cadastrada.</p>
+      <div class="window-fields">
+        <label for="window-start">Início
+          <input type="datetime-local" id="window-start" step="1" required>
+        </label>
+        <label for="window-end">Fim
+          <input type="datetime-local" id="window-end" step="1" required>
+        </label>
+        <label for="window-offset">Fuso das duas datas (UTC±hh:mm)
+          <input type="text" id="window-offset" maxlength="6" placeholder="-03:00" required>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" id="set-window">Salvar janela</button>
+        <button type="button" id="clear-window" disabled>Remover janela</button>
+      </div>
+      <p id="window-feedback" role="status" aria-live="polite"></p>
+    </fieldset>
+  </section>
+  <section aria-labelledby="devices-title">
+    <h2 id="devices-title">Dispositivos</h2>
+    <label for="policies">Perfil para atribuir ao dispositivo</label>
+    <select id="policies"></select>
+    <div class="scroll"><table>
+      <thead><tr><th>Nome</th><th>Onda</th><th>Versão</th><th>Espaço livre</th>
+        <th>Reinício</th><th>Último contato</th><th>Estado na revisão ativa</th>
+        <th>Revisão confirmada</th><th>Perfil atribuído</th><th>Ações</th></tr></thead>
+      <tbody id="devices"></tbody>
+    </table></div>
+  </section>
+  <section aria-labelledby="diagnostics-title">
+    <h2 id="diagnostics-title">Diagnósticos solicitados</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Dispositivo</th><th>Solicitado em</th><th>Expira em</th>
+        <th>Estado</th><th>Ações</th></tr></thead>
+      <tbody id="diagnostics"></tbody>
+    </table></div>
+    <pre id="report" hidden tabindex="0" aria-label="Relatório de diagnóstico"></pre>
+  </section>
+  <section aria-labelledby="audit-title">
+    <h2 id="audit-title">Histórico de operações</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Horário</th><th>Operador ou dispositivo</th><th>Ação</th><th>Alvo</th></tr></thead>
+      <tbody id="audit"></tbody>
+    </table></div>
+  </section>
+</main>
+</body>
+</html>

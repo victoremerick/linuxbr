@@ -27,4 +27,8 @@ def search(query, with_status=False):
         else:errors.append('Não foi possível consultar as fontes Flatpak.')
     except FileNotFoundError:errors.append('Flatpak não está instalado; a consulta ficou limitada às outras fontes.')
     except (OSError,subprocess.TimeoutExpired):errors.append('A consulta Flatpak não terminou. Tente novamente.')
+    from store_optional import search as optional_search
+    optional_rows, optional_errors = optional_search(query)
+    rows.extend(optional_rows)
+    errors.extend(optional_errors)
     return dict(rows=rows,errors=errors) if with_status else rows

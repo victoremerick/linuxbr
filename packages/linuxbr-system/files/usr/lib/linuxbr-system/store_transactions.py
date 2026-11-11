@@ -39,6 +39,23 @@ def checked_request(value):
             raise ValueError('Aplicativo Flatpak ou alcance inválido.')
         if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,100}', result['origin']):
             raise ValueError('Selecione uma origem Flatpak configurada.')
+        if 'expected_origin_sha256' in value:
+            fingerprint = value['expected_origin_sha256']
+            if result['action'] != 'install' or not isinstance(fingerprint, str) or not re.fullmatch(r'[a-f0-9]{64}', fingerprint):
+                raise ValueError('Origem Flatpak inválida para reinstalação.')
+            result['expected_origin_sha256'] = fingerprint
+    elif result['manager'] in ('snap', 'brew'):
+        from store_optional import NAMES, PROVIDERS
+
+        origin, scope, _ = PROVIDERS[result['manager']]
+        if result['origin'] != origin or result['scope'] != scope or not NAMES[result['manager']].fullmatch(result['target']):
+            raise ValueError('Pacote ou origem opcional inválida.')
+        if result['manager'] == 'snap':
+            confinement = value.get('confinement')
+            if confinement not in ('strict', 'classic'):
+                raise ValueError('Confinamento Snap inválido.')
+            result['confinement'] = confinement
+            result['classic_confirmed'] = value.get('classic_confirmed') is True
     elif result['manager']=='file':
         path=Path(result['target'])
         if result['action']!='install' or not path.is_absolute() or '\x00' in str(path) or path.suffix.lower() not in ('.deb','.flatpak','.flatpakref') or not re.fullmatch(r'[a-f0-9]{64}',result['sha256']):raise ValueError('Arquivo de instalação inválido.')
@@ -90,18 +107,26 @@ def machine_architecture():
 
 def run_flatpak(request):
     command=flatpak_command(request)
+    if 'expected_origin_sha256' in request:
+        from store_portable import fingerprint, flatpak, remotes
+        scope, origin, target = (request[key] for key in ('scope', 'origin', 'target'))
+        if fingerprint(remotes(scope).get(origin)) != request['expected_origin_sha256']:
+            raise ValueError('A fonte Flatpak mudou desde a revisão da lista.')
+        match = flatpak(scope, 'remote-info', '--app', '--show-ref', origin, target).strip()
+        if match != 'app/' + target:
+            raise ValueError('O aplicativo não está disponível na fonte selecionada.')
     emit('output',text='Confira permissões, componentes e tamanho apresentados pelo Flatpak. '
          'Use Confirmar etapa ou Recusar quando o gerenciador solicitar.\n')
     run_terminal(command)
 
 
-def run_terminal(command):
+def run_terminal(command, environment=None, manager='Flatpak'):
     # Flatpak declines questions automatically when stdin is not a terminal.
     # A private terminal keeps native prompts, with answers forwarded explicitly.
     master,slave=pty.openpty();decoder=codecs.getincrementaldecoder('utf-8')('replace')
     try:
         process=subprocess.Popen(command,stdin=slave,stdout=slave,stderr=slave,start_new_session=True,
-            env={**os.environ,'LC_ALL':'C.UTF-8','TERM':'dumb'})
+            env={**(os.environ if environment is None else environment),'LC_ALL':'C.UTF-8','TERM':'dumb'})
         os.close(slave);slave=None
         with selectors.DefaultSelector() as selector:
             selector.register(master,selectors.EVENT_READ,'output')
@@ -127,7 +152,7 @@ def run_terminal(command):
     finally:
         os.close(master)
         if slave is not None:os.close(slave)
-    if code:raise ValueError('O Flatpak não concluiu a operação (código '+str(code)+'). Confira o registro acima.')
+    if code:raise ValueError(manager+' não concluiu a operação (código '+str(code)+'). Confira o registro acima.')
 
 
 class OperationStopped(ValueError):
@@ -265,6 +290,10 @@ def available_updates():
                     label='Flatpak · '+title+' · '+name+' · '+target+' · '+values[3])
                 checked_request(dict(candidate,action='update'));results.append(candidate)
         except Exception as error:errors.append('Flatpak '+title+': '+str(error))
+    from store_optional import updates as optional_updates
+    targets, failures = optional_updates()
+    results.extend(targets)
+    errors.extend(failures)
     return results,errors
 
 
@@ -297,6 +326,16 @@ def execute(request,identifier):
                         manager.preflight=preflight();record['preflight']=manager.preflight;atomic_json(path,record)
                     except ImportError:manager.preflight=None
                 manager.perform(request)
+            elif request['manager'] in ('snap', 'brew'):
+                from store_optional import command, PROVIDERS
+                argv, environment = command(request)
+                run_terminal(argv, environment, PROVIDERS[request['manager']][0])
+                if request['manager'] == 'snap' and request['action'] in ('install', 'remove'):
+                    try:
+                        subprocess.run(['/usr/bin/linuxbr-refresh-applications'],
+                                       timeout=45, capture_output=True, check=True)
+                    except (OSError, subprocess.SubprocessError):
+                        emit('output', text='Use a opção de reconstruir o catálogo se o menu ainda não mostrar a alteração.\n')
             else:run_flatpak(request)
         record.update(status='success',error='')
         emit('output',text='Operação concluída pelo gerenciador.\n')

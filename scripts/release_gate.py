@@ -13,6 +13,16 @@ REQUIRED = {
     'accessibility', 'regressions', 'physical-hardware',
 }
 SHA = re.compile(r'[0-9a-f]{64}')
+SCREEN_SHARING_CHECKS = {
+    'screen-sharing-first-login',
+    'screen-sharing-after-output-change',
+    'screen-sharing-after-relogin',
+}
+VERSION_11_CHECKS = SCREEN_SHARING_CHECKS | {
+    'managed-update-waves', 'support-diagnostic-consent', 'managed-update-recovery',
+    'organization-preparation', 'store-snap', 'store-homebrew', 'store-portable-list',
+    'store-format-evidence', 'migration-resume',
+}
 
 
 def digest(path):
@@ -36,6 +46,8 @@ def verify(manifest, version=None):
         raise ValueError('Identificação de liberação inválida.')
     if version is not None and value['version'] != version:
         raise ValueError('O relatório pertence a outra versão.')
+    major_minor = tuple(map(int, value['version'].split('.')[:2]))
+    required = REQUIRED | VERSION_11_CHECKS if major_minor >= (1, 1) else REQUIRED
     base = manifest.parent
     artifacts = value.get('artifacts', {})
     if not isinstance(artifacts, dict) or not {'iso', 'source', 'packages'} <= artifacts.keys():
@@ -52,7 +64,7 @@ def verify(manifest, version=None):
     seen = set()
     for check in checks:
         name = check.get('id')
-        if name in seen or name not in REQUIRED:
+        if name in seen or name not in required:
             raise ValueError('Cenário duplicado ou desconhecido: '+str(name))
         seen.add(name)
         if check.get('status') != 'PASS' or check.get('version') != value['version']:
@@ -62,10 +74,12 @@ def verify(manifest, version=None):
             raise ValueError('Evidência pertence a outro artefato: '+str(name))
         if name.startswith(('live-', 'install-')) and target != 'iso':
             raise ValueError('Boot e instalação precisam identificar a ISO: '+name)
+        if name in SCREEN_SHARING_CHECKS and target != 'iso':
+            raise ValueError('Compartilhamento de tela precisa identificar a ISO: '+name)
         evidence = local_file(base, check.get('evidence'))
         if not SHA.fullmatch(check.get('evidence_sha256', '')) or digest(evidence) != check['evidence_sha256']:
             raise ValueError('Evidência alterada: '+str(name))
-    missing = REQUIRED - seen
+    missing = required - seen
     if missing:
         raise ValueError('Cenários pendentes: '+', '.join(sorted(missing)))
     policy = value.get('support', {})

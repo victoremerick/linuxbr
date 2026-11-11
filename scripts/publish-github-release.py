@@ -46,12 +46,43 @@ def stage_artifact(source, destination, limit=PART_BYTES):
     return result
 
 
+def remote_tag_commit(root, tag):
+    ref = 'refs/tags/' + tag
+    rows = subprocess.check_output(['git', 'ls-remote', '--tags', 'https://github.com/' + REPOSITORY + '.git',
+                                    ref, ref + '^{}'], cwd=root, text=True).splitlines()
+    refs = {name: commit for commit, name in (row.split('\t', 1) for row in rows)}
+    return refs.get(ref + '^{}', refs.get(ref))
+
+
+def api_pages(root, endpoint):
+    raw = subprocess.check_output(['gh', 'api', '--paginate', '--slurp', endpoint], cwd=root, text=True)
+    return [item for page in json.loads(raw) for item in page]
+
+
+def verify_draft(root, tag, commit, files, hashes):
+    releases = api_pages(root, 'repos/' + REPOSITORY + '/releases?per_page=100')
+    drafts = [release for release in releases if release['tag_name'] == tag and release['draft']]
+    if len(drafts) != 1:
+        raise ValueError('Não foi possível confirmar um rascunho único no GitHub.')
+    draft = drafts[0]
+    existing = remote_tag_commit(root, tag)
+    if (existing or draft['target_commitish']) != commit:
+        raise ValueError('A tag ou o rascunho aponta para fontes diferentes da compilação.')
+    assets = api_pages(root, 'repos/' + REPOSITORY + '/releases/' + str(draft['id']) + '/assets?per_page=100')
+    observed = {asset['name']: (asset['size'], asset.get('digest'), asset['state']) for asset in assets}
+    expected = {path.name: (path.stat().st_size, 'sha256:' + hashes[path.name], 'uploaded') for path in files}
+    if len(assets) != len(expected) or observed != expected:
+        raise ValueError('Os arquivos no GitHub não correspondem aos nomes, tamanhos e checksums preparados.')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Preparar e publicar uma versão no GitHub Releases.')
     parser.add_argument('--artifact', type=Path, action='append', required=True)
     parser.add_argument('--notes', type=Path, required=True)
     parser.add_argument('--acceptance-report', type=Path)
     parser.add_argument('--publish', action='store_true', help='Publicar após concluir todos os uploads; padrão: rascunho.')
+    parser.add_argument('--verify-remote', action='store_true',
+                        help='Verificar a tag existente e a integridade dos arquivos no rascunho.')
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
@@ -82,6 +113,9 @@ def main(argv=None):
     if subprocess.check_output(['git', 'status', '--porcelain'], cwd=root).strip():
         parser.error('Conclua o commit das alterações antes da publicação.')
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
+    existing_tag = remote_tag_commit(root, tag) if args.verify_remote else None
+    if existing_tag and existing_tag != commit:
+        parser.error('A tag existente aponta para outro commit.')
     if shutil.disk_usage(tempfile.gettempdir()).free < sum(p.stat().st_size for p in args.artifact) + 256 * 1024 * 1024:
         parser.error('Espaço insuficiente para preparar os arquivos da publicação.')
     with tempfile.TemporaryDirectory(prefix='linuxbr-release-') as temporary:
@@ -98,15 +132,21 @@ def main(argv=None):
                           'try { Get-ChildItem "' + artifact.name + '.part*" | Sort-Object Name | ForEach-Object {\n'
                           '  $part = [IO.File]::OpenRead($_.FullName)\n  try { $part.CopyTo($out) } finally { $part.Dispose() }\n'
                           '} } finally { $out.Dispose() }\n```\nConfira o arquivo final usando `ORIGINAL-SHA256SUMS`.')
-        sums = folder / 'SHA256SUMS';sums.write_text('\n'.join(checksum(p) + '  ' + p.name for p in files) + '\n')
+        hashes = {path.name: checksum(path) for path in files}
+        sums = folder / 'SHA256SUMS';sums.write_text('\n'.join(hashes[p.name] + '  ' + p.name for p in files) + '\n')
         original = folder / 'ORIGINAL-SHA256SUMS';original.write_text('\n'.join(originals) + '\n')
         notes_file = folder / 'release-notes.md';notes_file.write_text(notes, encoding='utf-8')
-        command = ['gh', 'release', 'create', tag, '--repo', REPOSITORY, '--target', commit,
+        target = ['--verify-tag'] if existing_tag else ['--target', commit]
+        command = ['gh', 'release', 'create', tag, '--repo', REPOSITORY, *target,
                    '--title', 'Linux BR ' + info['display_version'], '--notes-file', str(notes_file), '--draft']
         if info['channel'] != 'stable':command.append('--prerelease')
         subprocess.run(command, cwd=root, check=True)
-        for path in files + [sums, original]:
+        files.extend([sums, original])
+        for path in files:
             subprocess.run(['gh', 'release', 'upload', tag, str(path), '--repo', REPOSITORY], cwd=root, check=True)
+        if args.verify_remote:
+            hashes.update({path.name: checksum(path) for path in (sums, original)})
+            verify_draft(root, tag, commit, files, hashes)
         if args.publish:
             subprocess.run(['gh', 'release', 'edit', tag, '--repo', REPOSITORY, '--draft=false'], cwd=root, check=True)
     print('https://github.com/' + REPOSITORY + '/releases/tag/' + tag)

@@ -1,8 +1,8 @@
-# Linux BR 1.0 RC 3
+# Linux BR 1.1 Alpha 1
 
 Distribuição experimental baseada em Debian 13, KDE Plasma 6 e Calamares, com interface em português e uso familiar para quem vem do Windows.
 
-A 1.0 está em desenvolvimento como candidata RC 3, a partir da 0.9 Beta 1. O trabalho concentra configuração inicial, consistência da interface, Loja, compatibilidade documentada e critérios verificáveis de publicação. Consulte o [escopo e a matriz da 1.0](docs/VERSAO-1.0.md). Esta identificação ainda não representa uma versão estável aprovada.
+A 1.1 Alpha 1 é a revisão de desenvolvimento para manutenção em organizações, diagnóstico, recuperação e melhorias da Loja. A última imagem publicada é a [1.0 RC 3](https://github.com/victoremerick/linuxbr/releases/tag/v1.0.0-rc3).
 
 A Loja Linux BR, o gerenciador gráfico de máquinas virtuais, as propriedades de arquivos e as ferramentas de migração continuam integrados ao sistema. O histórico abaixo reúne as alterações de cada versão.
 
@@ -10,13 +10,30 @@ A versão é candidata. A validação em máquinas virtuais não substitui homol
 
 Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperação](docs/SERVIDOR-RECUPERACAO-0.9.md), as [máquinas virtuais](docs/MAQUINAS-VIRTUAIS-0.8.5.md), as [propriedades de arquivos](docs/PROPRIEDADES-0.8.md) e o [catálogo de webapps](server/webapps/README.md). As evidências e checksums entregues com os artefatos identificam os cenários efetivamente executados.
 
+## Escopo da versão 1.1
+
+- [Preparar para trabalho ou escola](docs/VERSAO-1.1.md): login corporativo e preparação guiada da máquina e da conta, com progresso por etapa.
+- [Políticas da organização](docs/POLITICAS-CORPORATIVAS-1.1.md): regras para dispositivos, contas e grupos, distribuídas por um serviço instalado na infraestrutura da organização.
+- [Atualização, suporte e recuperação](docs/MANUTENCAO-1.1.md): prioridade para atualizações em ondas, diagnóstico e recuperação, seguida por inventário e migração guiada.
+- [Snap e Homebrew na Loja](docs/VERSAO-1.1.md#loja--snap-e-homebrew): fontes opcionais com escolha de origem, instalação, atualização e remoção.
+- [Lista de aplicativos e formatos testados](docs/VERSAO-1.1.md#exportar-e-reinstalar-aplicativos): exportação e reinstalação pela Loja, com evidências de compatibilidade por formato.
+
 ## Histórico de versões — notas de lançamento
 
 As entradas abaixo distinguem imagens ISO, revisões de código e atualizações por pacote. As revisões incrementais não alteram retroativamente uma ISO já construída. Este histórico reúne os registros disponíveis; a ausência de uma validação não equivale à aprovação daquele recurso.
 
-### 1.0 RC 3 — 1.0.0~rc3 — em validação
+### 1.1 Alpha 1 — 1.1.0~alpha1 — em validação de código e pacotes
 
-- Revisão independente do site: identidade própria com o símbolo oficial do sistema, paleta grafite/amarelo/violeta/verde e loja pública integrada visualmente. A fonte da ISO permanece fixada na branch `codex/release-1.0-rc3`. Consulte as [evidências do site](docs/validations/website-identity-2026-11-06.json).
+- Servidor local de atualizações em ondas com piloto, promoção, pausa, inventário e autorização assinada para o lote APT exato. A Central confere os pacotes instalados antes de oferecer o registro do resultado.
+- Diagnóstico com seleção de categorias, exportação e atendimento a pedidos da TI após revisão. O relatório inclui estados e contagens da sessão gráfica.
+- Assistente de recuperação pelo Live com conferência dos discos, ponto Timeshift e suspensão da revisão restaurada.
+- Preparação de conta por perfil assinado e controles administrativos das fontes Snap e Homebrew na Loja.
+- Snap Store e Homebrew Core opcionais, lista de aplicativos para reinstalação e evidência de teste vinculada a formato, origem e versão.
+- Migração de arquivos com retomada após verificação da cópia, preparo de favoritos e pesquisa de alternativas na Loja.
+
+### 1.0 RC 3 — 1.0.0~rc3 — candidata publicada
+
+- Revisão independente do site: identidade própria com o símbolo oficial do sistema, paleta grafite/amarelo/violeta/verde e loja pública integrada visualmente. A fonte da ISO permanece vinculada à revisão publicada no GitHub. Consulte as [evidências do site](docs/validations/website-identity-2026-11-06.json).
 - Nova candidata com os ajustes posteriores à ISO RC 2, sem reaproveitar o sistema live de uma compilação anterior.
 - Cofre de credenciais preparado na sessão, ordem de inicialização PAM/D-Bus corrigida para o primeiro login, diagnóstico de gravação/leitura e proteção contra inclusão de cofres pré-criados na imagem. O KWallet grava as alterações antes de confirmar a operação, inclusive em reinícios imediatos.
 - Integração de janelas do Bottles com o desktop, recuperação do catálogo do menu Iniciar e registro dos limites conhecidos do Microsoft 365.

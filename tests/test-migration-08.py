@@ -57,6 +57,34 @@ class ImportFiles(unittest.TestCase):
             with self.assertRaises(ValueError): prepare([self.source], target)
         with self.assertRaises(ValueError): prepare([self.source, self.source], self.destination)
 
+    def test_resume_keeps_verified_files_and_checks_numbered_conflicts(self):
+        target = self.destination / self.source.name
+        target.mkdir()
+        (target / self.file.name).write_text('versão diferente', encoding='utf-8')
+        initial = transfer(self.plan(), 'keep')
+        copy = self.destination / initial['copied'][0]['path']
+        self.assertIn('(2)', copy.name)
+        plan = prepare([self.source], self.destination, policy='keep')
+        self.assertEqual(plan['required_bytes'], 0)
+        resumed = transfer(plan, 'keep')
+        self.assertEqual(resumed['copied'], [])
+        self.assertEqual(resumed['already_verified'], [initial['copied'][0]['path']])
+        self.assertEqual(copy.read_bytes(), self.file.read_bytes())
+        self.assertEqual(len(list(target.iterdir())), 2)
+
+    def test_bookmark_export_preserves_web_links_without_active_html(self):
+        from migration_bookmarks import browser_file, load_bookmarks
+        fixture = self.base / 'bookmarks.html'
+        fixture.write_text('<A HREF="https://example.test/?a=1&amp;b=2">Açúcar &lt;b&gt;</A>'
+                           '<A HREF="javascript:void(0)">ignorar</A>'
+                           '<A HREF="https://user:secret@example.test/">ignorar</A>', encoding='utf-8')
+        links = load_bookmarks(fixture)
+        self.assertEqual(links, {'https://example.test/?a=1&b=2': 'Açúcar <b>'})
+        rendered = browser_file(links)
+        self.assertIn('Açúcar &lt;b&gt;', rendered)
+        self.assertNotIn('javascript:', rendered)
+        self.assertNotIn('secret', rendered)
+
     def test_never_follows_source_links_or_special_files(self):
         outside = self.base/'fora.txt'; outside.write_text('preservado')
         (self.source/'atalho').symlink_to(outside)

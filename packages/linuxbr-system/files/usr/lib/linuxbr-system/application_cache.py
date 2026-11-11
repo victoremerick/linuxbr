@@ -19,7 +19,7 @@ def catalog_environment(source=None, home=None):
         raise ValueError('Definição do menu não encontrada; o catálogo foi preservado.')
     data = env.get('XDG_DATA_DIRS', '/usr/local/share:/usr/share').split(':')
     for directory in [str(home / '.local/share/flatpak/exports/share'),
-                      '/var/lib/flatpak/exports/share']:
+                      '/var/lib/flatpak/exports/share', '/var/lib/snapd/desktop']:
         if directory not in data:
             data.append(directory)
     env['XDG_DATA_DIRS'] = ':'.join(data)

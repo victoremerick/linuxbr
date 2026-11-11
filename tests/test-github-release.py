@@ -1,5 +1,6 @@
 from pathlib import Path
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -70,6 +71,43 @@ class UploadTests(unittest.TestCase):
                 with self.assertRaises(subprocess.CalledProcessError):
                     publisher.main(['--artifact',str(artifact),'--notes',str(notes),'--publish'])
             self.assertFalse(any(c[2]=='edit' for c in calls))
+
+    def test_verified_existing_tag_is_used_without_asking_github_to_create_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            artifact, notes = folder / 'test.iso', folder / 'notes.md'
+            artifact.write_bytes(b'iso')
+            notes.write_text('Notas da candidata.')
+            calls = []
+            with (patch.object(publisher.subprocess, 'run', side_effect=lambda argv, **_: calls.append(argv)),
+                  patch.object(publisher.subprocess, 'check_output', side_effect=[b'', 'a' * 40]),
+                  patch.object(publisher, 'remote_tag_commit', return_value='a' * 40),
+                  patch.object(publisher, 'verify_draft') as verify,
+                  patch.object(publisher.shutil, 'disk_usage', return_value=SimpleNamespace(free=10**12))):
+                publisher.main(['--artifact', str(artifact), '--notes', str(notes), '--verify-remote', '--publish'])
+            self.assertIn('--verify-tag', calls[0])
+            self.assertNotIn('--target', calls[0])
+            verify.assert_called_once()
+            self.assertEqual(calls[-1][2], 'edit')
+
+    def test_draft_integrity_includes_assets_size_state_and_digest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            artifact = folder / 'test.iso'
+            artifact.write_bytes(b'iso')
+            tag, commit = 'v1.1.0-alpha1', 'a' * 40
+            digest = publisher.checksum(artifact)
+            release = {'id': 1, 'tag_name': tag, 'target_commitish': commit, 'draft': True}
+            asset = {'name': artifact.name, 'size': 3, 'state': 'uploaded', 'digest': 'sha256:' + digest}
+            for candidate in (asset, dict(asset, state='starter'), dict(asset, size=4), dict(asset, digest=None)):
+                with (patch.object(publisher, 'remote_tag_commit', return_value=None),
+                      patch.object(publisher.subprocess, 'check_output',
+                                   side_effect=[json.dumps([[release]]), json.dumps([[candidate]])])):
+                    if candidate == asset:
+                        publisher.verify_draft(folder, tag, commit, [artifact], {artifact.name: digest})
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'tamanhos e checksums'):
+                            publisher.verify_draft(folder, tag, commit, [artifact], {artifact.name: digest})
 
 
 if __name__=='__main__':unittest.main()

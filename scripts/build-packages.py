@@ -117,7 +117,7 @@ LOGO=linuxbr
             'store_sources.py','features_backend.py','features_page.py','network_details.py','network_details_page.py',
             'firewall.py','firewall_backend.py','virtualization.py','virtualization_backend.py','virtualization_preferences.py',
             'virtualization_state.py','virtualization_transfer.py','vm_firmware.py',
-            'migration.py','migration_backend.py','visual_style.py','keyboard_controls.py')
+            'migration.py','migration_backend.py','migration_bookmarks.py','visual_style.py','keyboard_controls.py')
     for filename in shared:
         destination=server/'usr/lib/linuxbr-server'/filename;destination.parent.mkdir(parents=True,exist_ok=True)
         shutil.copy2(roots['linuxbr-system']/'usr/lib/linuxbr-system'/filename,destination)
@@ -198,7 +198,10 @@ esac
         destination=boot/relative;destination.parent.mkdir(parents=True,exist_ok=True)
         shutil.move(origin,destination)
     # Preserve update protection when the full desktop package is removed.
-    for relative in ('usr/lib/linuxbr-system/snapshot_service.py','etc/apt/apt.conf.d/80linuxbr-recovery','etc/linuxbr/recovery-policy.json'):
+    for relative in ('usr/lib/linuxbr-system/snapshot_service.py',
+                     'usr/lib/linuxbr-system/update_waves.py',
+                     'etc/apt/apt.conf.d/80linuxbr-recovery',
+                     'etc/linuxbr/recovery-policy.json'):
         origin=roots['linuxbr-system']/relative;destination=boot/relative
         destination.parent.mkdir(parents=True,exist_ok=True);shutil.move(origin,destination)
     boot_native=work/'boot-native'
@@ -211,7 +214,7 @@ esac
     shutil.copy2(plugin,qml/plugin.name);shutil.copy2(boot_native/'qmldir',qml/'qmldir')
     write(boot_native,'debian/control','Source: linuxbr-boot-tools\nSection: utils\nPriority: optional\nMaintainer: Linux BR\n\nPackage: linuxbr-boot-tools\nArchitecture: any\nDescription: Linux BR maintenance integration\n')
     boot_libs=subprocess.check_output(['dpkg-shlibdeps','-O','-e'+str(plugin)],cwd=boot_native,text=True).strip().split('=',1)[1]
-    control(boot,'linuxbr-boot-tools','bash, adduser, passwd, sudo, libpam-systemd, dbus-user-session, systemd-timesyncd | time-daemon, timeshift, rsync, python3, python3-dbus, python3-gi, python3-pyqt6, qt6-translations-l10n, grub-common, grub2-common, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-virtualkeyboard, qml6-module-qtquick-layouts, qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qt6-svg-plugins, init-system-helpers, systemd, polkitd, pkexec, xterm, openbox, x11-xserver-utils, sddm, xserver-xorg, polkit-kde-agent-1, network-manager, network-manager-gnome, firewalld, '+boot_libs,
+    control(boot,'linuxbr-boot-tools','bash, adduser, passwd, sudo, libpam-systemd, dbus-user-session, systemd-timesyncd | time-daemon, timeshift, rsync, ca-certificates, gpgv, python3, python3-dbus, python3-gi, python3-pyqt6, qt6-translations-l10n, grub-common, grub2-common, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-virtualkeyboard, qml6-module-qtquick-layouts, qml6-module-qtquick-window, qml6-module-qtqml-workerscript, qt6-svg-plugins, init-system-helpers, systemd, polkitd, pkexec, xterm, openbox, x11-xserver-utils, sddm, xserver-xorg, polkit-kde-agent-1, network-manager, network-manager-gnome, firewalld, '+boot_libs,
             extra=f'Breaks: linuxbr-drive-manager (<< {VERSION}), linuxbr-system (<< {VERSION})\nReplaces: linuxbr-drive-manager (<< {VERSION}), linuxbr-system (<< {VERSION})\n',architecture=run('dpkg','--print-architecture'))
     write(boot,'DEBIAN/postinst','''#!/bin/sh
 set -eu
@@ -362,7 +365,7 @@ esac
     shutil.copy2(style_build / 'liblinuxbrclean.so', style_target)
     write(style_build, 'debian/control', 'Source: linuxbr-desktop\nSection: x11\nPriority: optional\nMaintainer: Linux BR\n\nPackage: linuxbr-desktop\nArchitecture: any\nDescription: Linux BR style\n')
     style_libraries = subprocess.check_output(['dpkg-shlibdeps', '-O', '-e'+str(style_target.resolve())], cwd=style_build, text=True).strip().split('=', 1)[1]
-    control(roots['linuxbr-desktop'], 'linuxbr-desktop', f'linuxbr-boot-tools (= {VERSION}), linuxbr-branding, plasma-workspace, plasma-desktop, kde-style-breeze, kde-style-breeze-qt5, breeze-gtk-theme, kde-config-gtk-style, libkf6config-bin, plasma-integration, libreoffice-qt6, dolphin, firefox-esr, systemsettings, plasma-discover, plasma-discover-backend-flatpak, okular, kwin-common, python3-dbus, plasma-nm, bluedevil, plasma-pa, powerdevil, qml6-module-org-kde-bluezqt, ' + style_libraries, architecture=subprocess.check_output(['dpkg', '--print-architecture'], text=True).strip())
+    control(roots['linuxbr-desktop'], 'linuxbr-desktop', f'linuxbr-boot-tools (= {VERSION}), linuxbr-branding, plasma-workspace, plasma-desktop, kde-style-breeze, kde-style-breeze-qt5, breeze-gtk-theme, kde-config-gtk-style, libkf6config-bin, plasma-integration, libreoffice-qt6, dolphin, firefox-esr, systemsettings, plasma-discover, plasma-discover-backend-flatpak, okular, kwin-common (>= 4:6.3.6-1+deb13u1), kwin-wayland (>= 4:6.3.6-1+deb13u1), python3-dbus, plasma-nm, bluedevil, plasma-pa, powerdevil, qml6-module-org-kde-bluezqt, ' + style_libraries, architecture=subprocess.check_output(['dpkg', '--print-architecture'], text=True).strip())
     write(roots['linuxbr-desktop'], 'DEBIAN/postinst', """#!/bin/sh
 set -e
 case "$1" in configure|triggered) python3 /usr/lib/linuxbr-desktop/plasma-layout.py ;; esac
@@ -515,11 +518,18 @@ install -m 0755 /usr/share/applications/calamares-install-linuxbr.desktop "$desk
         metadata.write_text(optional_metadata(metadata.read_text()))
         conffiles = sorted('/' + str(p.relative_to(root)) for p in (root / 'etc').rglob('*') if p.is_file())
         write(root, 'DEBIAN/conffiles', '\n'.join(conffiles) + ('\n' if conffiles else ''))
+        root.chmod(0o755)
         for path in root.rglob('*'):
-            if path.is_dir(): path.chmod(0o755)
-            elif path.is_file() and not path.is_symlink():
-                with path.open('rb') as stream: executable=stream.read(2)==b'#!'
-                if executable:path.chmod(0o755)
+            if path.is_symlink():
+                continue
+            if path.is_dir():
+                path.chmod(0o755)
+            elif path.is_file():
+                with path.open('rb') as stream:
+                    header = stream.read(4)
+                executable = header.startswith(b'#!') or (
+                    header == b'\x7fELF' and path.stat().st_mode & 0o111)
+                path.chmod(0o755 if executable else 0o644)
         run('dpkg-deb', '--root-owner-group', '--build', str(root), str(output / f"{name}_{VERSION}_{run('dpkg', '--print-architecture') if name in ('linuxbr-drive-manager', 'linuxbr-desktop', 'linuxbr-file-properties','linuxbr-boot-tools') else 'all'}.deb"))
     (output / 'UPSTREAM-SHA256SUMS').write_text('\n'.join(manifest) + '\n')
 

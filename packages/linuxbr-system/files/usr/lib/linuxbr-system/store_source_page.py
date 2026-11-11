@@ -3,7 +3,7 @@ import json
 import base64
 from pathlib import Path
 import re
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QTableWidget,
     QTableWidgetItem,QHeaderView,QMessageBox,QDialog,QFormLayout,QLineEdit,QComboBox,QDialogButtonBox,QPlainTextEdit,QFileDialog,QInputDialog)
 from PyQt6.QtGui import QIcon
@@ -11,9 +11,11 @@ from desktop_jobs import Query,Command
 import store_sources as backend
 import catalog_sources
 import signed_catalog
+import store_optional
 
 
 class Sources(QWidget):
+    optional_changed = pyqtSignal()
     def __init__(self,parent=None):
         super().__init__(parent);self.jobs=set();self.commands=[];layout=QVBoxLayout(self)
         heading=QLabel('Fontes de aplicativos');heading.setStyleSheet('font-size:26px;font-weight:600');layout.addWidget(heading)
@@ -23,6 +25,8 @@ class Sources(QWidget):
         for text,icon,callback in [('Adicionar fonte','list-add',self.add),('Habilitar / desabilitar','dialog-ok-apply',self.toggle),('Editar fonte APT própria','configure',self.edit),('Remover fonte','edit-delete',self.remove),('Ver detalhes','document-properties',self.details),('Atualizar lista','view-refresh',self.refresh)]:
             button=QPushButton(QIcon.fromTheme(icon),text);button.clicked.connect(callback);row.addWidget(button)
         layout.addLayout(row);self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status);self.refresh()
+        setup=QPushButton(QIcon.fromTheme('preferences-system'),'Configurar Snap ou Homebrew…')
+        setup.clicked.connect(self.setup_optional);layout.addWidget(setup)
         row=QHBoxLayout();apt=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar índices APT');apt.clicked.connect(self.refresh_apt);row.addWidget(apt)
         flatpak=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo Flatpak da minha conta');flatpak.clicked.connect(lambda:self.command('Atualizar catálogo Flatpak',['/usr/bin/flatpak','--user','update','--appstream']));row.addWidget(flatpak);layout.addLayout(row)
         signed=QPushButton(QIcon.fromTheme('security-high'),'Atualizar catálogos assinados');signed.clicked.connect(self.refresh_signed);layout.addWidget(signed)
@@ -47,12 +51,13 @@ class Sources(QWidget):
 
     def refresh(self):
         if self.jobs:return
-        query=Query(lambda:backend.apt_sources()+backend.flatpak_sources('user')+backend.flatpak_sources('system')+catalog_sources.sources()+signed_catalog.sources(),self);self.jobs.add(query);query.result.connect(self.loaded);query.failed.connect(self.status.setText);query.finished.connect(lambda:self.jobs.discard(query));query.finished.connect(query.deleteLater);query.start();self.status.setText('Consultando fontes configuradas…')
+        query=Query(lambda:backend.apt_sources()+backend.flatpak_sources('user')+backend.flatpak_sources('system')+catalog_sources.sources()+signed_catalog.sources()+store_optional.sources(),self);self.jobs.add(query);query.result.connect(self.loaded);query.failed.connect(self.status.setText);query.finished.connect(lambda:self.jobs.discard(query));query.finished.connect(query.deleteLater);query.start();self.status.setText('Consultando fontes configuradas…')
 
     def loaded(self,rows):
         self.table.setRowCount(len(rows))
         for i,row in enumerate(rows):
-            for j,value in enumerate([row['kind'],row['name'],row.get('path',row.get('scope','')+' · '+row.get('url','')),'Habilitada' if row['enabled'] else 'Desabilitada']):
+            state = row.get('status') or ('Habilitada' if row['enabled'] else 'Desabilitada')
+            for j,value in enumerate([row['kind'],row['name'],row.get('path',row.get('scope','')+' · '+row.get('url','')),state]):
                 item=QTableWidgetItem(value);item.setData(Qt.ItemDataRole.UserRole,row);self.table.setItem(i,j,item)
         self.status.setText(str(len(rows))+' fontes. Alterar uma fonte não atualiza os índices automaticamente.')
 
@@ -70,6 +75,9 @@ class Sources(QWidget):
 
     def toggle(self):
         row=self.selected()
+        if row and row.get('optional_manager'):
+            self.toggle_optional(row)
+            return
         if not row or not self.confirm(('Desabilitar' if row['enabled'] else 'Habilitar')+' a fonte '+row['name']+'? Em APT, a ação abrange todas as entradas do arquivo exibido.'):return
         if row['kind']=='Catálogo assinado':signed_catalog.change(row['name']);self.refresh()
         elif row['kind']=='Catálogo':catalog_sources.change(row['name']);self.refresh()
@@ -78,11 +86,47 @@ class Sources(QWidget):
 
     def remove(self):
         row=self.selected()
+        if row and row.get('optional_manager'):
+            if row['enabled']:
+                self.toggle_optional(row)
+            return
         if not row or not self.confirm('Remover a fonte '+row['name']+'? Os programas instalados permanecem, mas podem deixar de receber atualizações por ela.'):return
         if row['kind']=='Catálogo assinado':signed_catalog.change(row['name'],True);self.refresh()
         elif row['kind']=='Catálogo':catalog_sources.change(row['name'],True);self.refresh()
         elif row['kind']=='APT':self.apt(dict(action='remove',path=row['path'],sha256=row['sha256']))
         else:self.command('Remover fonte Flatpak',['/usr/bin/flatpak','--'+row['scope'],'remote-delete','--noninteractive',row['name']])
+
+    def toggle_optional(self, row):
+        action = 'Desabilitar' if row['enabled'] else 'Habilitar'
+        if not self.confirm(action + ' ' + row['name'] + ' nesta conta? Os aplicativos instalados permanecem no computador.'):
+            return
+        try:
+            store_optional.set_enabled(row['optional_manager'], not row['enabled'])
+            self.optional_changed.emit()
+            self.refresh()
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Fonte não alterada', str(error))
+
+    def setup_optional(self):
+        row = self.selected()
+        if not row or not row.get('optional_manager'):
+            QMessageBox.information(self, 'Fontes opcionais', 'Selecione Snap Store ou Homebrew Core na lista.')
+            return
+        manager = row['optional_manager']
+        if not store_optional.allowed(manager):
+            QMessageBox.information(self, 'Fonte bloqueada', 'A organização bloqueou esta fonte na Loja.')
+        elif manager == 'snap':
+            if row.get('confinement') == 'partial':
+                QMessageBox.information(self, 'Confinamento da Snap Store', row['content'])
+                return
+            if self.confirm('Abrir o pacote snapd no gerenciador APT da Loja? Instale-o e confira o serviço antes de habilitar a fonte.'):
+                from store_operations import Operations
+                window = self.window()
+                if not hasattr(window, 'operations'):
+                    window.operations = Operations(window)
+                window.operations.set_item(dict(id='deb:snapd', name='snapd', kind='linux', repository_package='snapd'))
+        elif self.confirm('Abrir o guia oficial do Homebrew para Linux? Use o prefixo padrão e retorne à Loja na conta proprietária.'):
+            self.command('Abrir guia do Homebrew', ['/usr/bin/xdg-open', 'https://docs.brew.sh/Homebrew-on-Linux'])
 
     def details(self):
         row=self.selected()

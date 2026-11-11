@@ -47,6 +47,10 @@ class AccountsPage(QWidget):
         if organization:
             note = QLabel('Após conectar, encerre a sessão e use o formato de login indicado. O primeiro acesso requer conexão com a empresa. As políticas de acesso são administradas pelo domínio; ingressar não concede privilégios de administrador local.')
             note.setWordWrap(True); body.addWidget(note)
+            prepare = QPushButton('Preparar para trabalho ou escola…')
+            prepare.clicked.connect(lambda: self.launch(['/usr/bin/python3',
+                str(Path(__file__).with_name('organization_preparation.py'))]))
+            body.addWidget(prepare)
 
     def button(self, row, text, callback):
         button = QPushButton(text); button.clicked.connect(callback); row.addWidget(button)

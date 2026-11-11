@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light dark;
+  font: 16px system-ui, sans-serif;
+  --line: color-mix(in srgb, CanvasText 22%, Canvas);
+}
+body { margin: 0; background: Canvas; color: CanvasText; }
+main { max-width: 90rem; margin: auto; padding: clamp(1rem, 3vw, 2.5rem); }
+header { border-left: 0.4rem solid #228262; padding-left: 1rem; }
+h1, h2, p { margin-block: 0.4em; }
+section { margin-block: 1.5rem; padding: 1rem; border: 1px solid var(--line); border-radius: .5rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+button, select { font: inherit; min-height: 2.5rem; padding-inline: .55rem; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; text-align: left; }
+th, td { padding: .55rem; vertical-align: top; border-bottom: 1px solid var(--line); }
+td button { margin: .15rem; white-space: nowrap; }
+pre { overflow: auto; padding: 1rem; border: 1px solid var(--line); white-space: pre-wrap; }
+#message { min-height: 1.5em; }
+#window-editor { margin: 1rem 0 0; min-inline-size: 0; border: 1px solid var(--line); border-radius: .4rem; }
+.window-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: .75rem;
+  margin-block: .65rem;
+}
+.window-fields label { display: grid; gap: .25rem; min-inline-size: 0; }
+.window-fields input {
+  box-sizing: border-box;
+  width: 100%;
+  min-inline-size: 0;
+  min-height: 2.75rem;
+  padding-inline: .5rem;
+  font: inherit;
+}
+#window-editor button { min-height: 2.75rem; }
+#window-feedback:empty { display: none; }

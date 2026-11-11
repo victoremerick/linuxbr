@@ -27,9 +27,17 @@ class Operations(QDialog):
         self.targets=QComboBox();self.targets.setAccessibleName('Origem e alcance da instalação')
         self.targets.setMinimumContentsLength(35)
         self.targets.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon);information.addWidget(self.targets)
-        note=QLabel('DEB altera a instalação do sistema e solicita autorização quando necessário. '
-            'Flatpak distingue sua conta e sistema. Remover programa preserva dados pessoais; '
-            'atalhos e ambientes Windows têm ações próprias na Loja.')
+        self.format_evidence = QLabel()
+        self.format_evidence.setTextFormat(Qt.TextFormat.PlainText)
+        self.format_evidence.setWordWrap(True)
+        information.addWidget(self.format_evidence)
+        self.prerequisite = QLabel()
+        self.prerequisite.setTextFormat(Qt.TextFormat.PlainText)
+        self.prerequisite.setWordWrap(True)
+        information.addWidget(self.prerequisite)
+        note=QLabel('DEB e Snap alteram o sistema com autorização administrativa. '
+            'Flatpak distingue sua conta e sistema. Homebrew usa a conta proprietária do prefixo. '
+            'Atalhos e ambientes Windows têm ações próprias na Loja.')
         note.setWordWrap(True);information.addWidget(note)
         operations=QGroupBox('Operações');actions=QVBoxLayout(operations);body.addWidget(operations)
         row=QHBoxLayout();self.action_buttons=[]
@@ -48,7 +56,7 @@ class Operations(QDialog):
         records=QGroupBox('Andamento e histórico');records_layout=QVBoxLayout(records);body.addWidget(records,1)
         self.log=QPlainTextEdit();self.log.setReadOnly(True);self.log.setMinimumHeight(96);self.log.setMaximumBlockCount(1500);records_layout.addWidget(self.log,1)
         history_button=QPushButton('Histórico');history_button.setIcon(QIcon.fromTheme('document-open-recent'));history_button.clicked.connect(self.show_history);records_layout.addWidget(history_button)
-        self.flatpak_group=QGroupBox('Respostas ao instalador');answers=QVBoxLayout(self.flatpak_group);body.addWidget(self.flatpak_group)
+        self.flatpak_group=QGroupBox('Respostas ao gerenciador');answers=QVBoxLayout(self.flatpak_group);body.addWidget(self.flatpak_group)
         row=QHBoxLayout();self.flatpak_buttons=[]
         for text,icon,callback in (('Confirmar etapa','dialog-ok-apply',lambda:self.answer_flatpak(True)),
                               ('Recusar etapa (n)','dialog-cancel',lambda:self.answer_flatpak(False))):
@@ -56,7 +64,7 @@ class Operations(QDialog):
             button.setIcon(QIcon.fromTheme(icon))
             self.flatpak_buttons.append(button)
         answers.addLayout(row)
-        row=QHBoxLayout();self.response=QLineEdit();self.response.setPlaceholderText('Resposta solicitada pelo Flatpak (por exemplo, número de uma opção)')
+        row=QHBoxLayout();self.response=QLineEdit();self.response.setPlaceholderText('Resposta solicitada pelo gerenciador (por exemplo, número de uma opção)')
         self.response.returnPressed.connect(self.send_response);row.addWidget(self.response)
         send=QPushButton('Enviar resposta');send.setIcon(QIcon.fromTheme('mail-send'));send.clicked.connect(self.send_response);row.addWidget(send);answers.addLayout(row)
         self.flatpak_buttons.extend((self.response,send))
@@ -77,31 +85,102 @@ class Operations(QDialog):
 
     def selection_changed(self):
         target=self.targets.currentData()
+        limitation = target.get('blocked_reason', '') if target else ''
+        confinement_note = target.get('confinement_note', '') if target else ''
+        detail = limitation or confinement_note
+        self.prerequisite.setText(detail)
+        self.prerequisite.setVisible(bool(detail))
         for button,action in self.action_buttons:
             button.setVisible(not self.updates_mode or action=='update')
-            button.setEnabled(bool(target and (action=='install')!=target['installed']))
+            button.setEnabled(bool(target and (action=='install')!=target['installed']
+                                   and (action == 'remove' or not limitation)))
+        self.show_format_evidence(target)
+
+    def show_format_evidence(self, target):
+        from store_format_tests import UNKNOWN, records
+
+        self.format_evidence.setVisible(bool(target))
+        self.format_evidence.setText(UNKNOWN if target else '')
+        if not target or not any(row['manager'] == target['manager'] and row['target'] == target['target']
+                                 for row in records()):
+            return
+        process = QProcess(self)
+
+        def finished(code, *_):
+            if code == 0 and self.targets.currentData() == target:
+                detail = bytes(process.readAllStandardOutput()).decode('utf-8', errors='replace').strip()
+                self.format_evidence.setText(detail or UNKNOWN)
+            process.deleteLater()
+
+        process.finished.connect(finished)
+        process.errorOccurred.connect(lambda error: process.deleteLater()
+            if error == QProcess.ProcessError.FailedToStart else None)
+        process.start('/usr/bin/python3', [str(Path(__file__).with_name('store_format_tests.py')),
+                                          json.dumps(target)])
+
+    def accepts_manager_input(self):
+        if not self.current:
+            return False
+        request = self.current[1]
+        return (request['manager'] in ('flatpak', 'brew') or
+                request['manager'] == 'file' and Path(request['target']).suffix.lower() != '.deb')
 
     def flatpak_controls(self):
-        visible=bool(self.current and (self.current[1]['manager']=='flatpak' or self.current[1]['manager']=='file' and Path(self.current[1]['target']).suffix.lower()!='.deb'))
+        visible = self.accepts_manager_input()
         self.flatpak_group.setVisible(visible)
         for widget in self.flatpak_buttons:widget.setVisible(visible)
 
     def enqueue(self,action):
         target=self.targets.currentData()
         if not target or not self.item:return
+        if action != 'remove' and target.get('blocked_reason'):
+            return
         try:request=transactions.checked_request(dict(target,action=action,name=target.get('name',self.item['name'])))
         except ValueError as error:
             QMessageBox.warning(self,'Instalação não identificada',str(error));return
         question={'install':'Instalar','update':'Atualizar','remove':'Remover o programa'}[action]
         detail=question+' “'+request['name']+'”?\n\n'+target['label']
-        if action=='remove':detail+='\n\nNão apaga dados pessoais nem executa limpeza de dependências. A remoção DEB será recusada se exigir remover outros pacotes.'
-        detail+='\n\nAs dependências e permissões serão apresentadas pelo gerenciador antes da confirmação final.'
+        if action != 'remove' and target.get('confinement_note'):
+            detail += '\n\n' + target['confinement_note']
+        classic = request['manager'] == 'snap' and action == 'install' and target['confinement'] == 'classic'
+        if classic:
+            detail += '\n\nO modo classic permite acesso ampliado aos arquivos e recursos do sistema. Confirme somente se confiar no publicador.'
+        if action == 'remove' and request['manager'] == 'snap':
+            detail += '\n\nO snapd administra os dados do aplicativo e suas cópias conforme a configuração do sistema.'
+        elif action == 'remove' and request['manager'] == 'brew':
+            detail += '\n\nO Homebrew removerá a fórmula selecionada do prefixo desta conta.'
+        elif action == 'remove':
+            detail += '\n\nNão apaga dados pessoais nem executa limpeza de dependências. A remoção DEB será recusada se exigir remover outros pacotes.'
+        if request['manager'] in ('snap', 'brew') and action != 'remove':
+            detail += '\n\nO gerenciador pode instalar dependências para concluir a operação.'
+        elif request['manager'] not in ('snap', 'brew'):
+            detail+='\n\nAs dependências e permissões serão apresentadas pelo gerenciador antes da confirmação final.'
         if QMessageBox.question(self,question,detail,QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.Cancel,
                 QMessageBox.StandardButton.Cancel)!=QMessageBox.StandardButton.Yes:return
-        if any(value[1]==request for value in self.queue) or self.current and self.current[1]==request:
+        if classic:
+            request['classic_confirmed'] = True
+        if not self.add_requests([request]):
             QMessageBox.information(self,'Operação já solicitada','Esta operação já está na fila.');return
-        identifier=str(uuid.uuid4());self.queue.append((identifier,request))
-        self.update_queue();self.start_next()
+
+    def add_requests(self, requests):
+        def key(request):
+            return tuple(request[field] for field in ('manager', 'action', 'target', 'scope', 'origin'))
+
+        pending = {key(request) for _, request in self.queue}
+        if self.current:
+            pending.add(key(self.current[1]))
+        added = False
+        for request in requests:
+            if key(request) in pending:
+                continue
+            pending.add(key(request))
+            self.queue.append((str(uuid.uuid4()), request))
+            added = True
+        if added:
+            self.update_queue()
+            self.show()
+            self.start_next()
+        return added
 
     def update_queue(self):
         self.queue_group.setVisible(bool(self.current or self.queue))
@@ -177,11 +256,11 @@ class Operations(QDialog):
         if self.process:self.process.write(answer.encode('ascii'))
 
     def answer_flatpak(self,accepted):
-        if self.process and (self.current[1]['manager']=='flatpak' or self.current[1]['manager']=='file' and Path(self.current[1]['target']).suffix.lower()!='.deb'):
+        if self.process and self.accepts_manager_input():
             self.process.write(b'y\n' if accepted else b'n\n')
 
     def send_response(self):
-        if self.process and (self.current[1]['manager']=='flatpak' or self.current[1]['manager']=='file' and Path(self.current[1]['target']).suffix.lower()!='.deb'):
+        if self.process and self.accepts_manager_input():
             value=self.response.text()
             if len(value)<=100 and all(ord(character)>=32 for character in value):
                 self.process.write((value+'\n').encode('utf-8'));self.response.clear()
@@ -209,6 +288,8 @@ class Operations(QDialog):
         self.update_queue();QTimer.singleShot(0,self.start_next)
         parent=self.parent()
         if parent and hasattr(parent,'select'):parent.select()
+        if code == 0 and request['manager'] in ('snap', 'brew') and parent and hasattr(parent, 'optional_sources_changed'):
+            parent.optional_sources_changed()
 
     def show_history(self):
         lines=[]
@@ -228,7 +309,7 @@ class Operations(QDialog):
         if self.update_process:return
         self.updates_mode=True;self.item={'name':'Atualizações'};self.targets.clear();self.selection_changed()
         self.application_icon.setPixmap(QIcon.fromTheme('system-software-update').pixmap(32,32))
-        self.heading.setText('Consultando atualizações nos índices locais. Esta consulta não altera pacotes nem fontes.')
+        self.heading.setText('Consultando atualizações nos gerenciadores habilitados.')
         process=QProcess(self);self.update_process=process
         process.finished.connect(lambda code,*_:self.updates_finished(process,code))
         process.errorOccurred.connect(lambda error:self.updates_failed(process,error))
@@ -249,7 +330,7 @@ class Operations(QDialog):
         self.targets.clear()
         for value in targets:
             self.targets.addItem(value['label'],value);self.targets.setItemData(self.targets.count()-1,value['label'],Qt.ItemDataRole.ToolTipRole)
-        self.heading.setText(str(len(targets))+' atualizações nos índices locais. Selecione uma instalação e use Atualizar. '
+        self.heading.setText(str(len(targets))+' atualizações disponíveis. Selecione uma instalação e use Atualizar. '
             'Atualize os índices pela Loja se necessário. A transação final confere novamente a disponibilidade.'+
             ('\nConsultas incompletas: '+'; '.join(errors) if errors else ''))
         self.selection_changed();process.deleteLater()

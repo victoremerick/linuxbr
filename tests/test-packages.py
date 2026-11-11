@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import subprocess
+import tarfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import yaml
@@ -27,6 +28,15 @@ for path in (original / 'usr/share/calamares/helpers').iterdir():
     assert path.read_bytes() == (modified / path.relative_to(original)).read_bytes(), path
 for package in (work / 'debs').glob('*.deb'):
     subprocess.run(['dpkg-deb', '--info', str(package)], check=True, stdout=subprocess.DEVNULL)
+    with subprocess.Popen(['dpkg-deb', '--fsys-tarfile', str(package)], stdout=subprocess.PIPE) as process:
+        with tarfile.open(fileobj=process.stdout, mode='r|') as payload:
+            for member in payload:
+                if member.issym():
+                    continue
+                assert member.uid == member.gid == 0 and not member.mode & 0o022, (package, member.name)
+                if '/systemd/' in member.name and member.name.endswith(('.service', '.timer')):
+                    assert member.mode == 0o644, member.name
+        assert process.wait() == 0, package
 assert 'linuxbr-calamares-settings' in (modified / 'DEBIAN/preinst').read_text()
 assert 'linuxbr-calamares-settings' in (modified / 'DEBIAN/postrm').read_text()
 assert not (modified / 'usr/share/applications/calamares-install-debian.desktop').exists()
