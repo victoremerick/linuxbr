@@ -243,7 +243,7 @@ jobs:
             --json isDraft,isPrerelease,tagName,url
 
       - name: Preservar evidências e logs da execução
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: linuxbr-alpha1-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
@@ -255,8 +255,6 @@ jobs:
             ${{ runner.temp }}/linuxbr-qa/**/*.ppm
             ${{ runner.temp }}/linuxbr-qa/**/*.png
             ${{ github.workspace }}/.cache/logs/*.log
-            ${{ github.workspace }}/build/**/stage*.log
-            ${{ github.workspace }}/build/**/validation*.log
           compression-level: 0
           retention-days: 1
           include-hidden-files: true
