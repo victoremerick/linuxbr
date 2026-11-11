@@ -1,0 +1,264 @@
+name: Linux BR 1.1 Alpha 1
+
+on:
+  push:
+    branches:
+      - release/1.1-alpha1
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: linuxbr-1.1-alpha1
+  cancel-in-progress: false
+
+env:
+  RELEASE_VERSION: '1.1.0~alpha1'
+  RELEASE_TAG: v1.1.0-alpha1
+  RELEASE_NAME: linuxbr-1.1.0-alpha1
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  release:
+    if: github.repository == 'victoremerick/linuxbr' && github.ref == 'refs/heads/release/1.1-alpha1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Obter o commit do workflow e seu pai
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Conferir a origem da versão
+        id: source
+        run: |
+          set -euo pipefail
+          [[ $(git rev-parse HEAD) == "$GITHUB_SHA" ]]
+          read -r source_commit other_parents < <(git show -s --format=%P HEAD)
+          [[ $source_commit =~ ^[0-9a-f]{40}$ && -z $other_parents ]]
+          [[ $(git diff --no-renames --name-status "$source_commit" HEAD) == $'A\t.github/workflows/release-alpha1.yml' ]]
+          [[ $(git show "$source_commit:VERSION") == "$RELEASE_VERSION" ]]
+          [[ v${RELEASE_VERSION/\~/-} == "$RELEASE_TAG" ]]
+          git fetch --no-tags --depth=1 origin refs/heads/main
+          git diff --exit-code FETCH_HEAD "$source_commit" -- .github/workflows/
+          git switch --detach "$source_commit"
+          printf 'commit=%s\n' "$source_commit" >> "$GITHUB_OUTPUT"
+          printf 'Fontes verificadas em %s\n' "$source_commit"
+
+      - name: Preparar o runner e conferir espaço
+        run: |
+          set -euo pipefail
+          df -h "$GITHUB_WORKSPACE"
+          sdk_paths=(
+            /usr/local/lib/android
+            /usr/share/dotnet
+            /opt/ghc
+            /usr/local/.ghcup
+            /usr/local/share/boost
+            /opt/hostedtoolcache/CodeQL
+          )
+          for sdk in "${sdk_paths[@]}"; do
+            if [[ -d $sdk && ! -L $sdk ]]; then
+              sudo rm -rf -- "$sdk"
+            fi
+          done
+          docker builder prune --all --force
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            acl file gir1.2-glib-2.0 gnupg gpgv openssl ovmf python3 python3-cryptography python3-gi \
+            qemu-system-x86 tesseract-ocr tesseract-ocr-eng xorriso
+          sudo apt-get clean
+          docker info --format 'Docker {{.ServerVersion}} · {{.DockerRootDir}}'
+          if ! sudo losetup --find; then
+            sudo modprobe loop
+            sudo losetup --find
+          fi
+          if [[ -c /dev/kvm && ( ! -r /dev/kvm || ! -w /dev/kvm ) ]]; then
+            sudo setfacl -m "u:$(id -u):rw" /dev/kvm
+          fi
+          sudo df -h "$GITHUB_WORKSPACE" "$RUNNER_TEMP" "$(docker info --format '{{.DockerRootDir}}')"
+          python3 scripts/build_preflight.py "$GITHUB_WORKSPACE"
+
+      - name: Executar testes das funções da Alpha 1
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/linuxbr-qa"
+          suites=(
+            tests/test-github-release.py
+            tests/test-release-10.py
+            tests/test-maintenance-store-11.py
+            tests/test-store-optional-11.py
+            tests/test-organization-policy-11.py
+            tests/test-organization-machine-policy.py
+            tests/test-support-remote-11.py
+            tests/test-update-waves.py
+            tests/test-update-recovery-11.py
+            tests/test-wave-review-11.py
+            server/update-waves/test_wave_server.py
+          )
+          for suite in "${suites[@]}"; do
+            printf '\n%s\n' "$suite"
+            sudo /usr/bin/python3 -B "$suite" -v
+          done 2>&1 | tee "$RUNNER_TEMP/linuxbr-qa/unit-tests.log"
+          node --check server/update-waves/panel.js
+
+      - name: Compilar a ISO no Docker
+        env:
+          CONTAINER_ENGINE: docker
+        run: bash build.sh --verbose
+
+      - name: Registrar a imagem exata para retomar a validação
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          [[ $(git rev-parse HEAD) == "$SOURCE_COMMIT" ]]
+          (
+            cd dist
+            sha256sum --check --strict "linuxbr-$RELEASE_VERSION-amd64.iso.sha256"
+          )
+          python3 -B - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          version = os.environ['RELEASE_VERSION']
+          image = Path('dist') / f'linuxbr-{version}-amd64.iso'
+          with image.open('rb') as stream:
+              digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+          metadata = {
+              'schema': 1,
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'version': version,
+              'source_commit': os.environ['SOURCE_COMMIT'],
+              'workflow_commit': os.environ['GITHUB_SHA'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'iso': {'file': image.name, 'bytes': image.stat().st_size, 'sha256': digest},
+          }
+          target = Path('dist') / (os.environ['RELEASE_NAME'] + '-build.json')
+          target.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+      - name: Preservar a ISO no GitHub antes da QA
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: linuxbr-alpha1-build-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/linuxbr-1.1.0~alpha1-amd64.iso
+            dist/linuxbr-1.1.0~alpha1-amd64.iso.sha256
+            dist/linuxbr-1.1.0~alpha1-upstream.sha256
+            dist/linuxbr-1.1.0-alpha1-build.json
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Conferir a ISO e inicializar em UEFI e BIOS
+        env:
+          ISO: ${{ github.workspace }}/dist/linuxbr-1.1.0~alpha1-amd64.iso
+          QA_EVIDENCE_BASE: ${{ runner.temp }}/linuxbr-qa
+        run: bash tests/qa-release-iso.sh headless
+
+      - name: Preparar os arquivos de publicação
+        env:
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          [[ $(git rev-parse HEAD) == "$SOURCE_COMMIT" ]]
+          [[ -z $(git status --porcelain) ]]
+          iso="dist/linuxbr-$RELEASE_VERSION-amd64.iso"
+          test -s "$iso"
+          iso_hash=$(sha256sum "$iso")
+          iso_hash=${iso_hash%% *}
+          python3 -B - "$RUNNER_TEMP/linuxbr-qa" "$RELEASE_VERSION" "$iso_hash" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          folder, version, iso_hash = sys.argv[1:]
+          directories = list(Path(folder).glob(f'qa-iso-{version}.*'))
+          if len(directories) != 1:
+              raise SystemExit('O relatório de boot desta compilação está ausente ou ambíguo.')
+          for firmware in ('uefi', 'bios'):
+              result = json.loads((directories[0] / f'{firmware}-result.json').read_text())
+              expected = ('PASS', f'live-{firmware}', version, iso_hash)
+              if tuple(result.get(field) for field in ('status', 'id', 'version', 'iso_sha256')) != expected:
+                  raise SystemExit(f'O resultado Live {firmware} não corresponde à ISO.')
+          PY
+          sudo ln -- "$iso" "dist/$RELEASE_NAME-amd64.iso"
+          git archive --format=tar.gz --prefix="$RELEASE_NAME/" \
+            --output="dist/$RELEASE_NAME-fontes.tar.gz" "$SOURCE_COMMIT"
+          cp -- "dist/linuxbr-$RELEASE_VERSION-upstream.sha256" "dist/$RELEASE_NAME-debian.sha256"
+          tar --exclude='*.qcow2' --exclude='*.iso' --exclude='*.fd' -C "$RUNNER_TEMP" \
+            -czf "dist/$RELEASE_NAME-validacoes.tar.gz" linuxbr-qa
+          cp -- docs/RELEASE-1.1-ALPHA1.md "$RUNNER_TEMP/linuxbr-release-notes.md"
+          {
+            printf '\n## Validação desta compilação\n\n'
+            printf 'Fontes verificadas em `%s`.\n\n' "$SOURCE_COMMIT"
+            printf 'A ISO completa tem SHA256 `%s`.\n\n' "$iso_hash"
+            printf 'As suítes do servidor e do cliente, a integridade da ISO e os boots Live em UEFI e BIOS passaram.\n\n'
+            printf 'Os resultados estão no arquivo `%s-validacoes.tar.gz` e no [histórico desta execução](https://github.com/%s/actions/runs/%s).\n' \
+              "$RELEASE_NAME" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
+          } >> "$RUNNER_TEMP/linuxbr-release-notes.md"
+
+      - name: Enviar, verificar e publicar o pré-lançamento
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          [[ $(git rev-parse HEAD) == "$SOURCE_COMMIT" ]]
+          [[ $(cat VERSION) == "$RELEASE_VERSION" ]]
+          current=$(git ls-remote origin "$GITHUB_REF" | cut -f1)
+          [[ $current == "$GITHUB_SHA" ]] || {
+            printf 'A branch da versão avançou durante a compilação.\n' >&2
+            exit 1
+          }
+          install -d -m 0700 "$GITHUB_WORKSPACE/dist/.staging"
+          export TMPDIR="$GITHUB_WORKSPACE/dist/.staging"
+          artifacts=(
+            --artifact "dist/$RELEASE_NAME-amd64.iso"
+            --artifact "dist/$RELEASE_NAME-fontes.tar.gz"
+            --artifact "dist/$RELEASE_NAME-debian.sha256"
+            --artifact "dist/$RELEASE_NAME-validacoes.tar.gz"
+            --notes "$RUNNER_TEMP/linuxbr-release-notes.md"
+            --verify-remote
+          )
+          python3 scripts/publish-github-release.py "${artifacts[@]}" --dry-run
+          python3 scripts/publish-github-release.py "${artifacts[@]}" --publish
+          tag_ref="refs/tags/$RELEASE_TAG"
+          tag_commit=$(git ls-remote --tags origin "$tag_ref" "$tag_ref^{}" |
+            awk -v ref="$tag_ref" '$2 == ref { tagged=$1 } $2 == ref "^{}" { peeled=$1 }
+                END { print peeled ? peeled : tagged }')
+          [[ $tag_commit == "$SOURCE_COMMIT" ]]
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json isDraft,isPrerelease,tagName,url
+
+      - name: Preservar evidências e logs da execução
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: linuxbr-alpha1-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/linuxbr-qa/**/*.log
+            ${{ runner.temp }}/linuxbr-qa/**/*.json
+            ${{ runner.temp }}/linuxbr-qa/**/*.txt
+            ${{ runner.temp }}/linuxbr-qa/**/*.sha256
+            ${{ runner.temp }}/linuxbr-qa/**/*.ppm
+            ${{ runner.temp }}/linuxbr-qa/**/*.png
+            ${{ github.workspace }}/.cache/logs/*.log
+            ${{ github.workspace }}/build/**/stage*.log
+            ${{ github.workspace }}/build/**/validation*.log
+          compression-level: 0
+          retention-days: 1
+          include-hidden-files: true
+          if-no-files-found: warn
+
