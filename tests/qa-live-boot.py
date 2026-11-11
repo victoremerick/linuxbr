@@ -18,9 +18,14 @@ import time
 
 def login_screen(text):
     actions = ('suspender', 'reiniciar', 'desligar', 'outros')
-    return ('senha' in text and
-            (sum(action in text for action in actions) >= 2 or
-             'plasma' in text and 'teclado virtual' in text))
+    return (sum(action in text for action in actions) >= 3 and
+            ('plasma' in text or 'teclado virtual' in text))
+
+
+def console_ready(text):
+    return bool(re.search(r'(?m)^\s*user\s*[@©]\s*[^:\s]+:[^\r\n]*[#$][ \t]*$', text)
+                or re.search(r'(?m)^\s*linuxbr\s+login\s*:\s*user\s*'
+                             r'\((?:automatic login|login autom[aá]tico)\)', text))
 
 
 def guest_probe(marker, firmware, version):
@@ -217,15 +222,15 @@ def verify_session(monitor, screen, serial, evidence, firmware, version, marker,
     monitor.command('screendump', filename=str(evidence / f'{firmware}-desktop.ppm'))
     print('Abrindo o console Live no TTY6.', flush=True)
     monitor.keys('ctrl', 'alt', 'f6')
-    console = monitor.wait_screen(screen, deadline, lambda text: re.search(
-        r'user\s*[@©]\s*linuxbr|linuxbr\s+login\s*:\s*$', text, re.M), 'console Live')
-    if not re.search(r'user\s*[@©]\s*linuxbr', console):
+    console = monitor.wait_screen(screen, deadline, lambda text: console_ready(text) or re.search(
+        r'(?m)^\s*linuxbr\s+login\s*:\s*$', text), 'console Live')
+    if not console_ready(console):
         monitor.type_command('user')
         monitor.wait_screen(screen, deadline, lambda text: 'password' in text or 'senha' in text,
                             'senha do console Live')
         monitor.type_command('live')
-        monitor.wait_screen(screen, deadline, lambda text: re.search(r'user\s*[@©]\s*linuxbr', text),
-                            'prompt do console Live')
+        monitor.wait_screen(screen, deadline, console_ready, 'prompt do console Live')
+    time.sleep(2)
     monitor.type_command('curl -fsS http://10.0.2.100:8888/probe.sh -o /tmp/probe.sh')
     time.sleep(4)
     monitor.type_command('sudo sh /tmp/probe.sh')
