@@ -69,6 +69,7 @@ jobs:
           node --check server/update-waves/panel.js
 
       - name: Compilar a ISO Desktop no executor
+        id: build_iso
         run: bash build.sh --verbose
 
       - name: Identificar a imagem e conferir o checksum
@@ -117,3 +118,13 @@ jobs:
           retention-days: 14
           include-hidden-files: true
           if-no-files-found: warn
+
+      - name: Preservar imagem intermediária para diagnóstico da checagem
+        if: failure() && steps.build_iso.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: linuxbr-desktop-imagem-diagnostico-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/linuxbr-*/live-image-amd64.hybrid.iso
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: ignore

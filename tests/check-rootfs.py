@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('root', type=Path)
 parser.add_argument('--mode', choices=['live', 'installed'], default='live')
 parser.add_argument('--edition', choices=['desktop', 'vm-server'], default='desktop')
+parser.add_argument('--installer-only', action='store_true')
 args = parser.parse_args()
 root = args.root
 version = (Path(__file__).resolve().parents[1] / 'VERSION').read_text().strip()
@@ -25,6 +26,43 @@ def read(name):
 def require(condition, message):
     if not condition:
         raise SystemExit('FAIL: ' + message)
+
+
+def desktop_installer():
+    settings = yaml.safe_load(read('etc/calamares/settings.conf'))
+    require(settings['branding'] == 'linuxbr', 'branding Calamares')
+    show = settings['sequence'][0]['show']
+    require(show == ['welcome', 'linuxbr_installation', 'partition', 'summary'],
+            'instalação Desktop em duas etapas: termos, disco e resumo')
+    jobs = settings['sequence'][1]['exec']
+    required = ('partition', 'unpackfs', 'bootloader', 'linuxbr_initial_setup', 'umount')
+    for module in required:
+        require(module in jobs, 'módulo Calamares: ' + module)
+    require([jobs.index(name) for name in required] == sorted(jobs.index(name) for name in required),
+            'ordem das operações de instalação no disco')
+    require(jobs.index('linuxbr_initial_setup') + 1 == jobs.index('umount'),
+            'marcador de primeiro boot gravado antes de desmontar o disco')
+    require(not {'users', 'locale', 'localecfg', 'keyboard', 'networkcfg'}.intersection(jobs),
+            'conta, idioma, teclado e rede reservados para o primeiro boot')
+    require(all(settings.get(option) is True for option in (
+        'prompt-install', 'disable-cancel-during-exec', 'hide-back-and-next-during-exec')),
+        'confirmação do disco e bloqueio de cancelamento durante a instalação')
+    for path in ('etc/calamares/modules/linuxbr_installation/libcalamares_viewmodule_linuxbr_installation.so',
+                 'etc/calamares/modules/linuxbr_initial_setup/main.py', 'usr/lib/linuxbr-installer/preflight.py'):
+        require((root / path).is_file(), 'integração da instalação e primeiro boot: ' + path)
+    require(read('etc/calamares/modules/linuxbr_edition/media-edition').strip() == 'desktop',
+            'instalador dedicado ao Desktop')
+    require('Instalar Linux BR' in read('usr/share/applications/calamares-install-linuxbr.desktop'), 'atalho')
+    operations = yaml.safe_load(read('etc/calamares/modules/packages.conf'))['operations']
+    require(any('linuxbr-calamares-settings' in op.get('remove', []) for op in operations),
+            'remoção do instalador no destino')
+
+
+if args.installer_only:
+    require(args.edition == 'desktop' and args.mode == 'live', 'validação isolada do instalador Desktop')
+    desktop_installer()
+    print('PASS: pacote do instalador Desktop e transição para a configuração inicial.')
+    sys.exit(0)
 
 release = dict(line.split('=', 1) for line in read('etc/os-release').splitlines() if '=' in line)
 release = {key: shlex.split(value)[0] for key, value in release.items()}
@@ -180,19 +218,12 @@ if args.mode == 'live':
             keyboard[key] = value
     require(keyboard.get('XKBLAYOUT') == 'br' and keyboard.get('XKBMODEL') == 'pc105', 'teclado brasileiro ABNT2 com cedilha')
     require(yaml.safe_load(read('etc/calamares/modules/plymouthcfg.conf'))['plymouth_theme'] == 'linuxbr', 'tema Plymouth no destino Calamares')
-    settings = yaml.safe_load(read('etc/calamares/settings.conf'))
-    require(settings['branding'] == 'linuxbr', 'branding Calamares')
-    require(read('etc/calamares/modules/linuxbr_edition/media-edition').strip() == 'desktop',
-            'instalador dedicado ao Desktop')
-    require(not any('packagechooser' in stage.get('show', []) for stage in settings['sequence']),
-            'instalador Desktop sem escolha de edição')
+    desktop_installer()
     require(not any('Package: linuxbr-server\n' in stanza and 'Status: install ok installed' in stanza
                     for stanza in status.split('\n\n')), 'mídia Desktop sem pacote de servidor')
-    for module in ['partition', 'unpackfs', 'users', 'bootloader', 'umount']:
-        require(module in settings['sequence'][1]['exec'], 'modulo Calamares: ' + module)
-    require('Instalar Linux BR' in read('usr/share/applications/calamares-install-linuxbr.desktop'), 'atalho')
-    operations = yaml.safe_load(read('etc/calamares/modules/packages.conf'))['operations']
-    require(any('linuxbr-calamares-settings' in op.get('remove', []) for op in operations), 'remocao do instalador no destino')
+    for path in ('usr/lib/systemd/system/linuxbr-initial-setup.service',
+                 'usr/lib/linuxbr-system/initial_setup_service.py', 'usr/lib/linuxbr-system/initial_setup.py'):
+        require((root / path).is_file(), 'configuração inicial disponível no destino: ' + path)
 else:
     require(not (root / 'usr/share/applications/calamares-install-linuxbr.desktop').exists(), 'atalho Live removido')
 

@@ -66,6 +66,9 @@ main() {
         --work "$WORK/packages" \
         --calamares-deb "$WORK"/upstream/calamares-settings-debian_*.deb \
         --breeze-deb "$WORK"/upstream/sddm-theme-breeze_*.deb
+    if [[ $LINUXBR_BUILD_EDITION == desktop ]]; then
+        python3 "$WORK/source/tests/check-rootfs.py" "$WORK/packages/linuxbr-calamares-settings" --installer-only
+    fi
     local built_package
     for built_package in "$WORK/config/packages.chroot/"linuxbr-*.deb; do
         case "$LINUXBR_BUILD_EDITION:${built_package##*/}" in
