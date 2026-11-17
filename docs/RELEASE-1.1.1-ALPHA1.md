@@ -7,6 +7,7 @@ Pré-lançamento do Linux BR Desktop, baseado em Debian 13 e KDE Plasma.
 - Configurações, Loja, Gerenciador de Tarefas, Discos, Dispositivos e Máquinas Virtuais receberam melhorias de navegação e de disponibilidade das ações. O seletor de perfis web mostra quantos perfis serão abertos.
 - A migração limpa a prévia quando a origem ou o destino muda. O gerenciador de dispositivos localiza as ferramentas de consulta de módulos e firmware na sessão gráfica.
 - O código inclui integração entre computadores e recursos do VM Server. Consulte o [escopo e estado da validação](https://github.com/victoremerick/linuxbr/blob/v1.1.1-alpha1/docs/VERSAO-1.1.1.md) para os cenários cobertos.
+- A imagem instala os codecs adicionais do GStreamer de 32 bits quando o Debian oferece dependências compatíveis entre i386 e amd64.
 
 Confira os arquivos com `SHA256SUMS`. Para usar a ISO em pendrive, reúna primeiro todas as partes e confira a imagem completa com `ORIGINAL-SHA256SUMS`.
 
