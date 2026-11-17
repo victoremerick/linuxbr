@@ -1,0 +1,5 @@
+---
+type: viewmodule
+name: linuxbr_installation
+interface: qtplugin
+load: libcalamares_viewmodule_linuxbr_installation.so

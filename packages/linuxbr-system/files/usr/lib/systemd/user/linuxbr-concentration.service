@@ -1,0 +1,12 @@
+[Unit]
+Description=Horários de concentração do Linux BR
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/linuxbr-concentration --daemon
+Restart=on-failure
+RestartSec=4
+
+[Install]
+WantedBy=graphical-session.target

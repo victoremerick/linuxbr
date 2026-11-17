@@ -1,0 +1,5 @@
+#!/bin/sh
+case "$1" in
+    issue|list|revoke) exec /usr/bin/python3 -I /usr/lib/linuxbr-file-properties/share_grants.py "$@" ;;
+    *) printf '%s\n' 'Use issue, list ou revoke.' >&2; exit 2 ;;
+esac

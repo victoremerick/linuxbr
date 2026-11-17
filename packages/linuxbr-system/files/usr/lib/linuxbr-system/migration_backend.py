@@ -76,7 +76,7 @@ def prepare(sources, destination, cancel=None, notify=None, *, policy=None):
             label = f'{stem} ({number})'; number += 1
         labels.add(label.casefold())
         index = len(result['sources'])
-        source_record = {'path': str(source), 'label': label, 'files': 0, 'bytes': 0}
+        source_record = {'path': str(source), 'label': label, 'files': 0, 'bytes': 0, 'conflicts': 0}
         result['sources'].append(source_record)
         root_fd = directory_fd(source)
         try:
@@ -129,6 +129,7 @@ def prepare(sources, destination, cancel=None, notify=None, *, policy=None):
                         target = destination / label / relative / name
                         if target.exists() or target.is_symlink():
                             result['conflicts'] += 1
+                            source_record['conflicts'] += 1
                             if policy == 'keep':
                                 try:
                                     existing_fd = directory_fd(target.parent)

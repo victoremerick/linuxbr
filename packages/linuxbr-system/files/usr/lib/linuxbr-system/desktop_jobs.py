@@ -1,5 +1,6 @@
 """Visible command results and background read-only queries for desktop pages."""
 import json
+import logging
 from PyQt6.QtCore import QProcess, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDialog,QVBoxLayout,QLabel,QPlainTextEdit,QDialogButtonBox,QMessageBox,QPushButton
@@ -29,6 +30,10 @@ class Command(QDialog):
         self.buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Close);self.buttons.rejected.connect(self.reject);self.buttons.setEnabled(False);layout.addWidget(self.buttons)
         self.process=QProcess(self);self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels);self.process.readyReadStandardOutput.connect(self.read)
         self.process.finished.connect(self.finished_command);self.process.errorOccurred.connect(self.error)
+        self.authorization = None
+        if argv[0] in ('/usr/bin/pkexec','pkexec'):
+            from consent_history import request
+            self.authorization = request(title,argv)
         if input_data is not None:
             pending_input = input_data
             def send_input():
@@ -53,6 +58,11 @@ class Command(QDialog):
     def error(self,error):
         if error==QProcess.ProcessError.FailedToStart:self.output.appendPlainText(self.process.errorString());self.finished_command(127)
     def finished_command(self,code,*_):
+        if self.authorization is not None:
+            from consent_history import record_result
+            try:record_result(self.authorization,code)
+            except (OSError,ValueError):logging.warning('Não foi possível gravar um resultado de autorização.')
+            self.authorization = None
         self.read();self.status.setText((self.success_message or 'Operação concluída.') if code==0 else 'Operação não concluída. Confira a mensagem abaixo.')
         if code!=0 and self.details:self.details.setChecked(True)
         self.buttons.setEnabled(True);self.completed.emit(code)

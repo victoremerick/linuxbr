@@ -86,6 +86,18 @@ class MachinePolicy(unittest.TestCase):
         self.assertEqual(json.loads(self.policy.read_bytes()), {'snap': True, 'brew': False})
         self.assertEqual(machine.command(['status'])['history'], applied['history'])
 
+    def test_reviewed_repair_preserves_unmanaged_values(self):
+        self.run_apply()
+        self.policy.write_text('{"snap":true,"brew":false}', encoding='utf-8')
+        preview = machine.command(['status'])
+        self.assertEqual(preview['comparison'], [{'id': 'store-snap', 'expected': False, 'observed': True}])
+        with self.assertRaisesRegex(ValueError, 'mudou'):
+            machine.command(['repair', 'a' * 64])
+        outcome = machine.command(['repair', preview['status_sha256']])
+        self.assertEqual(outcome['conflicts'], [])
+        self.assertEqual(json.loads(self.policy.read_bytes()), {'snap': False, 'brew': False})
+        self.assertEqual(machine.command(['status'])['history'][-1]['action'], 'repair')
+
     def test_reapproval_required_after_profile_changes_and_unknown_rule_blocks_all(self):
         preview = machine.command(['preview'])
         self.fetch.return_value = profile('policy-1', ('store-snap', True, True))

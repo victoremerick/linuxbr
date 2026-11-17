@@ -8,7 +8,7 @@ import sys
 
 from PyQt6.QtCore import QProcess, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import (QApplication, QHeaderView, QHBoxLayout, QLabel, QMainWindow,
+from PyQt6.QtWidgets import (QApplication, QFileDialog, QHeaderView, QHBoxLayout, QLabel, QMainWindow,
                             QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 from keyboard_controls import SettingsButton
 from organization_policy import MACHINE_RULES, apply_preferences, validate
@@ -18,6 +18,38 @@ from visual_style import BUTTONS
 RULE_NAMES = {'work-folder': 'Pasta de trabalho', 'store-search': 'Aplicativos sugeridos',
               'store-snap': 'Snap Store na Loja', 'store-brew': 'Homebrew na Loja'}
 MACHINE_HELPER = '/usr/lib/linuxbr-system/organization_machine_policy.py'
+
+
+def application_inventory(organization):
+    import store_portable
+    from windows_runner import programs, read_environment
+    from store_sources import atomic_write
+
+    def report(target):
+        evidence = {}
+        for row in store_portable.exportable():
+            if row['manager'] == 'windows':
+                continue
+            identity = row.get('name') if row['manager'] == 'web' else row['ref']
+            runner = 'Chromium' if row['manager'] == 'web' else row['manager']
+            evidence[(row['manager'], identity, row['scope'])] = dict(
+                format=row['manager'], name=row.get('name', identity), version=row.get('version') or None,
+                origin=row['origin'], scope=row['scope'], executor=runner)
+        for program in programs():
+            environment = read_environment(program['environment'])
+            name = store_portable.application_name(program['name'])
+            if not name:
+                continue
+            engine = environment.get('runner') if isinstance(environment, dict) else None
+            evidence[('windows', program['id'], 'user')] = dict(
+                format='windows', name=name, version=None, origin='Instalação Windows',
+                scope='user', executor=engine if engine in ('wine', 'wine-staging', 'proton') else 'Wine')
+        rows = sorted(evidence.values(), key=lambda entry: (entry['name'].casefold(), entry['format']))
+        document = dict(schema=1, kind='linuxbr-application-inventory', organization=organization,
+                        created_at=datetime.now(timezone.utc).isoformat(), applications=rows)
+        atomic_write(target, json.dumps(document, ensure_ascii=False, indent=2).encode('utf-8'), 0o600)
+        return len(rows)
+    return report
 
 
 def rule_value(value):
@@ -40,6 +72,7 @@ class Preparation(QMainWindow):
         self.profile = None
         self.machine = {}
         self.process = None
+        self.inventory_job = None
         body = QWidget()
         self.setCentralWidget(body)
         layout = QVBoxLayout(body)
@@ -74,6 +107,14 @@ class Preparation(QMainWindow):
         self.restore_machine.setIcon(QIcon.fromTheme('edit-undo'))
         self.restore_machine.clicked.connect(self.revert_machine)
         controls.addWidget(self.restore_machine)
+        self.compare_machine = SettingsButton('Conferir divergências…')
+        self.compare_machine.setIcon(QIcon.fromTheme('view-compare'))
+        self.compare_machine.clicked.connect(self.review_divergences)
+        controls.addWidget(self.compare_machine)
+        self.retire_machine = SettingsButton('Retirar da organização…')
+        self.retire_machine.setIcon(QIcon.fromTheme('network-disconnect'))
+        self.retire_machine.clicked.connect(self.confirm_retirement)
+        controls.addWidget(self.retire_machine)
         layout.addLayout(controls)
         self.apply = SettingsButton('Preparar minha conta')
         self.apply.setIcon(QIcon.fromTheme('dialog-ok-apply'))
@@ -83,6 +124,10 @@ class Preparation(QMainWindow):
         self.apps.setIcon(QIcon.fromTheme('system-software-install'))
         self.apps.clicked.connect(self.open_apps)
         layout.addWidget(self.apps)
+        self.inventory = SettingsButton('Exportar inventário de aplicativos…')
+        self.inventory.setIcon(QIcon.fromTheme('document-export'))
+        self.inventory.clicked.connect(self.export_inventory)
+        layout.addWidget(self.inventory)
         self.update_actions()
         self.state = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))) / 'linuxbr/organization.json'
         try:
@@ -109,6 +154,8 @@ class Preparation(QMainWindow):
         self.apply.setEnabled(idle and self.profile is not None)
         self.configure_machine.setEnabled(idle and self.profile is not None)
         self.restore_machine.setEnabled(idle)
+        self.compare_machine.setEnabled(idle)
+        self.retire_machine.setEnabled(idle)
         self.apps.setEnabled(idle and any(rule['id'] == 'store-search' for rule in rules))
 
     def run_helper(self, helper, arguments, message, finished):
@@ -197,6 +244,31 @@ class Preparation(QMainWindow):
                 self.table.setItem(row, 2, QTableWidgetItem('Gerenciado pela organização' if managed
                                                          else 'Controle obrigatório pendente'))
 
+    def review_divergences(self):
+        self.run_helper(MACHINE_HELPER, ['status'], 'Comparando os controles…', self.show_divergences)
+
+    def show_divergences(self, state):
+        rows = []
+        for item in state['comparison']:
+            label = RULE_NAMES.get(item['id'], item['id'])
+            actual = 'Sem controle local' if item['observed'] is None else rule_value(item['observed'])
+            rows.append(f'{label} · Esperado: {rule_value(item["expected"])} · Observado: {actual}')
+        if not state['conflicts']:
+            self.status.setText('\n'.join(rows) or 'A organização ainda não aplicou controles a esta Loja.')
+            return
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle('Divergências nos controles da Loja')
+        dialog.setTextFormat(Qt.TextFormat.PlainText)
+        dialog.setText('\n'.join(rows))
+        dialog.setInformativeText('A aprovação local restaura os valores da revisão gerenciada.')
+        correct = dialog.addButton('Corrigir divergências…', QMessageBox.ButtonRole.AcceptRole)
+        dialog.addButton(QMessageBox.StandardButton.Cancel)
+        dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        dialog.exec()
+        if dialog.clickedButton() == correct:
+            self.run_helper(MACHINE_HELPER, ['repair', state['status_sha256']],
+                            'Restaurando controles gerenciados…', self.machine_done)
+
     def completed_machine(self):
         if not self.profile or not self.machine or self.machine['conflicts']:
             return {}
@@ -222,6 +294,22 @@ class Preparation(QMainWindow):
                 QMessageBox.StandardButton.Cancel) == QMessageBox.StandardButton.Yes:
             self.run_helper(MACHINE_HELPER, ['restore'], 'Revertendo controles da Loja…', self.machine_done)
 
+    def confirm_retirement(self):
+        decision = QMessageBox.question(self, 'Retirar da organização',
+            'Peça à TI para encaminhar este computador para retirada. '
+            'A confirmação restaura os controles locais e encerra o cadastro no serviço de políticas e atualizações.',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Cancel)
+        if decision == QMessageBox.StandardButton.Yes:
+            self.run_helper(MACHINE_HELPER, ['retire'], 'Conferindo a retirada com a organização…', self.retired)
+
+    def retired(self, result):
+        if result.get('enrolled') is not False or result.get('managed'):
+            raise ValueError('A retirada ainda não foi concluída.')
+        self.profile, self.machine = None, {}
+        self.table.setRowCount(0)
+        self.state.unlink(missing_ok=True)
+        self.status.setText('Cadastro da organização encerrado e controles locais restaurados.')
+
     def prepare(self):
         if not self.profile:
             return
@@ -245,8 +333,31 @@ class Preparation(QMainWindow):
             if accepted:
                 launch(self, ['linuxbr-store', '--search', selected])
 
+    def export_inventory(self):
+        from desktop_jobs import Query
+
+        if self.inventory_job:
+            return
+        destination, _ = QFileDialog.getSaveFileName(self, 'Exportar inventário de aplicativos',
+            str(Path.home() / 'linuxbr-inventario.json'), 'JSON (*.json)')
+        if not destination:
+            return
+        report = application_inventory((self.profile or {}).get('organization'))
+        job = self.inventory_job = Query(lambda: report(Path(destination)), self)
+        self.inventory.setEnabled(False)
+        self.status.setText('Conferindo aplicativos instalados nesta conta e no sistema…')
+        job.result.connect(lambda count: self.status.setText(
+            f'Inventário salvo com {count} instalações identificadas. Revise o arquivo antes de enviar à TI.'))
+        job.failed.connect(self.status.setText)
+        def done():
+            self.inventory_job = None
+            self.inventory.setEnabled(True)
+            job.deleteLater()
+        job.finished.connect(done)
+        job.start()
+
     def closeEvent(self, event):
-        if self.process:
+        if self.process or self.inventory_job:
             event.ignore()
             return
         super().closeEvent(event)

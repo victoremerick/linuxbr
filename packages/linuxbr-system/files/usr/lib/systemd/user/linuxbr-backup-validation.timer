@@ -1,0 +1,9 @@
+[Unit]
+Description=Agendar verificação semanal do backup de arquivos
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Saídas de áudio por tipo de uso do Linux BR
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/audio_roles.py
+Restart=on-failure
+RestartSec=4
+
+[Install]
+WantedBy=graphical-session.target

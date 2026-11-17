@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Layout de janelas
+Comment=Defina áreas de encaixe por monitor e arraste janelas com Shift pressionado
+Exec=/usr/bin/linuxbr-window-layout
+Icon=preferences-system-windows
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=encaixar;monitor;dividir;tela;área de trabalho;

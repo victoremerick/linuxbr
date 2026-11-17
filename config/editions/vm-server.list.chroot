@@ -31,6 +31,7 @@ firmware-brcm80211
 firmware-mediatek
 firmware-intel-graphics
 libvirt-daemon-system
+python3-libvirt
 libvirt-clients
 qemu-system-x86
 qemu-system-modules-spice

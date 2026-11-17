@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Configuração inicial do Linux BR
+Comment=Prepare o computador para o primeiro uso
+Exec=/usr/bin/python3 /usr/lib/linuxbr-system/initial_setup.py
+Type=Application
+DesktopNames=LinuxBRSetup;
+

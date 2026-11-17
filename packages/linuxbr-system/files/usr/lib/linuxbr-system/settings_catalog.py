@@ -35,6 +35,7 @@ native('system',[
  ('session','Entrada e saída da sessão','Restaurar janelas, sair, desligar e comportamento da sessão.','system-log-out','kcm_smserver'),
  ('energy-history','Uso de energia','Estatísticas e informações de consumo disponíveis.','battery','kcm_energyinfo')])
 add('system','clipboard','Área de transferência','Histórico, tamanho, comportamento e dados da área de transferência.','edit-paste','tool','clipboard')
+add('system','dock-power','Energia por carregador e dock','Escolha perfis de desempenho e comportamento em inatividade por tipo de alimentação.','preferences-system-power-management','app','linuxbr-power-devices',keywords='energia bateria dock carregador tomada estação suspensão')
 add('system','virtualization','Máquinas virtuais','Crie, configure e gerencie máquinas, discos e redes virtuais.','computer','app','linuxbr-virtual-machines',keywords='hyper-v hyperv vm máquina virtual kvm qemu virtualbox')
 add('system','remote-admin','Central de Administração Remota','Administre serviços, armazenamento, rede e máquinas virtuais de um servidor autorizado.','network-server','app','linuxbr-admin-remote',keywords='cockpit servidor administração remota')
 add('network','folder-sync','Sincronizar pastas','Escolha as pastas que serão sincronizadas com outros computadores.','folder-sync','app','linuxbr-sync-folders',keywords='syncthing pastas arquivos')
@@ -63,6 +64,9 @@ native('devices',[
  ('thunderbolt','Thunderbolt','Autorização e gerenciamento de dispositivos compatíveis.','thunderbolt','kcm_bolt'),
  ('phone','Computadores, celulares e dispositivos próximos','Pareie dispositivos na rede local e configure o compartilhamento.','network-workgroup','kcm_kdeconnect')])
 add('devices','device-manager','Gerenciador de Dispositivos','Hardware, drivers, identificação e diagnóstico.','preferences-devices-tree','embedded','Dispositivos')
+add('devices','touchpad-test','Configurar e testar o touchpad','Ajuste o toque e a rolagem em cada touchpad e teste cliques, arraste e pinça.','input-touchpad','app','linuxbr-touchpad',keywords='gestos clique arrastar rolagem touchpad')
+add('devices','input-remapping','Remapear teclas e botões','Perfis por teclado, combinações, macros e opção de parar o remapeamento.','input-keyboard','app','linuxbr-input-remapping')
+add('devices','tablet-test','Calibrar mesa digitalizadora','Ajuste área, monitor e botões e teste a pressão da caneta.','input-tablet','app','linuxbr-tablet-check')
 add('devices','scan','Digitalizar documento','Scanners locais e de rede disponíveis.','scanner','app','skanpage')
 add('devices','scan-share','Digitalizar e enviar','Digitalize uma página em PDF e envie a um dispositivo pareado.','document-send','app','linuxbr-scan-share',keywords='scanner digitalização KDE Connect')
 add('devices','camera','Câmera e permissões','Permissões de câmera por aplicativo e limites dos formatos.','camera-web','tool','permissions')
@@ -97,6 +101,7 @@ native('apps',[
  ('search-system','Pesquisa do sistema','Resultados, extensões e opções de pesquisa.','system-search','kcm_plasmasearch'),
  ('personal-folders','Localização das pastas pessoais','Documentos, downloads, imagens, música e vídeos.','user-home','kcm_desktoppaths')])
 add('apps','startup','Programas de inicialização','Habilitar e desabilitar aplicativos no login, consultar origem e restaurar alterações.','system-run','embedded','Programas de inicialização',keywords='msconfig inicialização autostart iniciar login')
+add('apps','background-apps','Aplicativos em segundo plano','Consumo da conta, inicialização no login e permissões Flatpak.','utilities-system-monitor','tool','background-apps',keywords='cpu memória processos consumo fundo segundo plano')
 add('apps','optional-features','Recursos opcionais','Ativar serviços, revisar dependências e instalar ou remover recursos do computador.','preferences-plugin','embedded','Recursos opcionais',keywords='recursos windows opcionais features bluetooth wine virtualização impressão desenvolvimento')
 add('apps','webapps','Aplicativos web e perfis','Sites em janelas próprias, favicons e contas separadas.','internet-web-browser','app','linuxbr-webapps')
 add('apps','windows-apps','Programas Windows','Instaladores, ambientes Wine, receitas e reparação.','wine','app','linuxbr-windows')
@@ -114,9 +119,12 @@ native('language',[
  ('spelling','Ortografia','Dicionários e preferências da verificação ortográfica.','tools-check-spelling','kcmspellchecking'),
  ('shortcuts','Atalhos de teclado','Atalhos globais e por aplicação.','preferences-desktop-keyboard','kcm_keys')])
 add('gaming','games','Programas Windows e jogos','Steam, Proton, ambientes e diagnóstico de compatibilidade.','applications-games','app','linuxbr-windows','--page','games')
-native('gaming',[('controllers','Controles de jogos','Testar botões, eixos e configurar controles compatíveis.','input-gaming','kcm_gamecontroller')])
+add('gaming','controllers','Controles de jogos','Teste botões, eixos e vibração e salve ajustes de diagnóstico por controle.','input-gaming','tool','controllers')
 add('gaming','capture','Capturas de tela','Capture tela, janela ou região com as opções disponíveis.','spectacle','app','spectacle')
 add('accessibility','accessibility-transfer','Transferir preferências de acessibilidade','Exporte ou importe ajustes de interação por teclado.','document-export','app','linuxbr-accessibility-transfer')
+add('accessibility','app-access','Aparência acessível por aplicativo','Crie atalhos com escala, contraste e animações ajustados para aplicativos compatíveis.','preferences-desktop-color','app','linuxbr-app-access',keywords='aplicativo escala contraste reduzir movimento animações atalhos')
+add('accessibility','screen-reader-test','Teste do leitor de tela e foco do teclado','Experimente atalhos, teste o Orca e confira os nomes acessíveis dos controles.','preferences-desktop-accessibility','app','linuxbr-screen-reader-test',keywords='orca foco indicador demonstração atalhos teclado leitor de tela')
+add('accessibility','read-aloud','Leitura em voz alta','Ouça o texto selecionado em português com voz local, velocidade ajustável e pausa.','text-speak','tool','read-aloud')
 native('accessibility',[
  ('access','Visão, audição e interação','Leitor de tela, teclado, avisos e recursos de acessibilidade.','preferences-desktop-accessibility','kcm_access'),
  ('text-size','Tamanho do texto','Fontes e tamanho do texto da interface.','preferences-desktop-font','kcm_fonts'),
@@ -126,6 +134,9 @@ native('accessibility',[
  ('contrast','Contraste e cores','Escolha um esquema legível e adequado à visão.','preferences-desktop-color','kcm_colors'),
  ('audio-access','Áudio e dispositivos','Volumes, entradas, saídas e canais de áudio.','audio-volume-high','kcm_pulseaudio')])
 add('privacy','permissions','Permissões de aplicativos','Câmera pelo portal, som, rede e arquivos por aplicativo Flatpak.','preferences-system-privacy','tool','permissions')
+add('privacy','consent-history','Histórico de autorizações administrativas','Veja as solicitações da sua conta e os resultados disponíveis no Polkit.','document-open-recent','tool','consent-history',keywords='polkit autorização auditoria consentimento administrador pkexec')
+add('privacy','isolated-document','Abrir documento isolado','Abra um arquivo para consulta com pasta pessoal temporária e acesso somente ao documento selecionado.','security-high','app','linuxbr-open-isolated')
+add('privacy','local-certificates','Certificados locais','Confira validade, emissor, impressão digital e origem dos certificados de confiança.','application-certificate','tool','local-certificates')
 native('privacy',[
  ('recent-files','Histórico de arquivos','Preferências dos arquivos recentes e atividades.','document-open-recent','kcm_recentFiles'),
  ('diagnostics','Dados de uso e diagnósticos','Preferências de envio de comentários do desktop.','preferences-system-privacy','kcm_feedback'),
@@ -133,6 +144,8 @@ native('privacy',[
  ('screenlock','Bloqueio da sessão','Quando bloquear e como proteger a sessão.','system-lock-screen','kcm_screenlocker')])
 add('privacy','protection','Proteção e integridade','Estado de proteção, atualizações, backup e diagnósticos locais.','security-high','embedded','Cuidados com o computador')
 add('privacy','web-permissions','Permissões dos sites','Preferências e permissões por perfil de aplicativo web.','internet-web-browser','app','linuxbr-webapps')
+add('privacy','key-lock','Bloqueio por chave de segurança','Bloquear a sessão ao remover uma chave FIDO.','security-high','app','linuxbr-key-lock')
+add('privacy','recovery-keys','Chaves de recuperação','Verificar e guardar frases de volumes LUKS e exportar cópias criptografadas.','dialog-password','app','linuxbr-recovery-keys')
 add('update-center','updates','Atualizações do sistema e aplicativos','Consultar, revisar, instalar e acompanhar atualizações.','system-software-update','app','linuxbr-store','--updates')
 add('update-center','firmware','Atualizações de firmware','Dispositivos, versões oferecidas e instalação pelo fwupd.','preferences-devices-cpu','app','linuxbr-store','--firmware')
 add('update-center','update-recovery','Proteção antes de atualizar','Condições, pontos de sistema, recuperação e versão instalada.','document-revert','embedded','Atualizações')

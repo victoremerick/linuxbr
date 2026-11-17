@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN" "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Linux BR</vendor>
+  <action id="org.linuxbr.vm-media.admin">
+    <description>Autorizar mídia para uma máquina virtual</description>
+    <message>Autentique-se como administrador para emitir ou revogar a autorização.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/linuxbr-vm-media-admin</annotate>
+  </action>
+  <action id="org.linuxbr.vm-media.attach">
+    <description>Anexar mídia autorizada a uma máquina virtual</description>
+    <message>Confirme sua identidade para usar a autorização de mídia virtual.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_self</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/linuxbr-vm-media-attach</annotate>
+  </action>
+</policyconfig>

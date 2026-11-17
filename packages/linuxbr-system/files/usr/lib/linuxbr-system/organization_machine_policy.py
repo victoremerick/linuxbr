@@ -93,7 +93,7 @@ def validated_state(value):
             raise ValueError('O registro local contém uma regra inválida.')
     for entry in history:
         if (not isinstance(entry, dict) or entry.keys() != {'action', 'revision', 'organization', 'at'}
-                or entry['action'] not in ('apply', 'restore')
+                or entry['action'] not in ('apply', 'restore', 'repair')
                 or not matches(REVISION, entry['revision'])
                 or not matches(IDENTIFIER, entry['organization'])
                 or not isinstance(entry['at'], str) or len(entry['at']) > 40):
@@ -233,10 +233,29 @@ def local_conflicts(flags, state):
 
 
 def public_status(flags, state):
+    comparison = [{'id': name, 'expected': entry['applied'],
+                   'observed': (flags or {}).get(RULES[name])}
+                  for name, entry in sorted(state['managed'].items())]
     return {'organization': state['organization'], 'revision': state['revision'],
             'rules_sha256': state['rules_sha256'],
             'managed': {name: entry['applied'] for name, entry in state['managed'].items()},
-            'conflicts': local_conflicts(flags, state), 'history': state['history']}
+            'conflicts': local_conflicts(flags, state), 'history': state['history'],
+            'comparison': comparison, 'status_sha256': hashlib.sha256(canonical(
+                [state['organization'], state['device'], state['revision'], state['rules_sha256'], comparison])).hexdigest()}
+
+
+def repair(flags, state, digest):
+    reviewed = public_status(flags, state)
+    if not hmac.compare_digest(reviewed['status_sha256'], digest):
+        raise ValueError('O estado mudou após a revisão. Consulte novamente.')
+    if not reviewed['conflicts']:
+        return reviewed
+    corrected = dict(flags or {})
+    for name, entry in state['managed'].items():
+        corrected[RULES[name]] = entry['applied']
+    next_state = dict(state, history=history(state, 'repair', state['organization'], state['revision']))
+    commit(flags, corrected, state, next_state)
+    return public_status(corrected, next_state)
 
 
 def transition(flags, state, desired):
@@ -316,16 +335,60 @@ def restore(flags, state):
     return public_status(next_flags, next_state)
 
 
+def retire(flags, state):
+    from update_waves import CONFIG, DIRECTORY, config_path, read_config, request_json, trusted_file
+
+    pending = CONFIG.with_name('.update-waves-retired.json')
+    trusted_directory(DIRECTORY)
+    if pending.exists() and CONFIG.exists():
+        raise ValueError('Há dois cadastros locais. A TI precisa revisar a retirada.')
+    if pending.exists():
+        config = read_config(pending)
+    else:
+        config = read_config()
+    if not config or not config.get('endpoint'):
+        raise ValueError('Este computador não tem cadastro ativo no serviço da organização.')
+    token = config_path(config, 'token_file', str(DIRECTORY / 'update-wave-token'))
+    if token in (pending, CONFIG):
+        raise ValueError('O arquivo de credencial da organização é inválido.')
+    if pending.exists():
+        if state['managed']:
+            raise ValueError('Os controles locais foram alterados durante a retirada.')
+        if token.exists() or token.is_symlink():
+            trusted_file(token, private=True)
+    else:
+        trusted_file(token, private=True)
+        expected = {'device': config['device'], 'organization': config['organization']}
+        status = request_json(config, 'GET', '/v1/retirement')
+        if any(status.get(key) != value for key, value in expected.items()) or status.get('state') not in ('pending', 'retired'):
+            raise ValueError('A organização não confirmou o encaminhamento deste computador.')
+        restore(flags, state)
+        status = request_json(config, 'POST', '/v1/retirement', {'confirmed': True})
+        if status != {**expected, 'state': 'retired'}:
+            raise ValueError('A organização ainda não confirmou a retirada.')
+        os.replace(CONFIG, pending)
+        sync_directory(DIRECTORY)
+    # After a confirmed server response, a retry can complete the local cleanup
+    # even if the enrollment configuration was already moved before a restart.
+    token.unlink(missing_ok=True)
+    pending.unlink()
+    sync_directory(DIRECTORY)
+    return dict(organization=config['organization'], device=config['device'],
+                enrolled=False, managed=read_state()['managed'])
+
+
 def command(arguments):
     if os.geteuid() != 0:
         raise ValueError('A operação requer autorização de administrador.')
-    if arguments in (['preview'], ['status'], ['restore']):
+    if arguments in (['preview'], ['status'], ['restore'], ['retire']):
         action = arguments[0]
     elif (len(arguments) == 3 and arguments[0] == 'apply'
           and matches(REVISION, arguments[1]) and matches(SHA256, arguments[2])):
         action = 'apply'
+    elif len(arguments) == 2 and arguments[0] == 'repair' and matches(SHA256, arguments[1]):
+        action = 'repair'
     else:
-        raise ValueError('Use preview, apply REVISÃO HASH, status ou restore.')
+        raise ValueError('Use preview, apply REVISÃO HASH, status, repair HASH, restore ou retire.')
     with locked():
         recover_transaction()
         flags, state = read_flags(), read_state()
@@ -333,6 +396,10 @@ def command(arguments):
             return public_status(flags, state)
         if action == 'restore':
             return restore(flags, state)
+        if action == 'repair':
+            return repair(flags, state, arguments[1])
+        if action == 'retire':
+            return retire(flags, state)
         profile = fetch()
         if action == 'preview':
             return preview(profile, flags, state)

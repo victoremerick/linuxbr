@@ -47,4 +47,40 @@ Locais de armazenamento podem ser criados, ativados, desativados e lembrados no 
 
 O comando Migrar usa a API nativa do libvirt, com armazenamento compartilhado e validação de compatibilidade do backend. Uma migração concluída de uma VM persistente mantém a definição no destino e remove a definição da origem. O procedimento exige outro hospedeiro configurado e sua homologação é separada dos testes locais.
 
+**Mais ações → Checar destino da migração** consulta o segundo hospedeiro pela conexão libvirt e apresenta CPU, tipo de máquina, memória, firmware, TPM e redes. O fluxo de migração também pede essa conferência antes de executar. Use a coluna de observações para conferir o transporte TLS, a identidade do armazenamento compartilhado e os dispositivos físicos quando forem aplicáveis.
+
 Esta edição não oferece replicação contínua, cluster ou failover automático. Cópias completas permitem recuperação manual. Alta disponibilidade depende de infraestrutura adicional e não é anunciada como proteção ativa neste gerenciador.
+
+## Modelos administrados e acesso de laboratório
+
+Em **Criar VM → Criação rápida**, escolha um modelo e confira sua revisão. O modelo preenche processadores, memória, disco, firmware e rede. A VM guarda o identificador e a revisão no XML.
+
+Para distribuir um modelo da organização, publique um arquivo JSON de propriedade de root em `/etc/linuxbr/vm-templates.d/`. O diretório e os arquivos aceitam escrita administrativa. Use o identificador como nome do arquivo. Por exemplo, `laboratorio.json` pode conter os seguintes valores.
+
+```json
+{
+  "id": "laboratorio",
+  "name": "Laboratório",
+  "revision": "2026.11.1",
+  "memory": 4096,
+  "cpus": 2,
+  "disk_gib": 40,
+  "firmware": "uefi",
+  "network": "rede-laboratorio",
+  "windows": false,
+  "tpm": false
+}
+```
+
+Os firmwares aceitos são `bios`, `uefi` e `uefi-secure`. Para usar o NAT do processo QEMU, deixe `network` vazio. Para usar uma rede administrada, configure o mesmo nome no hospedeiro.
+
+Com um convidado Linux em execução e QEMU Guest Agent habilitado, **Mais ações → Criar acesso temporário** cria uma conta comum para o laboratório. Entregue a senha exibida ao participante. A data informada é UTC e limita novos logins. Sessões em andamento seguem a política do convidado.
+
+## Delegar uma ISO aprovada
+
+1. No hospedeiro local, coloque a ISO em `/var/lib/linuxbr/vm-approved-media/`, com propriedade administrativa e leitura para o serviço QEMU.
+2. Deixe a VM desligada, sem estado salvo e com um leitor de ISO em **Configurações → Armazenamento**.
+3. No gerenciador conectado a `qemu:///system`, abra **Mais ações → Delegar mídia ISO**. Informe a conta local do operador, o nome e o SHA-256 da ISO, e a validade em horas.
+4. O operador abre **Anexar mídia autorizada** na sessão local, fornece o código e confirma a autenticação. No terminal local, pode usar `pkexec /usr/bin/linuxbr-vm-media-attach` e fornecer o código na entrada padrão.
+
+O código vale uma vez para aquele usuário, VM, leitor e hash. O administrador pode revogar um código com `pkexec /usr/bin/linuxbr-vm-media-admin revoke` e o código na entrada padrão. A expiração encerra a autorização de anexação. A mídia já anexada segue na configuração da VM.

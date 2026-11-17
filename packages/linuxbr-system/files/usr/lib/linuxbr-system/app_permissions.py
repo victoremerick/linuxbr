@@ -8,6 +8,14 @@ import sys
 
 APP=re.compile(r'[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+){2,}')
 OPTIONS={'network':('--share=network','--unshare=network'),'audio':('--socket=pulseaudio','--nosocket=pulseaudio'),'home':('--filesystem=home','--nofilesystem=home'),'documents':('--filesystem=xdg-documents','--nofilesystem=xdg-documents'),'downloads':('--filesystem=xdg-download','--nofilesystem=xdg-download'),'devices':('--device=all','--nodevice=all')}
+PORTAL_LABELS = {
+    'location': 'Localização',
+    'notifications': 'Notificações',
+    'screencast': 'Compartilhamento de tela',
+    'screenshot': 'Captura de tela',
+    'camera': 'Câmera',
+    'microphone': 'Microfone',
+}
 
 
 def applications():
@@ -26,6 +34,28 @@ def details(app,scope):
     if result.returncode:raise ValueError(result.stderr.strip() or 'Permissões não disponíveis.')
     return result.stdout
 
+
+def portal_decisions(app):
+    if not APP.fullmatch(app):
+        raise ValueError('Aplicativo inválido.')
+    result = subprocess.run(
+        ['/usr/bin/flatpak', 'permission-show', app], capture_output=True,
+        text=True, timeout=8,
+        env={**os.environ, 'LC_ALL': 'C', 'TERM': 'dumb'})
+    if result.returncode:
+        return None
+    rows = []
+    for line in result.stdout.splitlines():
+        fields = line.split(maxsplit=4)
+        if len(fields) < 4:
+            continue
+        table, entry, application, value = fields[:4]
+        label = PORTAL_LABELS.get(entry) or PORTAL_LABELS.get(table)
+        if application == app and label:
+            rows.append((label, {'yes': 'Permitido', 'no': 'Recusado',
+                                 'ask': 'Perguntar', 'exact': 'Localização exata',
+                                 'none': 'Sem concessão'}.get(value, value[:80])))
+    return rows
 
 def commands(app,changes):
     if not APP.fullmatch(app) or not isinstance(changes,dict):raise ValueError('Pedido inválido.')

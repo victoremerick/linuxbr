@@ -76,6 +76,19 @@ class GuidedRecovery(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'não conferem'):
             self.check_snapshot()
 
+    def test_rehearsal_counts_changes_without_writing_to_destination(self):
+        target = self.root/'target'
+        target.mkdir()
+        (self.folder/'home').mkdir()
+        (self.folder/'home/pessoal.txt').write_text('x' * 30000)
+        plan = dict(target={'uuid': self.uuid}, backup={'uuid': 'backup'}, point=self.folder.parent.name)
+        with patch.object(recovery, 'mounted', side_effect=[nullcontext(target), nullcontext(self.root)]) as mount:
+            estimate = recovery.rehearsal_size(plan)
+        self.assertGreater(estimate['bytes_to_copy'], 0)
+        self.assertLess(estimate['bytes_to_copy'], 30000)
+        self.assertEqual(list(target.iterdir()), [])
+        self.assertTrue(all(not request.kwargs for request in mount.call_args_list))
+
     def test_snapshot_symlink_is_rejected(self):
         path = self.folder / 'etc/fstab'
         path.unlink()

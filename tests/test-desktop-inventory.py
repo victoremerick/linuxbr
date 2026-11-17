@@ -13,6 +13,36 @@ sys.path.insert(0,str(ROOT/'packages/linuxbr-system/files/usr/lib/linuxbr-system
 
 
 class DesktopInventory(unittest.TestCase):
+    def test_wine_launcher_is_windows_and_deduplicated_when_registered(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            wine_apps = root/'applications/wine'
+            wine_apps.mkdir(parents=True)
+            env = {**os.environ, 'XDG_DATA_HOME': str(root), 'XDG_DATA_DIRS': str(root/'empty'),
+                   'PYTHONPATH': sys.path[0]}
+            code = '''
+import os
+from pathlib import Path
+from unittest.mock import patch
+import store_backend as backend
+import windows_runner as runner
+
+wine = Path(os.environ['XDG_DATA_HOME']) / 'applications/wine'
+with patch.object(os, 'geteuid', return_value=1000):
+    identifier = runner.create_environment('PDF')
+prefix = runner.environment_path(identifier) / 'prefix'
+(wine/'sumatra.desktop').write_text('[Desktop Entry]\\nType=Application\\nName=SumatraPDF\\n'
+    'Exec=/usr/bin/env WINEPREFIX="' + str(prefix) + '" /usr/bin/true\\nTerminal=false\\n')
+item, = backend.desktop_applications()
+assert item['kind'] == 'windows' and item['wine_prefix'] == str(prefix), item
+managed = {'name': 'SumatraPDF', 'environment': identifier, 'id': 'managed'}
+with patch.object(runner, 'programs', return_value=[managed]), patch.object(runner, 'program_icon', return_value='wine'):
+    item, = backend.installed_entries([])
+    assert item['kind'] == 'windows' and item['program_id'] == 'managed', item
+'''
+            result = subprocess.run([sys.executable, '-c', code], env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_registered_app_is_listed_and_only_runs_after_launch(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);apps=root/'applications';apps.mkdir()

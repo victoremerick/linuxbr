@@ -227,6 +227,73 @@ class WaveServerTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.service.stage_policy('bad', rules)
 
+    def test_simulation_critical_review_and_temporary_delivery_pause(self):
+        from datetime import datetime, timedelta, timezone
+        self.service.stage_policy('acesso-1', [{'id': 'ssh-access', 'required': True, 'value': False}])
+        auditor = self.service.register('auditoria', role='audit')
+        code, preview = self.call(auditor, 'POST', '/v1/admin/policy-simulation',
+                                  {'device': 'lab-pilot', 'profile': 'acesso-1'})
+        self.assertEqual((code, preview['current'], preview['critical']), (200, None, ['ssh-access']))
+        fields = {'target': 'lab-pilot', 'profile': 'acesso-1'}
+        code, result = self.call(self.admin, 'POST', '/v1/admin/action', dict(fields, action='assign-policy'))
+        self.assertEqual((code, result['pending_review']), (200, True))
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/policy', {'nonce': 'a' * 64})[0], 409)
+        self.assertEqual(self.call(self.admin, 'POST', '/v1/admin/action', dict(fields, action='approve-policy'))[0], 403)
+        self.assertEqual(self.call(auditor, 'POST', '/v1/admin/action', dict(fields, action='approve-policy'))[0], 200)
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/policy', {'nonce': 'a' * 64})[0], 200)
+        instant = datetime.now(timezone.utc)
+        expires = instant + timedelta(minutes=30)
+        self.assertEqual(self.call(self.admin, 'POST', '/v1/admin/action', {
+            'target': 'lab-pilot', 'action': 'pause-policy', 'reason': 'Manutenção',
+            'expires': expires.isoformat(timespec='seconds'),
+        })[0], 200)
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/policy', {'nonce': 'a' * 64})[0], 409)
+        with patch('waves_server.now', return_value=expires + timedelta(seconds=1)):
+            self.assertEqual(self.call(self.pilot, 'POST', '/v1/policy', {'nonce': 'a' * 64})[0], 200)
+        interval = {'starts_at': (instant - timedelta(days=1)).isoformat(timespec='seconds'),
+                    'ends_at': (instant + timedelta(days=1)).isoformat(timespec='seconds')}
+        code, exported = self.call(auditor, 'POST', '/v1/admin/audit-export', interval)
+        self.assertEqual((code, exported['kind']), (200, 'linuxbr-organization-audit'))
+        self.assertIn('approve-policy', [event['action'] for event in exported['events']])
+
+    def test_custom_health_must_pass_before_promotion(self):
+        self.service.stage_health('revision-1', {'services': ['display-manager.service'], 'packages': ['firewalld']})
+        self.assertEqual(self.action('pilot', 'revision-1')[0], 200)
+        self.assertEqual(self.manifest(self.pilot)[0], 200)
+        code, health = self.call(self.pilot, 'POST', '/v1/health-checks',
+                                 {'revision': 'revision-1', 'nonce': 'd' * 64})
+        self.assertEqual((code, health['checks']['packages']), (200, ['firewalld']))
+        self.assertEqual(self.result(self.pilot, 'completed')[0], 409)
+        observed = {'services:display-manager.service': True, 'packages:firewalld': True}
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/result', {
+            'state': 'completed', 'revision': 'revision-1', 'checks': observed})[0], 200)
+        self.assertEqual(self.action('promote', 'revision-1')[0], 200)
+
+    def test_retirement_revokes_managed_access_and_receipt_is_repeatable(self):
+        self.assertEqual(self.call(self.pilot, 'GET', '/v1/retirement')[0], 409)
+        self.assertEqual(self.action('schedule-retirement', 'lab-pilot')[0], 200)
+        self.assertEqual(self.call(self.pilot, 'GET', '/v1/retirement')[1]['state'], 'pending')
+        self.assertEqual(self.manifest(self.pilot)[0], 403)
+        for _ in range(2):
+            status, response = self.call(self.pilot, 'POST', '/v1/retirement', {'confirmed': True})
+            self.assertEqual((status, response['state']), (200, 'retired'))
+        self.assertEqual(self.manifest(self.pilot)[0], 401)
+
+    def test_diagnostic_access_belongs_to_requester_and_is_revocable(self):
+        support = self.service.register('suporte-2', role='support')
+        self.assertEqual(self.action('diagnostic', 'lab-pilot')[0], 200)
+        pending = self.call(self.pilot, 'GET', '/v1/diagnostic')[1]
+        self.assertEqual(pending['requested_by'], 'ti')
+        identifier = pending['request_id']
+        report = {'schema': 1, 'diagnóstico': {'Rede': {'conectividade': 'full'}}}
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/diagnostic', {
+            'request_id': identifier, 'report': report})[0], 200)
+        self.assertEqual(self.call(support, 'POST', '/v1/admin/report', {'request_id': identifier})[0], 404)
+        self.assertEqual(self.call(self.admin, 'POST', '/v1/admin/report', {'request_id': identifier})[0], 200)
+        self.assertEqual(self.call(self.pilot, 'POST', '/v1/diagnostic', {
+            'request_id': identifier, 'revoke': True})[0], 200)
+        self.assertEqual(self.call(self.admin, 'POST', '/v1/admin/report', {'request_id': identifier})[0], 404)
+
     @unittest.skipUnless(all(shutil.which(tool) for tool in ('gpg', 'gpgv', 'openssl')),
                          'GnuPG e OpenSSL são necessários')
     def test_client_authorizes_over_https_and_refuses_offline_pause(self):

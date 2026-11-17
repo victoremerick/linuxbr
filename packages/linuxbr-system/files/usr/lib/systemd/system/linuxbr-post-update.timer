@@ -1,0 +1,8 @@
+[Unit]
+Description=Agendar a conferência da inicialização após atualização gerenciada
+ConditionPathExists=/var/lib/linuxbr/recovery/last-managed.json
+ConditionKernelCommandLine=!boot=live
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min

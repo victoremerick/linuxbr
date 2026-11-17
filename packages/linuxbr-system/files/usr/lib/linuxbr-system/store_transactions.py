@@ -44,6 +44,13 @@ def checked_request(value):
             if result['action'] != 'install' or not isinstance(fingerprint, str) or not re.fullmatch(r'[a-f0-9]{64}', fingerprint):
                 raise ValueError('Origem Flatpak inválida para reinstalação.')
             result['expected_origin_sha256'] = fingerprint
+        if 'trash_data' in value:
+            from store_impact import DATA_FIELDS
+            fields = value['trash_data']
+            if (result['action'] != 'remove' or not isinstance(fields, list) or len(fields) > 3
+                    or any(not isinstance(field, str) or field not in DATA_FIELDS for field in fields)):
+                raise ValueError('Seleção de dados do aplicativo inválida.')
+            result['trash_data'] = list(dict.fromkeys(fields))
     elif result['manager'] in ('snap', 'brew'):
         from store_optional import NAMES, PROVIDERS
 
@@ -167,7 +174,10 @@ class PackageKit:
     def __init__(self):
         from gi.repository import Gio,GLib
         self.Gio=Gio;self.GLib=GLib
-        self.bus=Gio.bus_get_sync(Gio.BusType.SYSTEM,None)
+        try:
+            self.bus=Gio.bus_get_sync(Gio.BusType.SYSTEM,None)
+        except GLib.Error as error:
+            raise ValueError('O serviço de pacotes do sistema está indisponível. Tente novamente na sessão normal.') from error
 
     def transaction(self,method,signature,arguments):
         Gio,GLib=self.Gio,self.GLib
@@ -317,6 +327,11 @@ def execute(request,identifier):
             emit('output',text='Aguardando outras operações deste gerenciador…\n')
             fcntl.flock(lock,fcntl.LOCK_EX)
             record['status']='running';atomic_json(path,record)
+            if request['action'] == 'update':
+                from store_holds import active, description
+                hold = active(request)
+                if hold:
+                    raise OperationStopped(description(hold))
             if request['manager']=='file':run_local(request)
             elif request['manager']=='deb':
                 manager=PackageKit()
@@ -336,7 +351,16 @@ def execute(request,identifier):
                                        timeout=45, capture_output=True, check=True)
                     except (OSError, subprocess.SubprocessError):
                         emit('output', text='Use a opção de reconstruir o catálogo se o menu ainda não mostrar a alteração.\n')
-            else:run_flatpak(request)
+            else:
+                run_flatpak(request)
+                if request.get('trash_data'):
+                    from store_impact import trash_removed_data
+                    try:
+                        trash_removed_data(request)
+                    except (OSError, ValueError, subprocess.SubprocessError) as error:
+                        record['data_cleanup_error'] = str(error)
+                        emit('output', text='Confira as pastas preservadas. A remoção do pacote terminou, '
+                                            'mas a limpeza não foi concluída. ' + str(error) + '\n')
         record.update(status='success',error='')
         emit('output',text='Operação concluída pelo gerenciador.\n')
     except OperationStopped as error:

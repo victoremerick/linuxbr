@@ -185,6 +185,20 @@ def valid_row(manager, row):
     return row.get('tap') == 'homebrew/core' and row.get('disabled') is not True
 
 
+def brew_lifecycle(row):
+    if row.get('disabled') is not True and row.get('deprecated') is not True:
+        return {}
+    disabled = row.get('disabled') is True
+    prefix = 'disable' if disabled else 'deprecation'
+    detail = 'Fórmula desativada pelo Homebrew Core.' if disabled else 'Fórmula descontinuada pelo Homebrew Core.'
+    for field, label in (('date', 'Data'), ('reason', 'Motivo'), ('replacement_formula', 'Substituta')):
+        value = text(row.get(prefix + '_' + field))
+        if value:
+            detail += f' {label} · {value}.'
+    detail += ' Exporte os dados pelo aplicativo e guarde os arquivos de configuração antes de migrar.'
+    return dict(disabled=disabled, detail=detail)
+
+
 def has_linux_bottle(row):
     tag = {'x86_64': 'x86_64_linux', 'aarch64': 'arm64_linux'}.get(platform.machine())
     try:
@@ -264,6 +278,17 @@ def entry(manager, row, installed=False, *, snap_info=None):
                 result['note'] += ' ' + detail
                 field = 'confinement_note' if supported else 'blocked_reason'
                 result['optional_target'][field] = detail
+        if isinstance(row.get('publisher'), dict) and row['publisher'].get('validation') == 'verified':
+            result['source_verification'] = 'Publicador verificado pela Snap Store'
+    else:
+        result['license'] = text(row.get('license'))
+        result['source_verification'] = 'Empacotado pela comunidade Homebrew Core'
+        lifecycle = brew_lifecycle(row)
+        if lifecycle:
+            result['lifecycle'] = lifecycle['detail']
+            result['note'] = lifecycle['detail'] + ' ' + result['note']
+            if lifecycle['disabled'] and not installed:
+                del result['optional_target']
     return result
 
 
@@ -285,7 +310,9 @@ def provider_inventory(manager, *, snap_info=None):
     if not isinstance(rows, list):
         raise ValueError('O gerenciador retornou uma biblioteca inválida.')
     entries = [entry(manager, row, installed=True, snap_info=snap_info)
-               for row in rows if valid_row(manager, row)]
+               for row in rows if valid_row(manager, row)
+               or (manager == 'brew' and isinstance(row, dict) and row.get('disabled') is True
+                   and valid_row(manager, dict(row, disabled=False)))]
     if refresh_note:
         for item in entries:
             item['note'] += ' ' + refresh_note
@@ -358,13 +385,16 @@ def search(query):
                 candidates = snap_get('/v2/find', q=query)
             else:
                 term = query.casefold()
-                candidates = [row for row in brew_catalog() if valid_row(manager, row)
-                              and has_linux_bottle(row) and (term in row['name']
-                              or term in text(row.get('desc')).casefold())]
+                candidates = [row for row in brew_catalog() if isinstance(row, dict)
+                              and (valid_row(manager, row) and has_linux_bottle(row)
+                                   and (term in row['name'] or term in text(row.get('desc')).casefold())
+                                   or (row.get('disabled') is True and row.get('name') == term
+                                       and valid_row(manager, dict(row, disabled=False))))]
             if not isinstance(candidates, list):
                 raise ValueError('A fonte retornou um catálogo inválido.')
             for row in candidates[:80]:
-                if valid_row(manager, row):
+                retired = manager == 'brew' and row.get('disabled') is True if isinstance(row, dict) else False
+                if valid_row(manager, row) or retired:
                     item = entry(manager, row, snap_info=snap_info)
                     entries.append(installed.get(item['id'], item))
         except (OSError, ValueError) as error:
@@ -402,6 +432,10 @@ def available_entry(manager, name):
         raise ValueError('A fonte não está habilitada ou o aplicativo é inválido.')
     if manager == 'brew':
         row = brew_api(BREW_API + '/' + quote(name, safe='@') + '.json')
+        if isinstance(row, dict) and row.get('name') == name and row.get('tap') == 'homebrew/core':
+            state = brew_lifecycle(row)
+            if state.get('disabled'):
+                raise ValueError(state['detail'])
         if valid_row(manager, row) and row['name'] == name and has_linux_bottle(row):
             return entry(manager, row)
         raise ValueError('A fórmula oficial não tem pacote Linux para esta arquitetura.')

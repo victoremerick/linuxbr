@@ -168,7 +168,7 @@ replace('src/dolphinmainwindow.cpp',
         }
     });''')
 
-for name in ("folder-options.h", "folder-visibility.h", "file-ribbon.h"):
+for name in ("folder-options.h", "folder-visibility.h", "file-ribbon.h", "file-workflows.h"):
     (root / "src" / ("linuxbr-" + name)).write_text((source.parent / name).read_text())
 replace('src/settings/dolphin_generalsettings.kcfg', '    <group name="General">', '''    <group name="General">
         <entry name="LinuxBrShowHiddenFiles" type="Bool">
@@ -231,7 +231,9 @@ replace('src/dolphinmainwindow.h', '    KConfigWatcher::Ptr m_linuxbrFolderWatch
     QPointer<DolphinSearchBox> m_linuxbrHostedSearch;''')
 replace('src/dolphinmainwindow.h', 'class LinuxBRFileRibbon;', 'class LinuxBRFileRibbon;\nclass DolphinSearchBox;')
 replace('src/dolphinmainwindow.cpp', '#include "linuxbr-folder-options.h"',
-        '#include "linuxbr-folder-options.h"\n#include "linuxbr-file-ribbon.h"')
+        '#include "linuxbr-folder-options.h"\n#include "linuxbr-file-ribbon.h"\n#include "linuxbr-file-workflows.h"\n'
+        '#include <KIO/CopyJob>\n#include <KIO/FileUndoManager>\n#include <QProcess>\n#include <QMimeData>\n'
+        '#include <QFileDialog>\n#include <QMessageBox>\n#include <QFile>')
 replace('src/dolphinmainwindow.cpp', '    KConfigGroup linuxbrNavigation(KSharedConfig::openConfig(), QStringLiteral("LinuxBRNavigation"));',
         '''    auto *commands = new QToolBar(QStringLiteral("Abas do Explorador"), this);
     commands->setObjectName(QStringLiteral("linuxbrFileRibbon"));
@@ -249,6 +251,198 @@ replace('src/dolphinmainwindow.cpp', '    KConfigGroup linuxbrNavigation(KShared
     connect(this, &DolphinMainWindow::urlChanged, this, &DolphinMainWindow::updateSearchAction);
 
     KConfigGroup linuxbrNavigation(KSharedConfig::openConfig(), QStringLiteral("LinuxBRNavigation"));''')
+replace('src/dolphinmainwindow.cpp', "    // setup 'File' menu", '''    const auto launchFileTools = [this](const QStringList &arguments) {
+        if (!QProcess::startDetached(QStringLiteral("/usr/bin/linuxbr-file-tools"), arguments)) {
+            showErrorMessage(QStringLiteral("Não foi possível abrir as ferramentas de arquivos."));
+        }
+    };
+    const auto command = [this](const char *name, const char *label, const char *icon, const auto &callback) {
+        auto *action = actionCollection()->addAction(QString::fromLatin1(name));
+        action->setText(QString::fromUtf8(label));
+        action->setIcon(QIcon::fromTheme(QString::fromLatin1(icon)));
+        connect(action, &QAction::triggered, this, callback);
+    };
+    command("linuxbr_file_workflows", "Ferramentas de arquivos", "system-file-manager", [this, launchFileTools] {
+        QStringList arguments{QStringLiteral("--workflows"), m_activeViewContainer->url().toString(QUrl::FullyEncoded | QUrl::RemoveUserInfo)};
+        const auto selected = m_activeViewContainer->view()->selectedItems().urlList();
+        for (const QUrl &url : selected) {
+            arguments.append(url.toString(QUrl::FullyEncoded | QUrl::RemoveUserInfo));
+        }
+        launchFileTools(arguments);
+    });
+    command("linuxbr_saved_searches", "Consultas salvas", "document-open-recent", [this, launchFileTools] {
+        launchFileTools({QStringLiteral("--saved-searches"), m_activeViewContainer->url().toString(QUrl::FullyEncoded | QUrl::RemoveUserInfo)});
+    });
+    command("linuxbr_compare_panels", "Comparar painéis", "document-preview", [this, launchFileTools] {
+        const auto *tab = m_tabWidget->currentTabPage();
+        QStringList arguments{QStringLiteral("--compare-folders"), m_activeViewContainer->url().toString(QUrl::FullyEncoded | QUrl::RemoveUserInfo)};
+        if (tab->splitViewEnabled()) {
+            arguments.append(tab->inactiveViewContainer()->url().toString(QUrl::FullyEncoded | QUrl::RemoveUserInfo));
+        }
+        launchFileTools(arguments);
+    });
+    command("linuxbr_block_previews", "Privacidade de prévias", "view-preview", [this] {
+        const QUrl folder = m_activeViewContainer->url();
+        const bool blocked = LinuxBRFileWorkflows::ownPreviewBlock(folder);
+        if (!blocked && LinuxBRFileWorkflows::blockedPreview(folder)) {
+            showErrorMessage(QStringLiteral("As prévias estão bloqueadas por outra pasta. Revise a opção no local onde o bloqueio foi criado."));
+            return;
+        }
+        QMessageBox box(QMessageBox::Question, QStringLiteral("Privacidade de prévias"),
+                        blocked
+                            ? QStringLiteral("Permitir prévias neste local? Um bloqueio da pasta superior continua valendo.")
+                            : QStringLiteral("Bloquear miniaturas nesta pasta e em suas subpastas?"),
+                        QMessageBox::Yes | QMessageBox::Cancel, this);
+        box.setTextFormat(Qt::PlainText);
+        if (box.exec() != QMessageBox::Yes) {
+            return;
+        }
+        LinuxBRFileWorkflows::togglePreviewBlock(folder);
+        for (auto *view : findChildren<DolphinView *>()) {
+            view->resetLinuxBrPreviewPolicy();
+        }
+    });
+    command("linuxbr_paste_special", "Colar especial", "edit-paste", [this] {
+        const auto *mime = QApplication::clipboard()->mimeData();
+        if (!mime || (!mime->hasUrls() && !mime->hasText())) {
+            showErrorMessage(QStringLiteral("Copie um arquivo, um caminho ou um texto para colar."));
+            return;
+        }
+        const QList<QUrl> urls = mime->urls();
+        const QString clipboardText = mime->text();
+        const QUrl destination = m_activeViewContainer->url();
+        QMenu choices(this);
+        auto *link = choices.addAction(QIcon::fromTheme(QStringLiteral("emblem-symbolic-link")), QStringLiteral("Criar link para os itens"));
+        auto *paths = choices.addAction(QIcon::fromTheme(QStringLiteral("insert-link")), QStringLiteral("Salvar caminhos em arquivo de texto…"));
+        auto *text = choices.addAction(QIcon::fromTheme(QStringLiteral("text-x-generic")), QStringLiteral("Salvar texto em arquivo…"));
+        link->setEnabled(!urls.isEmpty());
+        paths->setEnabled(!urls.isEmpty() && destination.isLocalFile());
+        text->setEnabled(!clipboardText.isEmpty() && destination.isLocalFile());
+        const auto *selected = choices.exec(QCursor::pos());
+        if (selected == link) {
+            auto *job = KIO::link(urls, destination);
+            KJobWidgets::setWindow(job, this);
+            job->setUiDelegate(KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoErrorHandlingEnabled, this));
+            KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Link, urls, destination, job);
+        } else if (selected == paths || selected == text) {
+            const QString filename = QFileDialog::getSaveFileName(this, QStringLiteral("Colar em arquivo de texto"),
+                QDir(destination.toLocalFile()).filePath(selected == paths ? QStringLiteral("Caminhos.txt") : QStringLiteral("Texto.txt")),
+                QStringLiteral("Arquivos de texto (*.txt)"), nullptr, QFileDialog::DontConfirmOverwrite);
+            if (filename.isEmpty()) {
+                return;
+            }
+            QString content = clipboardText;
+            if (selected == paths) {
+                QStringList names;
+                for (const auto &url : urls) {
+                    names.append(url.isLocalFile() ? url.toLocalFile() : url.toDisplayString(QUrl::RemoveUserInfo));
+                }
+                content = names.join(QLatin1Char('\\n')) + QLatin1Char('\\n');
+            }
+            QFile output(filename);
+            if (!output.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+                showErrorMessage(output.errorString());
+                return;
+            }
+            const QByteArray bytes = content.toUtf8();
+            if (output.write(bytes) != bytes.size() || !output.flush()) {
+                const QString error = output.errorString();
+                output.remove();
+                showErrorMessage(error);
+            }
+        }
+    });
+
+    // setup 'File' menu''')
+replace('src/dolphinmainwindow.cpp', '        if (group.name() != QLatin1String("General")) {',
+        '''        if (group.name() == QLatin1String("LinuxBRPreviewPrivacy")) {
+            for (auto *view : findChildren<DolphinView *>()) {
+                view->resetLinuxBrPreviewPolicy();
+            }
+            return;
+        }
+        if (group.name() != QLatin1String("General")) {''')
+for operation in ("copy", "move"):
+    replace('src/dolphinmainwindow.cpp', f'        m_tabWidget->{operation}ToInactiveSplitView();',
+            f'''        const auto *tab = m_tabWidget->currentTabPage();
+        if (!tab->splitViewEnabled()) {{
+            return;
+        }}
+        const auto names = LinuxBRFileWorkflows::incompatibleNames(
+            m_activeViewContainer->view()->selectedItems().urlList(), tab->inactiveViewContainer()->url());
+        if (!names.isEmpty()) {{
+            showErrorMessage(QStringLiteral("Revise nomes incompatíveis ou conflitantes: %1").arg(names.join(QStringLiteral(", "))));
+            return;
+        }}
+        m_tabWidget->{operation}ToInactiveSplitView();''')
+replace('src/views/dolphinview.h', '    bool previewsShown() const;', '''    bool previewsShown() const;
+    void resetLinuxBrPreviewPolicy();''')
+replace('src/views/dolphinview.cpp', '#include "dolphinview.h"',
+        '#include "dolphinview.h"\n#include "linuxbr-file-workflows.h"\n#include <QMessageBox>')
+replace('src/views/dolphinview.cpp', 'void DolphinView::setPreviewsShown(bool show)\n{\n',
+        '''void DolphinView::resetLinuxBrPreviewPolicy()
+{
+    applyViewProperties();
+}
+
+void DolphinView::setPreviewsShown(bool show)
+{
+    if (show && LinuxBRFileWorkflows::blockedPreview(url())) {
+        Q_EMIT previewsShownChanged(false);
+        QMessageBox::information(this, QStringLiteral("Prévias bloqueadas"),
+            QStringLiteral("Abra Visualização → Privacidade de prévias para revisar o bloqueio."));
+        return;
+    }
+''')
+replace('src/views/dolphinview.cpp', '    const bool previewsShown = props.previewsShown();',
+        '    const bool previewsShown = props.previewsShown() && !LinuxBRFileWorkflows::blockedPreview(url());')
+replace('src/views/dolphinview.cpp', '    KIO::PasteJob *job = KIO::paste(QApplication::clipboard()->mimeData(), url);',
+        '''    const auto *mime = QApplication::clipboard()->mimeData();
+    const QStringList conflicts = LinuxBRFileWorkflows::incompatibleNames(mime ? mime->urls() : QList<QUrl>(), url);
+    if (!conflicts.isEmpty()) {
+        QMessageBox error(QMessageBox::Warning, QStringLiteral("Nomes incompatíveis"),
+            QStringLiteral("Revise os nomes incompatíveis ou conflitantes neste destino:\\n%1").arg(conflicts.join(QLatin1Char('\\n'))),
+            QMessageBox::Ok, this);
+        error.setTextFormat(Qt::PlainText);
+        error.exec();
+        return;
+    }
+    KIO::PasteJob *job = KIO::paste(mime, url);''')
+replace('src/dolphintabwidget.cpp', '#include "dolphinviewcontainer.h"',
+        '#include "dolphinviewcontainer.h"\n#include "linuxbr-file-workflows.h"\n#include <QIODevice>')
+replace('src/dolphintabwidget.cpp', '    Q_EMIT rememberClosedTab(tabPage->activeViewContainer()->url(), tabPage->saveState());',
+        '''    QByteArray closed;
+    QDataStream stream(&closed, QIODevice::WriteOnly);
+    const auto *primary = tabPage->primaryViewContainer()->urlNavigatorInternalWithHistory();
+    stream << index << tabPage->saveState() << LinuxBRFileWorkflows::history(primary) << primary->historyIndex();
+    if (tabPage->splitViewEnabled()) {
+        const auto *secondary = tabPage->secondaryViewContainer()->urlNavigatorInternalWithHistory();
+        stream << LinuxBRFileWorkflows::history(secondary) << secondary->historyIndex();
+    }
+    Q_EMIT rememberClosedTab(tabPage->activeViewContainer()->url(), closed);''')
+replace('src/dolphintabwidget.cpp', '    openNewActivatedTab();\n    currentTabPage()->restoreState(state);',
+        '''    QDataStream stream(state);
+    int index = 0;
+    int primaryIndex = 0;
+    int secondaryIndex = 0;
+    QByteArray pageState;
+    QList<QUrl> primary;
+    QList<QUrl> secondary;
+    stream >> index >> pageState >> primary >> primaryIndex;
+    if (!stream.atEnd()) {
+        stream >> secondary >> secondaryIndex;
+    }
+    if (stream.status() != QDataStream::Ok || primary.isEmpty()) {
+        return;
+    }
+    auto *page = openNewTab(primary.first(), secondary.isEmpty() ? QUrl() : secondary.first());
+    LinuxBRFileWorkflows::restoreHistory(primary, primaryIndex, page->primaryViewContainer()->urlNavigatorInternalWithHistory());
+    if (!secondary.isEmpty() && page->splitViewEnabled()) {
+        LinuxBRFileWorkflows::restoreHistory(secondary, secondaryIndex, page->secondaryViewContainer()->urlNavigatorInternalWithHistory());
+    }
+    page->restoreState(pageState);
+    tabBar()->moveTab(indexOf(page), qBound(0, index, count() - 1));
+    setCurrentWidget(page);''')
 replace('src/dolphinmainwindow.cpp',
         '    toggleSearchAction->setChecked(m_activeViewContainer->isSearchModeEnabled());',
         '''    toggleSearchAction->setChecked(m_activeViewContainer->isSearchModeEnabled());

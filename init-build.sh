@@ -9,10 +9,11 @@ source scripts/build-output.sh
 # uma compilacao longa nao devem alterar os comandos lidos ao retornar dela.
 main() {
     build_parse_args "$@"
-    BUILD_ARGS=()
+    BUILD_ARGS=("--edition=$BUILD_EDITION")
     (( VERBOSE == 0 )) || BUILD_ARGS+=(--verbose)
     (( NO_CACHE == 0 )) || BUILD_ARGS+=(--no-cache)
     VERSION=$(cat VERSION)
+    ISO_STEM=$(build_iso_stem "$BUILD_EDITION" "$VERSION")
     build_banner "$VERSION"
     ENGINE="${CONTAINER_ENGINE:-podman}"
     # Dependencias usadas pelo build no host e pela verificacao da ISO.
@@ -78,11 +79,16 @@ main() {
     "${AS_ROOT[@]}" env LINUXBR_BANNER_SHOWN=1 CONTAINER_ENGINE="$ENGINE" ./build.sh "${BUILD_ARGS[@]}"
 
     printf '\nValidando a ISO gerada...\n'
-    run_logged validacao env ISO="dist/linuxbr-${VERSION}-amd64.iso" \
-    CHECKSUM_FILE="dist/linuxbr-${VERSION}-amd64.iso.sha256" \
+    run_logged validacao env ISO="dist/${ISO_STEM}-amd64.iso" \
+    CHECKSUM_FILE="dist/${ISO_STEM}-amd64.iso.sha256" \
         ./tests/verify-iso.sh
     printf '\nCompilacao e verificacao da ISO concluidas. Teste o boot e a instalacao usando:\n'
-    printf '  ./init-vm-bios-cd.sh\n  ./init-vm-uefi-cd.sh\n'
+    if [[ $BUILD_EDITION == vm-server ]]; then
+        printf '  ISO=dist/%s-amd64.iso DISK_IMAGE=vm/%s-uefi.qcow2 ./init-vm-uefi-cd.sh\n' "$ISO_STEM" "$ISO_STEM"
+        printf '  ISO=dist/%s-amd64.iso DISK_IMAGE=vm/%s-bios.qcow2 ./init-vm-bios-cd.sh\n' "$ISO_STEM" "$ISO_STEM"
+    else
+        printf '  ./init-vm-uefi-cd.sh\n  ./init-vm-bios-cd.sh\n'
+    fi
 }
 
 main "$@"; exit "$?"

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FILES = ROOT / 'packages/linuxbr-system/files'
 sys.path.insert(0, str(FILES / 'usr/lib/linuxbr-system'))
 import store_backend as backend
+import store_discovery as discovery
 import webapps_backend as web
 from PyQt6.QtWidgets import QApplication
 import store
@@ -40,6 +41,30 @@ class StoreTests(unittest.TestCase):
             if item['kind'] == 'web': self.assertEqual(argv[1], '--offer')
             if item['kind'] == 'windows': self.assertEqual(argv[0], 'xdg-open')
         with self.assertRaises(ValueError): backend.action({'kind': 'windows', 'source': 'file:///tmp/installer'})
+
+    def test_discovery_snapshot_search_and_action_boundaries(self):
+        discovery.index.cache_clear()
+        discovery.search.cache_clear()
+        self.addCleanup(discovery.index.cache_clear)
+        self.addCleanup(discovery.search.cache_clear)
+        with patch.object(discovery, 'CATALOG', FILES / 'usr/share/linuxbr/store/discovery.json.gz'):
+            self.assertGreater(len(discovery.index()), 5000)
+            linux = discovery.search('xournal', 'linux')
+            windows = discovery.search('sumatrapdf', 'windows')
+            webapps = discovery.search('photopea', 'web')
+            for results, kind in ((linux, 'linux'), (windows, 'windows'), (webapps, 'web')):
+                self.assertTrue(results)
+                self.assertTrue(all(item['kind'] == kind for item in results))
+            self.assertEqual(backend.package_targets(linux[0]), [])
+            self.assertEqual(backend.action(windows[0])[0], 'xdg-open')
+            self.assertEqual(backend.action(webapps[0])[:2], ['linuxbr-webapps', '--offer'])
+            self.assertFalse(discovery.search('.'))
+            self.assertLessEqual(len(discovery.search('win', 'windows')), discovery.LIMIT_PER_KIND)
+            available = [{'repository_package': 'xournalpp'}]
+            merged = discovery.merge(available, linux)
+            self.assertIn(available[0], merged)
+            self.assertFalse(any(item.get('discovery_id') == 'xournalpp' for item in merged))
+            self.assertTrue(any(item.get('discovery_provider') == 'Flathub' for item in linux))
 
     def test_installed_webapp_opens_without_reinstall(self):
         with patch('os.geteuid', return_value=1000):

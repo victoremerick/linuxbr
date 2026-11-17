@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Aparência acessível por aplicativo
+Comment=Crie atalhos com escala, contraste e animações ajustados por aplicativo
+Exec=/usr/bin/linuxbr-app-access
+Icon=preferences-desktop-color
+Terminal=false
+Categories=Settings;Accessibility;
+Keywords=acessibilidade;escala;contraste;animações;atalhos;

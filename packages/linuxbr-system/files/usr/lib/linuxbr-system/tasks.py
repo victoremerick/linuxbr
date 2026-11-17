@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,QP
     QTableWidget,QTableWidgetItem,QHeaderView,QMessageBox,QTabWidget,QProgressBar)
 
 
-def snapshot():
+def snapshot(uid_filter=None):
     ticks=os.sysconf('SC_CLK_TCK')
     memory={}
     with open('/proc/meminfo',encoding='utf-8') as stream:
@@ -21,15 +21,18 @@ def snapshot():
         if not name.isdecimal(): continue
         try:
             pid=int(name)
-            data=open(f'/proc/{pid}/stat',encoding='utf-8').read()
-            tail=data[data.rfind(')')+2:].split()
-            cmd=open(f'/proc/{pid}/cmdline','rb').read(4096).split(b'\0')[0].decode(errors='replace')
             uid=os.stat(f'/proc/{pid}').st_uid
+            if uid_filter is not None and uid_filter!=uid:continue
+            with open(f'/proc/{pid}/stat',encoding='utf-8') as stream:
+                data=stream.read()
+            tail=data[data.rfind(')')+2:].split()
+            with open(f'/proc/{pid}/cmdline','rb') as stream:
+                cmd=stream.read(4096).split(b'\0')[0].decode(errors='replace')
             try:user=pwd.getpwuid(uid).pw_name
             except KeyError:user=str(uid)
             rss=int(tail[21])*os.sysconf('SC_PAGE_SIZE')
             rows.append(dict(pid=pid,name=cmd.split('/')[-1] or data[data.find('(')+1:data.rfind(')')],
-                user=user,uid=uid,rss=rss,cpu=(int(tail[11])+int(tail[12]))/ticks))
+                user=user,uid=uid,start=tail[19],rss=rss,cpu=(int(tail[11])+int(tail[12]))/ticks))
         except (OSError,ValueError,IndexError): continue
     return rows,memory
 

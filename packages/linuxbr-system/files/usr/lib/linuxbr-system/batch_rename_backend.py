@@ -61,7 +61,7 @@ def rename_noreplace(source, target):
         raise OSError(error, os.strerror(error), target)
 
 
-def apply_plan(rows):
+def apply_plan(rows, on_commit=None):
     changes = []
     try:
         for source, target, identity, status in rows:
@@ -74,6 +74,8 @@ def apply_plan(rows):
                 raise ValueError(f'{source.name} mudou desde a prévia.')
             rename_noreplace(source, target)
             changes.append((source, target, identity))
+        if on_commit is not None:
+            on_commit(changes)
     except (OSError, ValueError) as error:
         remaining = []
         for source, target, identity in reversed(changes):
@@ -86,3 +88,5 @@ def apply_plan(rows):
                 remaining.append(str(target))
         detail = '\nItens que permaneceram no novo local:\n' + '\n'.join(remaining) if remaining else ''
         raise ValueError(f'{error}{detail}') from error
+
+

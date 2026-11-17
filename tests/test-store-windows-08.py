@@ -121,7 +121,8 @@ class StoreWindows08(unittest.TestCase):
 
     def test_failures_are_recorded_with_origin_scope_and_result(self):
         import uuid
-        with (patch.object(transactions.PackageKit,'perform',side_effect=ValueError('Repositório indisponível')),
+        with (patch.object(transactions.PackageKit,'__init__',return_value=None),
+            patch.object(transactions.PackageKit,'perform',side_effect=ValueError('Repositório indisponível')),
             patch.object(transactions,'emit')):
             code=transactions.execute(request(),str(uuid.uuid4()))
         self.assertEqual(code,1);record=transactions.history()[0]

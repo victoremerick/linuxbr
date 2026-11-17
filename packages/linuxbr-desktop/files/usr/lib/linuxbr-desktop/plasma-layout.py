@@ -21,7 +21,20 @@ def replace(text, old, new):
 def patches():
     return {
       "org.kde.panel/contents/ui/main.qml": [( "    id: root", "    id: root\n    Plasmoid.contextualActions: [\n        PlasmaCore.Action { text: \"Gerenciador de Tarefas\"; icon.name: \"utilities-system-monitor\"; onTriggered: Qt.openUrlExternally(\"linuxbr-action:///tasks\") }\n    ]" )],
-      "org.kde.plasma.taskmanager/contents/ui/ContextMenu.qml": [( "    id: menu", "    id: menu\n    PlasmaExtras.MenuItem {\n        text: \"Gerenciador de Tarefas\"\n        icon: \"utilities-system-monitor\"\n        onClicked: Qt.openUrlExternally(\"linuxbr-action:///tasks\")\n    }\n    PlasmaExtras.MenuItem { separator: true }" )],
+      "org.kde.plasma.taskmanager/contents/ui/ContextMenu.qml": [
+        ("    id: menu", """    id: menu
+    PlasmaExtras.MenuItem {
+        text: "Gerenciador de Tarefas"
+        icon: "utilities-system-monitor"
+        onClicked: Qt.openUrlExternally("linuxbr-action:///tasks")
+    }
+    PlasmaExtras.MenuItem {
+        text: "Mídia e microfone deste aplicativo"
+        icon: "audio-volume-high"
+        visible: menu.visualParent && !menu.get(atm.IsLauncher) && Number(menu.get(atm.AppPid)) > 1
+        onClicked: Qt.openUrlExternally("linuxbr-action:///app-audio/" + Math.trunc(Number(menu.get(atm.AppPid))))
+    }
+    PlasmaExtras.MenuItem { separator: true }""")],
       'org.kde.plasma.kickoff/contents/ui/main.qml': [
         ('''        Component.onCompleted: {
             favoritesModel.initForClient("org.kde.plasma.kickoff.favorites.instance-" + Plasmoid.id)
@@ -92,7 +105,76 @@ def patches():
         ('import QtQuick 2.8', 'import QtQuick 2.8\nimport QtQuick.Layouts'),
         ('    id: root', '    id: root\n    Layout.minimumWidth: 32\n    Layout.minimumHeight: 32\n    preferredRepresentation: compactRepresentation')],
       'org.kde.plasma.notifications/contents/ui/FullRepresentation.qml': [
-        ('import QtQuick\n', 'import QtQuick\nimport QtQuick.Window\n'),
+        ('import QtQuick\n', 'import QtQuick\nimport QtQuick.Window\nimport org.kde.plasma.plasma5support as LinuxBRSupport\n'),
+        ('PlasmaExtras.Representation {', '''PlasmaExtras.Representation {
+
+    LinuxBRSupport.DataSource {
+        id: linuxbrNotificationRouter
+        engine: "executable"
+        property string pendingCommand: ""
+        property var openAction: null
+        function route(entry, action) {
+            if (!/^[A-Za-z0-9_][A-Za-z0-9_.+-]{0,248}$/.test(entry || "") || openAction) {
+                action();
+                return;
+            }
+            pendingCommand = "/usr/bin/linuxbr-workspaces --notification " + entry;
+            openAction = action;
+            connectSource(pendingCommand);
+            linuxbrNotificationTimeout.restart();
+        }
+        function finish() {
+            const action = openAction;
+            disconnectSource(pendingCommand);
+            linuxbrNotificationTimeout.stop();
+            openAction = null;
+            pendingCommand = "";
+            if (action) {
+                action();
+            }
+        }
+        onNewData: (sourceName, data) => {
+            if (sourceName === pendingCommand) {
+                finish();
+            }
+        }
+    }
+    Timer {
+        id: linuxbrNotificationTimeout
+        interval: 3500
+        repeat: false
+        onTriggered: linuxbrNotificationRouter.finish()
+    }'''),
+        ('                    historyModel.invokeDefaultAction(idx);', '''                    const entry = historyModel.data(idx, NotificationManager.Notifications.DesktopEntryRole);
+                    linuxbrNotificationRouter.route(entry, function() {
+                        if (historyModel.data(idx, NotificationManager.Notifications.DesktopEntryRole) === entry) {
+                            historyModel.invokeDefaultAction(idx);
+                        }
+                    });'''),
+        ('''                        onActionInvoked: {
+                            if (actionName === "default") {
+                                historyModel.invokeDefaultAction(historyModel.index(index, 0));
+                            } else {
+                                historyModel.invokeAction(historyModel.index(index, 0), actionName);
+                            }
+
+                            delegateLoader.expire();
+                        }''', '''                        onActionInvoked: {
+                             const idx = historyModel.index(index, 0);
+                             const entry = model.desktopEntry;
+                             const selectedAction = actionName;
+                             linuxbrNotificationRouter.route(entry, function() {
+                                 if (historyModel.data(idx, NotificationManager.Notifications.DesktopEntryRole) !== entry) {
+                                     return;
+                                 }
+                                 if (selectedAction === "default") {
+                                     historyModel.invokeDefaultAction(idx);
+                                 } else {
+                                     historyModel.invokeAction(idx, selectedAction);
+                                 }
+                                 delegateLoader.expire();
+                             });
+                        }'''),
         ('Layout.preferredWidth: Kirigami.Units.gridUnit * 18', 'Layout.preferredWidth: Kirigami.Units.gridUnit * 22'),
         ('Layout.preferredHeight: Kirigami.Units.gridUnit * 24', 'Layout.preferredHeight: Math.min(Screen.desktopAvailableHeight * 0.85, Kirigami.Units.gridUnit * 42)'),
         ('Layout.maximumHeight: Kirigami.Units.gridUnit * 40', 'Layout.maximumHeight: Kirigami.Units.gridUnit * 48')],

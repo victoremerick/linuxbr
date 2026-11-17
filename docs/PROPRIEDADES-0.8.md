@@ -41,6 +41,14 @@ Início do SMB e liberação do firewall apresentam resultado em janela própria
 
 O histórico pessoal usa o ramo `kup` do repositório bup e abre `kup-filedigger --path <caminho> <repositório>`. A lista só inclui versões em que o item foi encontrado; a consulta informa quando foi parcial. O explorador nativo oferece abrir/restaurar e permite escolher outro destino. Não cria planos, não monta discos e não usa pontos Timeshift como versões de documentos.
 
+## Acessos temporários no Samba
+
+Em **Propriedades → Compartilhamento → Acessos temporários**, informe uma conta Samba local, o prazo de validade e a permissão **Leitura** ou **Edição**. Publique a pasta antes pela aba Compartilhamento. A conta precisa ter permissões locais compatíveis no diretório e nos arquivos que utilizará.
+
+O painel gera um endereço UNC dedicado à concessão. Envie esse endereço à pessoa autorizada, que se autentica com sua própria conta do Samba. A lista **Concessões deste computador** reúne os acessos temporários e permite revogá-los antes do prazo.
+
+Quando a concessão expira ou é revogada, o sistema retira o endereço temporário e encerra as conexões pelo mesmo endereço. A publicação original e as permissões locais e SMB já existentes continuam valendo. 
+
 ## Compilação e testes
 
 Dependências de compilação do plugin: `extra-cmake-modules`, `qt6-base-dev`, `libkf6coreaddons-dev`, `libkf6kio-dev` e `libkf6widgetsaddons-dev`. A compilação do KIO usa os `Build-Depends` da fonte oficial `kf6-kio` dentro do construtor Debian.

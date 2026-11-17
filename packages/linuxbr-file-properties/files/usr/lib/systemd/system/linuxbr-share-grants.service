@@ -1,0 +1,8 @@
+[Unit]
+Description=Revogar o acesso a compartilhamentos expirados
+ConditionPathIsDirectory=/var/lib/linuxbr/share-grants
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /usr/lib/linuxbr-file-properties/share_grants.py expire
+TimeoutStartSec=3min

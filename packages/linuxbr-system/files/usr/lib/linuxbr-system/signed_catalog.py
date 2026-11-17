@@ -263,7 +263,7 @@ def updates():
                 continue
             rows.append(dict(profile=record['id'],name=web.display_name(record),source=subscription['source'],
                 app=subscription['app'],revision=app['revision'],changelog=app.get('changelog',''),
-                url=app['url'],upstream_version=app.get('upstream_version'),upstream_release_url=app.get('upstream_release_url'),
+                url=app['url'],current_url=record['url'],upstream_version=app.get('upstream_version'),upstream_release_url=app.get('upstream_release_url'),
                 changed_url=web.clean_url(app['url'])!=record['url'],disabled=app['status']=='disabled'))
         except (OSError,ValueError,KeyError):
             continue

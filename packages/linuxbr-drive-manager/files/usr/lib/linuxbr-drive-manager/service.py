@@ -3,12 +3,14 @@
 import json
 import os
 import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from core import Store
+from health import INTERVAL_SECONDS
 from service_model import query, places_for, resolve, computer_bookmark
 
 BUS='org.linuxbr.DriveManager1'
@@ -20,6 +22,8 @@ class Service(dbus.service.Object):
         self.session_bus=dbus.SessionBus()
         self.store=Store()
         self.pool=ThreadPoolExecutor(max_workers=1)
+        self.health_pool=ThreadPoolExecutor(max_workers=1)
+        self.health_job=None
         self.busy=False; self.again=False
         self.state=dict(rows=[], data=dict(letters={},shares={}), places=[], error='Consultando unidades…')
         system=dbus.SystemBus()
@@ -31,10 +35,25 @@ class Service(dbus.service.Object):
         system.add_signal_receiver(self.changed, signal_name='NameOwnerChanged',
                                    dbus_interface='org.freedesktop.DBus',arg0='org.freedesktop.UDisks2')
         GLib.timeout_add_seconds(5, self.tick)
+        GLib.timeout_add_seconds(INTERVAL_SECONDS, self.health_tick)
+        self.health_tick()
         self.refresh()
 
     def changed(self,*args): self.refresh()
     def tick(self): self.refresh(); return True
+    def health_tick(self):
+        if self.health_job is None or self.health_job.done():
+            self.health_job = self.health_pool.submit(query, ['health'])
+            self.health_job.add_done_callback(self.health_complete)
+        return True
+
+    @staticmethod
+    def health_complete(future):
+        try:
+            future.result()
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            print(f'Histórico de saúde dos discos: {error}', file=sys.stderr)
+
     def refresh(self):
         if self.busy: self.again=True; return
         self.busy=True

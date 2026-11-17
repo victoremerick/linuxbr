@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Grupos de janelas
+Comment=Guarde os programas e as posições de janelas para retomar seu trabalho
+Exec=/usr/bin/linuxbr-window-groups
+Icon=window-duplicate
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=grupos;janelas;layout;restaurar;sessão;

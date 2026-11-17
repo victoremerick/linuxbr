@@ -77,7 +77,7 @@ def build(output, work, calamares_deb, breeze_deb):
             shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         reject_seeded_credentials(root)
     # Executable launchers must retain their mode even when edited on Windows.
-    for command in ('linuxbr-welcome','linuxbr-wiki','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows','linuxbr-credentials'):
+    for command in ('linuxbr-welcome','linuxbr-wiki','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows','linuxbr-credentials','linuxbr-key-lock','linuxbr-recovery-keys'):
         (roots['linuxbr-system'] / 'usr/bin' / command).chmod(0o755)
     extensions = roots['linuxbr-system'] / 'usr/share/chromium/extensions'
     timers = roots['linuxbr-system'] / 'usr/lib/systemd/user/timers.target.wants'
@@ -118,6 +118,8 @@ LOGO=linuxbr
     shared=('administration.py','administration_backend.py','services_backend.py','services_dialogs.py',
             'store_sources.py','features_backend.py','features_page.py','network_details.py','network_details_page.py',
             'firewall.py','firewall_backend.py','virtualization.py','virtualization_backend.py','virtualization_preferences.py',
+            'virtualization_disks.py','virtualization_observability.py',
+            'virtualization_catalog.py','virtualization_migration_check.py','virtualization_guest_access.py',
             'virtualization_state.py','virtualization_transfer.py','virtualization_replica_job.py','vm_firmware.py',
             'migration.py','migration_backend.py','migration_bookmarks.py','visual_style.py','keyboard_controls.py')
     for filename in shared:
@@ -184,7 +186,7 @@ esac
 ''', True)
     control(roots['linuxbr-system'], 'linuxbr-system', 'chromium, chromium-sandbox, python3, python3-cryptography, libnotify-bin, python3-pyqt6, python3-gi, libglib2.0-bin, linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, krdp, flatpak, powerdevil, kde-config-screenlocker, kscreen, libkscreen-bin, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd, kcalc, kate, kolourpaint, kup-backup, bup, rsync, timeshift, icoutils, gnome-keyring, libpam-gnome-keyring, gir1.2-secret-1, seahorse')
     system_control = roots['linuxbr-system'] / 'DEBIAN/control'
-    system_control.write_text(system_control.read_text().replace('Depends: ',f'Depends: linuxbr-boot-tools (= {VERSION}), openssh-client, bubblewrap, psmisc, python3-pyqt6.qtmultimedia, ',1))
+    system_control.write_text(system_control.read_text().replace('Depends: ',f'Depends: linuxbr-boot-tools (= {VERSION}), openssh-client, bubblewrap, psmisc, python3-pyqt6.qtmultimedia, x11-xkb-utils, pamtester, sssd-ldap, orca, python3-speechd, speech-dispatcher-espeak-ng, libsdl2-2.0-0, cryptsetup-bin, ',1))
     boot=roots['linuxbr-boot-tools']
     firmware=boot/'usr/share/linuxbr/firmware';firmware.parent.mkdir(parents=True,exist_ok=True)
     shutil.move(roots['linuxbr-system']/'usr/share/linuxbr/firmware',firmware)
@@ -309,7 +311,7 @@ esac
     write(properties_native, 'debian/control', 'Source: linuxbr-file-properties\nSection: utils\nPriority: optional\nMaintainer: Linux BR\n\nPackage: linuxbr-file-properties\nArchitecture: any\nDescription: Linux BR file properties\n')
     properties_libraries = subprocess.check_output(['dpkg-shlibdeps', '-O', '-e'+str(properties_plugin.resolve())], cwd=properties_native, text=True).strip().split('=', 1)[1]
     kio_dependencies=', '.join(name+' (>= 6.13.0-6+linuxbr0.9.1)' for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6kiofilewidgets6'))
-    control(properties, 'linuxbr-file-properties', 'python3, python3-pyqt6, acl, msitools, kup-backup, bup, kdenetwork-filesharing, samba, samba-common-bin, firewalld, '+kio_dependencies+', ' + properties_libraries,
+    control(properties, 'linuxbr-file-properties', 'python3, python3-pyqt6, acl, msitools, kup-backup, bup, kdenetwork-filesharing, samba, samba-common-bin, firewalld, pkexec, polkitd, '+kio_dependencies+', ' + properties_libraries,
             extra=f'Recommends: linuxbr-system (= {VERSION})\nBreaks: linuxbr-system (<< 0.8.0~beta1)\n', architecture=run('dpkg', '--print-architecture'))
     native = work / 'drive-native'
     run('cmake', '-S', str(ROOT / 'packages/linuxbr-drive-manager/native'), '-B', str(native), '-DCMAKE_BUILD_TYPE=Release')
@@ -408,9 +410,14 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
     upstream = run('dpkg-deb', '-f', str(calamares_deb), 'Version')
     if upstream != '13.0.13-1':
         raise SystemExit(f'Review required for new Calamares settings version: {upstream}')
+    media = os.environ.get('LINUXBR_BUILD_EDITION', 'desktop')
     deps = run('dpkg-deb', '-f', str(calamares_deb), 'Depends')
+    if media == 'desktop':
+        deps = ', '.join('calamares (= 3.3.14-1)' if dep == 'calamares' else dep for dep in deps.split(', '))
+        deps += ', python3, ntfs-3g, pulseaudio-utils, sound-theme-freedesktop'
     control(cala, 'linuxbr-calamares-settings', deps + ', linuxbr-branding',
-            'Conflicts: calamares-settings-debian\nReplaces: calamares-settings-debian\nProvides: calamares-settings-debian\n')
+            'Conflicts: calamares-settings-debian\nReplaces: calamares-settings-debian\nProvides: calamares-settings-debian\n',
+            architecture=run('dpkg', '--print-architecture') if media == 'desktop' else 'all')
     for filename in ['md5sums']:
         (cala / 'DEBIAN' / filename).unlink(missing_ok=True)
     # Preserve upstream diversion lifecycle, using our owning package name.
@@ -420,13 +427,39 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
             p.write_text(p.read_text().replace('calamares-settings-debian', 'linuxbr-calamares-settings'))
     settings = cala / 'etc/calamares/settings.conf'
     data = load(settings); data['branding'] = 'linuxbr'
-    media = os.environ.get('LINUXBR_BUILD_EDITION', 'desktop')
     selected = {'desktop': 'desktop', 'vm-server': 'virtualization'}[media]
     product = 'Linux BR VM Server' if media == 'vm-server' else 'Linux BR'
     data['modules-search']=['/etc/calamares/modules',*[path for path in data['modules-search'] if path!='/etc/calamares/modules']]
     for stage in data['sequence']:
         if 'exec' in stage and 'packages' in stage['exec']:
             stage['exec'].insert(stage['exec'].index('packages')+1,'linuxbr_edition')
+    if media == 'desktop':
+        data['disable-cancel-during-exec'] = True
+        data['hide-back-and-next-during-exec'] = True
+        data['prompt-install'] = True
+        preparation, installation, _ = data['sequence']
+        preparation['show'] = ['welcome', 'linuxbr_installation', 'partition', 'summary']
+        deferred = {'locale', 'keyboard', 'localecfg', 'users', 'networkcfg'}
+        installation['exec'] = [module for module in installation['exec'] if module not in deferred]
+        installation['exec'].insert(installation['exec'].index('umount'), 'linuxbr_initial_setup')
+
+        runtime = work / 'calamares-runtime'
+        runtime.mkdir()
+        subprocess.run(['apt-get', 'download', 'calamares=3.3.14-1'], cwd=runtime, check=True)
+        run('dpkg-deb', '-x', str(next(runtime.glob('calamares_*.deb'))), str(runtime))
+        module_source = ROOT / 'packages/linuxbr-calamares-settings/desktop-installation'
+        module_build = work / 'calamares-desktop-installation'
+        libdir = next((runtime / 'usr/lib').glob('*/libcalamaresui.so')).parent
+        run('cmake', '-S', str(module_source), '-B', str(module_build), '-DCMAKE_BUILD_TYPE=Release',
+            f'-DCALAMARES_LIBDIR={libdir}', f'-DCALAMARES_HEADERS={runtime / "usr/include/libcalamares"}')
+        run('cmake', '--build', str(module_build), '--parallel', '2')
+        plugin = cala / 'etc/calamares/modules/linuxbr_installation'
+        plugin.mkdir(parents=True)
+        shutil.copy2(module_source / 'module.desc', plugin)
+        shutil.copy2(module_build / 'libcalamares_viewmodule_linuxbr_installation.so', plugin)
+        write(cala, 'usr/lib/linuxbr-installer/preflight.py', (module_source / 'preflight.py').read_text())
+        shutil.copytree(ROOT / 'packages/linuxbr-calamares-settings/initial-setup',
+                        cala / 'etc/calamares/modules/linuxbr_initial_setup')
     dump(settings, data)
     shutil.copytree(ROOT/'packages/linuxbr-calamares-settings/edition',cala/'etc/calamares/modules/linuxbr_edition')
     write(cala,'etc/calamares/modules/linuxbr_edition/media-edition',selected+'\n')
@@ -543,7 +576,7 @@ install -m 0755 /usr/share/applications/calamares-install-linuxbr.desktop "$desk
                 executable = header.startswith(b'#!') or (
                     header == b'\x7fELF' and path.stat().st_mode & 0o111)
                 path.chmod(0o755 if executable else 0o644)
-        run('dpkg-deb', '--root-owner-group', '--build', str(root), str(output / f"{name}_{VERSION}_{run('dpkg', '--print-architecture') if name in ('linuxbr-drive-manager', 'linuxbr-desktop', 'linuxbr-file-properties','linuxbr-boot-tools') else 'all'}.deb"))
+        run('dpkg-deb', '--root-owner-group', '--build', str(root), str(output))
     (output / 'UPSTREAM-SHA256SUMS').write_text('\n'.join(manifest) + '\n')
 
 if __name__ == '__main__':

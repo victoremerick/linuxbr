@@ -312,10 +312,12 @@ def discover_programs(identifier,limit=250):
     roots=[drive/'Program Files',drive/'Program Files (x86)']
     users=drive/'users'
     if users.is_dir() and not users.is_symlink():
-        for user in users.iterdir():
-            if user.is_dir() and not user.is_symlink():roots.append(user/'AppData/Local/Programs')
+        for user in sorted(users.iterdir()):
+            if user.is_dir() and not user.is_symlink():roots.append(user/'AppData/Local')
     result=[];seen=set();visited=0
     excluded=('unins','uninstall','setup','install','update','crash','report','vcredist','vc_redist','dxsetup')
+    excluded_directories = {'common files', 'windows nt', 'windows media player', 'internet explorer',
+                            'temp', 'tmp', 'cache', 'caches', 'crashdumps', 'code cache', 'gpucache'}
     for root in roots:
         if not root.is_dir() or root.is_symlink():continue
         # AppData can contain Wine-created links to personal folders. Do not
@@ -325,8 +327,8 @@ def discover_programs(identifier,limit=250):
         for folder,directories,files in os.walk(root,followlinks=False):
             visited+=1
             if visited>2000:return result
-            directories[:]=[name for name in directories if not (Path(folder)/name).is_symlink()
-                            and name.casefold() not in ('common files','windows nt','windows media player','internet explorer')]
+            directories[:]=sorted(name for name in directories if not (Path(folder)/name).is_symlink()
+                                  and name.casefold() not in excluded_directories)
             for name in sorted(files):
                 if not name.lower().endswith('.exe') or name.casefold().startswith(excluded):continue
                 candidate=Path(folder)/name
@@ -387,15 +389,15 @@ def command_for(action,filename=None):
     raise ValueError('Ação desconhecida.')
 
 
-def _run(identifier,action,filename=None):
+def _run(identifier,action,filename=None,program_id=None):
     if os.geteuid()==0:raise ValueError('Execute como usuário normal, sem sudo.')
     item=read_environment(identifier); path=environment_path(identifier)
     command=command_for(action,filename)
     if action=='run' and item['architecture']=='win32' and inspect_windows_file(filename)[1]=='x64':
         raise ValueError('Este EXE exige um ambiente de 64 bits.')
     env=os.environ.copy()
-    # Do not inherit DLL overrides or an unrelated Wine prefix from the launcher.
-    for key in ('WINEPREFIX','WINEARCH','WINEDLLOVERRIDES','WINESERVER','WINELOADER'):
+    # The selected Wine environment and shortcut determine these values.
+    for key in ('WINEPREFIX','WINEARCH','WINEDLLOVERRIDES','WINESERVER','WINELOADER','LINUXBR_WINDOWS_PROGRAM_ID'):
         env.pop(key,None)
     env.update(WINEPREFIX=str(path/'prefix'),WINEARCH=item['architecture'],WINEDEBUG='-all,err+module,err+seh')
     if action=='stop':return subprocess.call(command,env=env,cwd=str(path))
@@ -405,6 +407,9 @@ def _run(identifier,action,filename=None):
             subprocess.run(['wineboot','--init'],env=env,check=True)
             subprocess.run(['wineserver','--wait'],env=env,check=True)
     cwd=str(Path(filename).resolve().parent) if action=='run' else str(path)
+    if program_id:
+        from windows_graphics import apply_launch
+        command,env=apply_launch(program_id,identifier,filename,command,env)
     if action=='run' and inspect_windows_file(filename)[1] in ('BAT','CMD'):
         converted=subprocess.check_output(['winepath','-w',str(Path(filename).resolve())],env=env,text=True).strip()
         if not converted or any(c in converted for c in '%"\r\n'):
@@ -421,26 +426,35 @@ def _run(identifier,action,filename=None):
     return subprocess.call(command,env=env,cwd=cwd)
 
 
-def run(identifier,action,filename=None):
+def run(identifier,action,filename=None,program_id=None):
     if os.geteuid()==0:raise ValueError('Execute como usuário normal, sem sudo.')
     path=environment_path(identifier);read_environment(identifier)
+    if program_id and (action!='run' or filename is None):
+        raise ValueError('O atalho gráfico exige a abertura de um EXE.')
     if action=='stop':return _run(identifier,action,filename)
     lock_path=path/'maintenance.lock'
     if lock_path.is_symlink():raise ValueError('Registro de bloqueio inválido.')
     with lock_path.open('a') as lock:
         try:fcntl.flock(lock,fcntl.LOCK_SH|fcntl.LOCK_NB)
         except BlockingIOError:raise ValueError('Este ambiente está em manutenção. Aguarde a conclusão.') from None
+        if program_id:return _run(identifier,action,filename,program_id)
         return _run(identifier,action,filename)
 
 
-def start_job(identifier,action,filename=None):
+def start_job(identifier,action,filename=None,program_id=None):
     if os.geteuid()==0:raise ValueError('Execute sem sudo.')
     item=read_environment(identifier);command_for(action,filename)
     if action=='run' and item['architecture']=='win32' and inspect_windows_file(filename)[1]=='x64':
         raise ValueError('Este programa exige um ambiente de 64 bits.')
+    if program_id:
+        if action!='run' or filename is None:
+            raise ValueError('O atalho gráfico exige a abertura de um EXE.')
+        from windows_graphics import registered_executable
+        registered_executable(program_id,identifier,filename)
     job=str(uuid.uuid4())
     args=['/usr/bin/python3',str(Path(__file__).resolve()),identifier,action,'--job',job]
     if filename:args+=['--file',str(inspect_windows_file(filename)[0])]
+    if program_id:args+=['--program-id',program_id]
     if action=='run' and inspect_windows_file(filename)[1] in ('BAT','CMD'):
         args=['konsole','--hold','-e',*args,'--interactive']
     subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,
@@ -452,6 +466,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('environment');parser.add_argument('action',choices=['run','configure','uninstall','dependencies','stop'])
     parser.add_argument('--file');parser.add_argument('--job',required=True)
+    parser.add_argument('--program-id')
     parser.add_argument('--interactive',action='store_true')
     args=parser.parse_args()
     # A job id is a basename, never an arbitrary log/status path.
@@ -460,7 +475,7 @@ if __name__=='__main__':
     result={'finished':True,'code':1,'error':''}
     if args.interactive:
         (root/(args.job+'.log')).write_text('Script aberto em uma janela de terminal para permitir entrada pelo teclado.\n',encoding='utf-8')
-        try:result['code']=run(args.environment,args.action,args.file)
+        try:result['code']=run(args.environment,args.action,args.file,args.program_id)
         except (OSError,ValueError,subprocess.SubprocessError) as error:result['error']=str(error)
         with (root/(args.job+'.log')).open('a',encoding='utf-8') as log:
             log.write('Código de saída: '+str(result['code'])+'\n'+result['error']+'\n')
@@ -470,6 +485,6 @@ if __name__=='__main__':
         raise SystemExit(result['code'])
     with (root/(args.job+'.log')).open('w',encoding='utf-8') as log:
         os.dup2(log.fileno(),1);os.dup2(log.fileno(),2)
-        try:result['code']=run(args.environment,args.action,args.file)
+        try:result['code']=run(args.environment,args.action,args.file,args.program_id)
         except (OSError,ValueError,subprocess.SubprocessError) as error:result['error']=str(error)
     write_json(root/(args.job+'.json'),result)

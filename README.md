@@ -18,6 +18,13 @@ Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperaç
 - [Snap e Homebrew na Loja](docs/VERSAO-1.1.md#loja--snap-e-homebrew): fontes opcionais com escolha de origem, instalação, atualização e remoção.
 - [Lista de aplicativos e formatos testados](docs/VERSAO-1.1.md#exportar-e-reinstalar-aplicativos): exportação e reinstalação pela Loja, com evidências de compatibilidade por formato.
 
+## Planejamento da próxima versão
+
+- [Instalação e configuração inicial em duas etapas](docs/INSTALACAO-E-CONFIGURACAO-INICIAL.md)
+- [Operação e validação do primeiro login](docs/CONFIGURACAO-INICIAL-OPERACAO.md)
+- [100 propostas adicionais para a próxima versão](docs/PROPOSTAS-PROXIMA-VERSAO.md)
+- [Pesquisa e catálogo ampliado da Loja](reports/catalogo-loja/README.md)
+
 ## Histórico de versões — notas de lançamento
 
 ### 1.1.1 Alpha 1

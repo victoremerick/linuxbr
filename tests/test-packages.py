@@ -13,11 +13,22 @@ modified = work / 'work/linuxbr-calamares-settings'
 a = yaml.safe_load((original / 'etc/calamares/settings.conf').read_text())
 b = yaml.safe_load((modified / 'etc/calamares/settings.conf').read_text())
 expected=a['sequence']
+server_media = os.environ.get('LINUXBR_BUILD_EDITION') == 'vm-server'
 for stage in expected:
     if 'exec' in stage and 'packages' in stage['exec']:stage['exec'].insert(stage['exec'].index('packages')+1,'linuxbr_edition')
+if not server_media:
+    expected[0]['show'] = ['welcome', 'linuxbr_installation', 'partition', 'summary']
+    deferred = {'locale', 'keyboard', 'localecfg', 'users', 'networkcfg'}
+    expected[1]['exec'] = [key for key in expected[1]['exec'] if key not in deferred]
+    expected[1]['exec'].insert(expected[1]['exec'].index('umount'), 'linuxbr_initial_setup')
+    assert b['disable-cancel-during-exec'] is True and b['prompt-install'] is True
+    assert b['hide-back-and-next-during-exec'] is True
+    modules = modified / 'etc/calamares/modules'
+    assert (modules/'linuxbr_installation/libcalamares_viewmodule_linuxbr_installation.so').is_file()
+    assert (modules/'linuxbr_initial_setup/main.py').is_file()
+    assert (modified/'usr/lib/linuxbr-installer/preflight.py').is_file()
 assert expected == b['sequence'], 'Unexpected installation sequence change'
 assert '/etc/calamares/modules' in b['modules-search']
-server_media = os.environ.get('LINUXBR_BUILD_EDITION') == 'vm-server'
 assert not (modified/'etc/calamares/modules/packagechooser.conf').exists()
 assert (modified/'etc/calamares/modules/linuxbr_edition/media-edition').read_text().strip() == (
     'virtualization' if server_media else 'desktop')
@@ -94,6 +105,16 @@ assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/power_page.py').is_fi
 assert (work / 'work/linuxbr-system/usr/lib/linuxbr-system/power_backend.py').is_file()
 assert (work / 'work/linuxbr-system/usr/lib/systemd/user/linuxbr-vnc.service').is_file()
 assert 'krdp' in (work / 'work/linuxbr-system/DEBIAN/control').read_text()
+system_payload = work / 'work/linuxbr-system'
+setup_unit = (system_payload/'usr/lib/systemd/system/linuxbr-initial-setup.service').read_text()
+sddm_setup = (system_payload/'usr/lib/systemd/system/sddm.service.d/20-linuxbr-initial-setup.conf').read_text()
+assert 'Type=notify' in setup_unit and 'initial_setup_service.py' in setup_unit
+assert 'Requires=linuxbr-initial-setup.service' in sddm_setup
+assert 'After=linuxbr-initial-setup.service' in sddm_setup
+assert (system_payload/'usr/share/linuxbr/initial-setup/sddm.desktop').is_file()
+assert not (system_payload/'usr/share/xsessions/linuxbr-initial-setup.desktop').exists()
+assert not (system_payload/'var/lib/linuxbr/initial-setup/pending').exists()
+assert not (system_payload/'etc/sddm.conf.d/99-linuxbr-initial-setup.conf').exists()
 print('PASS: Central, serviço de sessão e plugin KIO nativo empacotados')
 
 devices = work / 'work/linuxbr-device-manager'
@@ -117,6 +138,8 @@ assert f'linuxbr-boot-tools (= {version})' in (work/'work/linuxbr-desktop/DEBIAN
 for name in ('branding','desktop','sddm-theme','boot-theme','drive-manager','system','device-manager','file-properties'):
     assert f'linuxbr-{name} (= {version})' in (release_control if name in ('branding','boot-theme') else edition_control), name
 assert 'linuxbr-calamares-settings' not in release_control
+server_list = (Path(__file__).resolve().parents[1] / 'config/editions/vm-server.list.chroot').read_text().splitlines()
+assert 'python3-libvirt' in server_list, 'A ISO VM Server precisa do binding Python com Recommends desativado'
 assert f'linuxbr-file-properties (= {version})' in (work/'work/linuxbr-system/DEBIAN/control').read_text()
 for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6kiofilewidgets6'):
     assert name+' (>= 6.13.0-6+linuxbr0.9.1)' in (work/'work/linuxbr-file-properties/DEBIAN/control').read_text()

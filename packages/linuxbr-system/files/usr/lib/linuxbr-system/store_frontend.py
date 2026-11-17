@@ -12,8 +12,11 @@ from PyQt6.QtWidgets import (QApplication,QDialog,QDialogButtonBox,QFileDialog,Q
 from store import Window as OperationsWindow
 import store_backend as backend
 import catalog_sources
+import store_collections
+import store_discovery
 import store_repository
 import store_optional
+import store_products
 from store_source_page import Sources
 from desktop_jobs import Query,Command
 from firmware_page import Firmware
@@ -34,11 +37,13 @@ class Window(OperationsWindow):
         from desktop_theme import initialize
         initialize()
         self.ready=False;self.queries=set();self.repository_cache={};self.repository_errors={};self.requested=set();self.only_favorites=False;self.dialogs=[];self.metadata_cache={};self.metadata_requested=set()
+        self.collection = None
         self.optional_entries = []
         self.optional_errors = []
         self.optional_epoch = 0
         self.optional_query = None
         self.pending_installs = {}
+        self.comparison_entries = {}
         self.preferences_path=Path(os.environ.get('XDG_CONFIG_HOME',str(Path.home()/'.config')))/'linuxbr/store.json'
         try:self.preferences=json.loads(self.preferences_path.read_text())
         except (OSError,ValueError):self.preferences={}
@@ -46,7 +51,7 @@ class Window(OperationsWindow):
         self.favorites={v for v in self.preferences.get('favorites',[]) if isinstance(v,str)} if isinstance(self.preferences.get('favorites',[]),list) else set();super().__init__()
         self.base_entries=self.entries+catalog_sources.entries();self.entries=self.base_entries;self.resize(1180,680)
         for category in sorted({item['category'] for item in self.base_entries}
-                               | {'Fontes configuradas', 'Ferramentas de terminal'}):
+                               | {'Fontes configuradas', 'Ferramentas de terminal', store_discovery.CATEGORY}):
             if self.category.findData(category)<0:self.category.addItem(category,category)
         self.search_timer=QTimer(self);self.search_timer.setSingleShot(True);self.search_timer.setInterval(450);self.search_timer.timeout.connect(self.start_repository_search)
         old=self.takeCentralWidget();splitter=old.findChild(QSplitter);main=QWidget();self.setCentralWidget(main);layout=QHBoxLayout(main);layout.setContentsMargins(0,0,0,0);layout.setSpacing(0)
@@ -59,7 +64,8 @@ class Window(OperationsWindow):
         self.hero=QLabel('Encontre seu próximo aplicativo\nProgramas Linux, sites com janela própria e opções para Windows.');self.hero.setFont(title_font);self.hero.setWordWrap(True);self.hero.setMinimumHeight(96);self.hero.setStyleSheet('font-weight:600;padding:20px;border-radius:12px;color:white;background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #095ba7,stop:1 #267d94);');body.addWidget(self.hero)
         filters=QHBoxLayout();self.query.setPlaceholderText('Pesquisar aplicativos, sites e programas…');self.query.setMinimumHeight(38);filters.addWidget(self.query,1);filters.addWidget(self.kind);filters.addWidget(self.category);body.addLayout(filters)
         for control in (self.kind,self.category):
-            control.setSizeAdjustPolicy(control.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon);control.setMinimumContentsLength(10)
+            control.setSizeAdjustPolicy(control.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            control.setMinimumContentsLength(16 if control is self.category else 10)
             for index in range(control.count()):control.setItemData(index,control.itemText(index),Qt.ItemDataRole.ToolTipRole)
             control.setToolTip(control.currentText());control.currentTextChanged.connect(control.setToolTip)
         self.repository_note=QLabel();self.repository_note.setWordWrap(True);self.repository_note.setTextFormat(Qt.TextFormat.PlainText)
@@ -72,6 +78,18 @@ class Window(OperationsWindow):
         self.stage_install = QPushButton(QIcon.fromTheme('list-add'), 'Adicionar à fila de instalação…')
         self.stage_install.clicked.connect(self.stage_selected_install)
         self.detail_layout.insertWidget(1, self.stage_install)
+        self.product_formats = QPushButton(QIcon.fromTheme('view-list-details'), 'Formatos do produto…')
+        self.product_formats.clicked.connect(self.show_product_formats)
+        self.detail_layout.insertWidget(2, self.product_formats)
+        comparison = QHBoxLayout()
+        self.compare_pick = QPushButton(QIcon.fromTheme('list-add'), 'Adicionar para comparar')
+        self.compare_pick.clicked.connect(self.toggle_comparison)
+        comparison.addWidget(self.compare_pick, 1)
+        self.compare_show = QPushButton(QIcon.fromTheme('view-split-left-right'), 'Comparar (0)')
+        self.compare_show.clicked.connect(self.show_comparison)
+        self.compare_show.setEnabled(False)
+        comparison.addWidget(self.compare_show)
+        self.detail_layout.insertLayout(3, comparison)
         self.license_button=QPushButton(QIcon.fromTheme('text-x-generic'),'Ler licenças do pacote');self.license_button.clicked.connect(self.show_license);self.detail_layout.insertWidget(self.detail_layout.count()-1,self.license_button)
         detail_area=splitter.widget(1);panel=QWidget();splitter.replaceWidget(1,panel);detail=QVBoxLayout(panel);detail.setContentsMargins(8,4,0,0);detail.setSpacing(10)
         for widget in (self.heading,self.primary,self.manage_native,self.manage_windows,self.new_session,self.installer):
@@ -80,6 +98,7 @@ class Window(OperationsWindow):
         detail.addWidget(detail_area,1)
         self.heading.setStyleSheet('font-weight:600;');self.heading.setFont(title_font)
         for label in (self.heading,self.description,self.note,self.source,self.metadata):
+            label.setTextFormat(Qt.TextFormat.PlainText)
             label.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred);label.setMinimumWidth(0)
         self.installer.setText('Abrir EXE / MSI…');self.installer.setToolTip('Escolha o arquivo EXE ou MSI que você já baixou para abrir no Wine.')
         self.manage_native.setText('Gerenciar aplicativo…');self.manage_windows.setText('Ambiente Wine…')
@@ -115,6 +134,9 @@ class Window(OperationsWindow):
         refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo');refresh.clicked.connect(self.reload_catalog);footer.addWidget(refresh);body.addLayout(footer)
         self.links={}
         for caption,icon,data in [('Início','go-home',('catalog','')),('Biblioteca','applications-all',('installed','')),('Favoritos','rating',('favorites','')),('Downloads e histórico','folder-download',('downloads','')),('Atualizações','system-software-update',('updates','')),('Revisões de webapps','internet-web-browser',('web-updates','')),('Firmware','preferences-devices-cpu',('firmware','')),('Fontes','network-server',('sources','')),('Configurações','configure',('preferences',''))]:self.nav_item(caption,icon,data)
+        self.nav_item(store_discovery.CATEGORY, 'system-search', ('discovery', store_discovery.CATEGORY))
+        for name, (icon, _) in store_collections.COLLECTIONS.items():
+            self.nav_item('Coleção · ' + name, icon, ('collection', name))
         for category in sorted({item['category'] for item in self.base_entries}):self.nav_item(category,category_icon(category),('category',category))
         self.navigation.currentItemChanged.connect(self.navigate);old.deleteLater();self.ready=True;self.navigation.setCurrentRow(0);self.refresh()
 
@@ -132,6 +154,7 @@ class Window(OperationsWindow):
     def navigate(self,item,*_):
         if not item:return
         key,category=item.data(Qt.ItemDataRole.UserRole);self.only_favorites=key=='favorites'
+        self.collection = category if key == 'collection' else None
         for button in self.portable_buttons:
             button.setVisible(key == 'installed')
         if key in ('sources','preferences','firmware','web-updates'):
@@ -140,7 +163,18 @@ class Window(OperationsWindow):
             if key=='web-updates':self.web_updates.refresh()
             return
         self.pages.setCurrentIndex(0);self.query.setEnabled(True);self.kind.setEnabled(True);self.category.setEnabled(True);self.view.setCurrentIndex(1 if key=='installed' else 0)
-        self.category.setCurrentIndex(max(0,self.category.findData(category)));self.hero.setText({'installed':'Sua biblioteca\nAplicativos deste computador, programas Windows e perfis web.', 'favorites':'Seus favoritos\nAcesse os aplicativos que você marcou.'}.get(key,'Encontre seu próximo aplicativo\nEscolha uma categoria ou pesquise nas fontes configuradas.'))
+        self.category.setCurrentIndex(max(0,self.category.findData(category)));self.hero.setText({'installed':'Sua biblioteca\nAplicativos deste computador, programas Windows e perfis web.', 'favorites':'Seus favoritos\nAcesse os aplicativos que você marcou.', 'discovery':'Catálogo ampliado\nPesquise programas Linux, aplicativos Windows e webapps por nome.'}.get(key,'Encontre seu próximo aplicativo\nEscolha uma categoria ou pesquise nas fontes configuradas.'))
+        if key == 'discovery':
+            self.query.setFocus()
+            reviewed = store_discovery.snapshot_date()
+            if reviewed:
+                self.hero.setText('Catálogo ampliado\nConsulta offline de ' + reviewed +
+                                  ' · instalações e sites podem exigir internet.')
+        if self.collection:
+            self.category.setCurrentIndex(0)
+            self.category.setEnabled(False)
+            self.query.clear()
+            self.hero.setText(item.text() + '\nAbra a ficha para revisar o aplicativo e escolher a instalação.')
         if key in ('updates','downloads'):
             self.open_updates() if key=='updates' else self.downloads()
         if key == 'installed':
@@ -320,9 +354,23 @@ class Window(OperationsWindow):
         optional = self.optional_entries if installed else extra
         self.entries = self.base_entries + [item for item in optional
             if not item.get('optional_target') or store_optional.enabled(item['optional_target']['manager'])]
+        category = self.category.currentData()
+        discovery_only = category == store_discovery.CATEGORY
+        if self.collection:
+            self.entries = store_collections.entries_for(self.base_entries, self.collection)
+        elif not installed and not self.only_favorites and category in (None, '', store_discovery.CATEGORY):
+            kind = self.kind.currentData() or ''
+            discovered = store_discovery.search(query, kind)
+            self.entries = list(discovered) if discovery_only else store_discovery.merge(self.entries, discovered)
         if self.only_favorites:self.entries=[entry for entry in self.entries if entry['id'] in self.favorites]
-        super().refresh();errors=self.optional_errors if installed else self.repository_errors.get(query,[])
-        self.count.setText(str(self.results.count())+' resultados'+(' · consultando fontes…' if query in self.requested else ' · consulta incompleta' if errors else ''))
+        if not installed and not discovery_only:
+            self.entries = store_collections.with_equivalents(self.entries, query)
+        super().refresh()
+        local_only = discovery_only or self.collection is not None
+        errors = [] if local_only else self.optional_errors if installed else self.repository_errors.get(query,[])
+        status = ' · consultando fontes…' if not local_only and query in self.requested else ' · consulta incompleta' if errors else ''
+        count = self.results.count()
+        self.count.setText(f'{count} ' + ('resultado' if count == 1 else 'resultados') + status)
         self.count.setToolTip('\n'.join(errors));self.retry_search.setVisible(bool(errors));self.retry_search.setEnabled(query not in self.requested)
         self.repository_note.setText(' '.join(errors));self.repository_note.setVisible(bool(errors))
         card_width=max(228,min(420,self.fontMetrics().horizontalAdvance('Aplicativos e programas')+48))
@@ -330,17 +378,19 @@ class Window(OperationsWindow):
         for index in range(self.results.count()):
             item=self.results.item(index);entry=item.data(Qt.ItemDataRole.UserRole);item.setData(Qt.ItemDataRole.AccessibleTextRole,entry['name']);card=QWidget();card.setFixedWidth(card_width);card.setAccessibleName(entry['name']);card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents);card.setStyleSheet('background:transparent;');body=QVBoxLayout(card);body.setContentsMargins(16,12,16,10);header=QHBoxLayout();icon=QLabel();icon.setPixmap(item.icon().pixmap(40,40));icon.setObjectName('appIcon');header.addWidget(icon);header.addStretch()
             target = entry.get('optional_target')
+            badge_text = entry.get('discovery_provider') if entry['kind'] == 'linux' else None
             badge = QLabel(store_optional.PROVIDERS[target['manager']][0] if target else
-                           {'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']])
+                           badge_text or {'linux':'Linux','web':'Web','windows':'Windows'}[entry['kind']])
             header.addWidget(badge);body.addLayout(header)
             name=QLabel(entry['name']);name.setTextFormat(Qt.TextFormat.PlainText);name.setWordWrap(True);name.setStyleSheet('font-weight:600;');body.addWidget(name);label=QLabel(entry['category']);label.setTextFormat(Qt.TextFormat.PlainText);label.setWordWrap(True);body.addWidget(label);body.addStretch();item.setToolTip(entry['name']+'\n'+entry['description']);self.results.setItemWidget(item,card)
             card_height=max(card_height,body.totalHeightForWidth(card_width))
         for index in range(self.results.count()):self.results.item(index).setSizeHint(QSize(card_width,card_height))
         self.results.setGridSize(QSize(card_width+10,card_height+10))
-        if 2<=len(query)<=100 and self.view.currentData()!='installed' and not self.only_favorites and query not in self.repository_cache and query not in self.requested:self.search_timer.start()
+        if 2<=len(query)<=100 and not installed and not local_only and not self.only_favorites and query not in self.repository_cache and query not in self.requested:self.search_timer.start()
 
     def start_repository_search(self):
         query=self.query.text().strip()
+        if self.collection or self.category.currentData() == store_discovery.CATEGORY:return
         if len(self.queries)>=2:self.search_timer.start();return
         if query in self.requested or query in self.repository_cache or len(query)<2:return
         epoch = self.optional_epoch
@@ -369,8 +419,28 @@ class Window(OperationsWindow):
         super().select(*args)
         if not getattr(self,'ready',False):return
         item=self.selected();self.favorite.setVisible(bool(item));self.favorite.setText('Remover favorito' if item and item['id'] in self.favorites else 'Favoritar')
+        self.product_formats.setVisible(bool(store_products.key(item)))
         self.stage_install.setVisible(bool(item and item.get('kind') == 'linux'))
+        self.compare_pick.setEnabled(bool(item) and (item['id'] in self.comparison_entries or len(self.comparison_entries) < 3))
+        self.compare_pick.setText('Remover da comparação' if item and item['id'] in self.comparison_entries else 'Adicionar para comparar')
+        self.compare_show.setText(f'Comparar ({len(self.comparison_entries)})')
+        self.compare_show.setEnabled(len(self.comparison_entries) >= 2)
+        self.source.setVisible(not bool(item and item.get('discovery_provider')))
+        if item and item.get('discovery_provider'):
+            self.favorite.hide()
+            self.show_metadata(self.metadata_for(item))
+            if item['kind'] != 'web':
+                self.website.hide()
+                self.primary.setText('Consultar manifesto WinGet' if item['kind'] == 'windows' else 'Consultar fonte do pacote')
+                self.primary.setIcon(QIcon.fromTheme('internet-web-browser'))
+            if item['kind'] == 'linux':
+                self.manage_native.hide()
+                self.stage_install.hide()
         target = item.get('optional_target') if item else None
+        if item and item.get('lifecycle') and not target:
+            self.stage_install.hide()
+            self.manage_native.hide()
+            self.primary.setText('Consultar descontinuação')
         if target and self.primary.text() == 'Instalar aplicativo…':
             if target['installed']:
                 self.primary.setText('Gerenciar aplicativo…')
@@ -383,6 +453,119 @@ class Window(OperationsWindow):
         details=self.metadata_cache.get(item['id'],{}) if item else {};self.license_button.setVisible(bool(details.get('copyright_file')))
         if details:self.show_metadata(details)
         if not item:self.description.setText('Tente outro nome, finalidade ou categoria. Para pesquisar nas fontes, digite pelo menos dois caracteres.')
+
+    def activate(self):
+        item = self.selected()
+        if item and item.get('lifecycle') and not item.get('optional_target'):
+            self.open_source()
+            return
+        if item and item.get('discovery_provider') and item['kind'] == 'linux':
+            self.open_source()
+            return
+        super().activate()
+
+    def toggle_comparison(self):
+        item = self.selected()
+        if not item:
+            return
+        if item['id'] in self.comparison_entries:
+            del self.comparison_entries[item['id']]
+        elif len(self.comparison_entries) < 3:
+            self.comparison_entries[item['id']] = item.copy()
+        self.select()
+
+    def show_comparison(self):
+        from PyQt6.QtWidgets import QHeaderView, QTableWidget, QTableWidgetItem
+
+        entries = list(self.comparison_entries.values())
+        if len(entries) < 2:
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Comparar aplicativos')
+        dialog.resize(865, 460)
+        layout = QVBoxLayout(dialog)
+        fields = ['Licença', 'Idioma', 'Requisitos', 'Uso offline', 'Formatos de arquivo']
+        listing = QTableWidget(len(fields), len(entries), dialog)
+        listing.setAccessibleName('Comparação de aplicativos selecionados')
+        listing.setVerticalHeaderLabels(fields)
+        listing.setHorizontalHeaderLabels([entry['name'] for entry in entries])
+        listing.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        listing.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        for column, entry in enumerate(entries):
+            values = store_products.comparison(entry, self.metadata_cache.get(entry['id'], {}))
+            for row, value in enumerate(values):
+                listing.setItem(row, column, QTableWidgetItem(value))
+        listing.resizeRowsToContents()
+        layout.addWidget(listing)
+        controls = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        controls.rejected.connect(dialog.reject)
+        clear = controls.addButton('Limpar seleção', QDialogButtonBox.ButtonRole.ResetRole)
+        clear.clicked.connect(dialog.accept)
+        layout.addWidget(controls)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.comparison_entries.clear()
+            self.select()
+
+    def show_product_formats(self):
+        product = store_products.key(self.selected())
+        if not product:
+            return
+        from PyQt6.QtWidgets import QHeaderView, QTableWidget, QTableWidgetItem
+        from PyQt6.QtGui import QDesktopServices
+        from PyQt6.QtCore import QUrl
+
+        rows = list(store_products.variants(product, self.base_entries))
+        for option in self.optional_entries:
+            target = option.get('optional_target') or {}
+            if store_products.key(option) == product:
+                for index, (format_name, item) in enumerate(rows):
+                    if store_products.FORMATS.get(target.get('manager')) == format_name:
+                        rows[index] = format_name, dict(item, **option)
+                        break
+        dialog = QDialog(self)
+        name = store_products.PRODUCTS[product]['name']
+        dialog.setWindowTitle(name + ' — formatos e origens')
+        dialog.resize(720, 385)
+        body = QVBoxLayout(dialog)
+        title = QLabel(name)
+        title.setStyleSheet('font-size: 20px; font-weight: 600')
+        body.addWidget(title)
+        listing = QTableWidget(len(rows), 4)
+        listing.setHorizontalHeaderLabels(['Formato', 'Origem', 'Identificador ou edição', 'Mantenedor / verificação'])
+        listing.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        listing.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        listing.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        listing.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        for index, (format_name, item) in enumerate(rows):
+            provenance = ' · '.join(filter(None, (item.get('publisher'), item.get('source_verification'))))
+            values = (format_name, item.get('discovery_provider') or 'Site do fornecedor',
+                      item.get('discovery_id') or item['name'], provenance or 'Consultar origem')
+            for column, value in enumerate(values):
+                listing.setItem(index, column, QTableWidgetItem(value))
+        body.addWidget(listing)
+        note = QLabel('A fonte informa disponibilidade, mantenedor e verificação de integridade do formato escolhido.')
+        note.setWordWrap(True)
+        body.addWidget(note)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(dialog.reject)
+        website = buttons.addButton('Consultar origem', QDialogButtonBox.ButtonRole.ActionRole)
+        website.setEnabled(bool(rows))
+        website.clicked.connect(lambda: QDesktopServices.openUrl(
+            QUrl(rows[listing.currentRow()][1]['source'])) if listing.currentRow() >= 0 else None)
+        native = next((item for item in self.base_entries if item['id'] == product), None)
+        if native:
+            manage = buttons.addButton('Gerenciar formatos Linux…', QDialogButtonBox.ButtonRole.ActionRole)
+            def manage_native():
+                dialog.accept()
+                if not hasattr(self, 'operations'):
+                    from store_operations import Operations
+                    self.operations = Operations(self)
+                self.operations.set_item(native)
+            manage.clicked.connect(manage_native)
+        body.addWidget(buttons)
+        if rows:
+            listing.selectRow(0)
+        dialog.exec()
 
     def stage_selected_install(self):
         item = self.selected()
@@ -486,6 +669,11 @@ class Window(OperationsWindow):
         self.update_install_queue()
 
     def metadata_for(self,item):
+        provider = item.get('discovery_provider')
+        if provider:
+            return dict(type=backend.KINDS[item['kind']], origin=provider,
+                        version='Consulte a fonte', size='Consulte a fonte',
+                        compatibility='Não testado no Linux BR')
         identifier=item['id'];basic=dict(type=backend.KINDS[item['kind']],origin=item.get('source','Não informada'),version='Consultando metadados locais…',size='Consultando metadados locais…')
         if identifier in self.metadata_cache:return self.metadata_cache[identifier]
         if self.ready and identifier not in self.metadata_requested:

@@ -1,6 +1,6 @@
 """Review signed web application revisions without moving browser profiles."""
 import json
-import subprocess
+from urllib.parse import urlsplit
 from PyQt6.QtCore import Qt, QProcess
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QListWidget,QListWidgetItem,QMessageBox
@@ -52,7 +52,7 @@ class WebUpdates(QWidget):
         text=row['changelog'] or 'O fornecedor não informou detalhes desta revisão.'
         text+='\nFonte: '+row['source']+'\nVersão do serviço: '+(row['upstream_version'] or 'Não informada')
         if row['upstream_release_url']:text+='\nPublicação oficial: '+row['upstream_release_url']
-        if row['changed_url']:text+='\nNovo endereço: '+row['url']+'\nUma nova instalação usará outro perfil. As contas anteriores não serão transferidas.'
+        if row['changed_url']:text+='\nEndereço atual: '+row['current_url']+'\nNovo endereço: '+row['url']+'\nAbra um perfil limpo para entrar no novo endereço.'
         if row['disabled']:text+='\nEste registro foi desativado pelo fornecedor. Seu aplicativo e seus dados permanecem no computador.'
         self.detail.setText(text)
 
@@ -65,6 +65,22 @@ class WebUpdates(QWidget):
 
     def open_new(self):
         row=self.selected()
-        if not row:return
-        offer=dict(name=row['name'],url=row['url'],signed_source=row['source'],signed_app=row['app'])
+        if not row or not row['changed_url'] or row['disabled']:return
+        previous_host = urlsplit(row['current_url']).hostname
+        new_host = urlsplit(row['url']).hostname
+        title = 'Confirmar mudança de domínio' if previous_host != new_host else 'Confirmar novo endereço'
+        summary = (f"Endereço atual\n{row['current_url']}\n\nNovo endereço\n{row['url']}\n\n"
+                   "O novo endereço será aberto em um perfil limpo. A sessão anterior fica disponível.")
+        prompt = QMessageBox(self)
+        prompt.setWindowTitle(title)
+        prompt.setTextFormat(Qt.TextFormat.PlainText)
+        prompt.setText(summary)
+        prompt.setIcon(QMessageBox.Icon.Question)
+        create = prompt.addButton('Continuar em perfil limpo', QMessageBox.ButtonRole.AcceptRole)
+        cancel = prompt.addButton(QMessageBox.StandardButton.Cancel)
+        prompt.setDefaultButton(cancel)
+        prompt.exec()
+        if prompt.clickedButton() is not create:
+            return
+        offer=dict(name=row['name'],url=row['url'],signed_source=row['source'],signed_app=row['app'],new_session=True)
         if not QProcess.startDetached('/usr/bin/linuxbr-webapps',['--offer',json.dumps(offer)])[0]:self.status.setText('Não foi possível abrir o instalador do aplicativo web.')

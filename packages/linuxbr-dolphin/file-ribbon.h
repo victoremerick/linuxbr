@@ -39,8 +39,10 @@ public:
         addActions(home, actions, {{"new_menu", "Novo"}});
         home->addSeparator();
         addActions(home, actions, {{"edit_cut", "Recortar"}, {"edit_copy", "Copiar"}, {"edit_paste", "Colar"}, {"edit_undo", "Desfazer"}});
+        addActions(home, actions, {{"linuxbr_paste_special", "Colar especial"}, {"undo_close_tab", "Reabrir aba"}});
         home->addSeparator();
         addActions(home, actions, {{"renamefile", "Renomear"}, {"movetotrash", "Lixeira"}, {"properties", "Propriedades"}});
+        addActions(home, actions, {{"linuxbr_file_workflows", "Ferramentas de arquivos"}});
 
         auto *view = addPage(QStringLiteral("&Visualização"), QStringLiteral("linuxbrViewActions"));
         addActions(view, actions, {{"icons", "Ícones"}, {"compact", "Compacto"}, {"details", "Detalhes"}});
@@ -48,6 +50,11 @@ public:
         addActions(view, actions, {{"show_preview", "Prévia"}, {"show_hidden_files", "Itens ocultos"}, {"show_in_groups", "Agrupar"}});
         view->addSeparator();
         addActions(view, actions, {{"linuxbr_folder_options", "Opções de Pasta"}});
+        addActions(view, actions, {{"linuxbr_block_previews", "Privacidade de prévias"}});
+        view->addSeparator();
+        addActions(view, actions, {{"copy_to_inactive_split_view", "Copiar para outro painel"},
+                                   {"move_to_inactive_split_view", "Mover para outro painel"},
+                                   {"linuxbr_compare_panels", "Comparar painéis"}});
 
         auto *search = addPage(QStringLiteral("&Pesquisar"), QStringLiteral("linuxbrSearchActions"));
         addSearchOption(search, 0, "edit-find", "Nome do arquivo");
@@ -56,6 +63,7 @@ public:
         addSearchOption(search, 2, "folder", "Pasta atual");
         addSearchOption(search, 3, "user-home", "Meus arquivos");
         search->addSeparator();
+        addActions(search, actions, {{"linuxbr_saved_searches", "Consultas salvas"}});
         auto *close = search->addAction(QIcon::fromTheme(QStringLiteral("dialog-close")), QStringLiteral("Encerrar pesquisa"));
         connect(close, &QAction::triggered, actions->action(QStringLiteral("toggle_search")), &QAction::trigger);
         m_tabs->setTabVisible(SearchPage, false);

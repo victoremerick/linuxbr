@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -219,6 +220,24 @@ def plan_token(plan):
     return hashlib.sha256(json.dumps(plan, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def rehearsal_size(plan):
+    """Read both volumes without replaying the journal or writing a restore."""
+    point = plan['point']
+    if not POINT.fullmatch(point):
+        raise ValueError('Identificador do ponto inválido.')
+    with mounted(plan['target']) as target, mounted(plan['backup']) as backup:
+        snapshot = trusted(backup, 'timeshift/snapshots/' + point + '/localhost', directory=True)
+        exclusions = trusted(backup, 'timeshift/snapshots/' + point + '/exclude.list')
+        output = command(
+            '/usr/bin/rsync', '--archive', '--one-file-system', '--dry-run', '--stats',
+            '--exclude=/home/***', '--exclude=/root/***', '--exclude-from=' + str(exclusions),
+            '--', str(snapshot) + '/', str(target) + '/', timeout=90)
+        size = re.search(r'^Total transferred file size: ([\d,]+) bytes$', output, re.M)
+        if not size:
+            return None
+        return {'bytes_to_copy': int(size[1].replace(',', '')), 'bytes_free': shutil.disk_usage(target).free}
+
+
 def restore(uuid, token):
     with snapshot_lock():
         plan = inspect(uuid)
@@ -250,9 +269,10 @@ def restore(uuid, token):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['devices', 'inspect', 'restore'])
+    parser.add_argument('action', choices=['devices', 'inspect', 'restore', 'points', 'compare', 'reinstall-plan'])
     parser.add_argument('--uuid')
     parser.add_argument('--confirm')
+    parser.add_argument('--points', nargs=2, metavar=('ANTES', 'DEPOIS'))
     args = parser.parse_args()
     try:
         if not LIVE.is_dir():
@@ -264,8 +284,24 @@ def main():
         if os.geteuid() != 0 or not args.uuid or not UUID.fullmatch(args.uuid):
             raise ValueError('Autorização administrativa e UUID de destino são obrigatórios.')
         if args.action == 'inspect':
-            plan = inspect(args.uuid)
-            print(json.dumps({'plan': plan, 'token': plan_token(plan)}, ensure_ascii=False))
+            with snapshot_lock():
+                plan = inspect(args.uuid)
+                try:
+                    estimate = rehearsal_size(plan)
+                except (OSError, ValueError, subprocess.SubprocessError):
+                    estimate = None
+            print(json.dumps({'plan': plan, 'token': plan_token(plan), 'estimate': estimate}, ensure_ascii=False))
+        elif args.action == 'reinstall-plan':
+            from reinstall_plan import inspect as inspect_reinstall
+            print(json.dumps(inspect_reinstall(args.uuid), ensure_ascii=False))
+        elif args.action in ('points', 'compare'):
+            from recovery_compare import compare
+            if args.action == 'compare' and (not args.points or args.points[0] == args.points[1]
+                                              or any(not POINT.fullmatch(point) for point in args.points)):
+                raise ValueError('Selecione dois pontos de recuperação distintos.')
+            with snapshot_lock():
+                result = compare(args.uuid, args.points if args.action == 'compare' else ())
+            print(json.dumps(result, ensure_ascii=False))
         else:
             if not args.confirm or not HASH.fullmatch(args.confirm):
                 raise ValueError('Confirme primeiro o plano de restauração.')

@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout
                              QLineEdit, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout)
 
 from batch_rename_backend import apply_plan, plan
+from file_workflows_backend import State
 
 
 class BatchRename(QDialog):
@@ -92,7 +93,7 @@ class BatchRename(QDialog):
         if not self.apply_button.isEnabled():
             return
         try:
-            apply_plan(self.rows)
+            apply_plan(self.rows, on_commit=lambda changes: State().remember('Renomeação', changes))
         except ValueError as error:
             QMessageBox.warning(self, 'Renomeação não concluída', str(error))
             self.refresh()

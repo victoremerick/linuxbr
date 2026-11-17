@@ -40,6 +40,8 @@ class ImportFiles(unittest.TestCase):
     def test_conflict_policies_keep_skip_and_replace(self):
         first = transfer(self.plan()); self.assertEqual(first['status'], 'completed')
         self.file.write_text('nova versão')
+        plan = self.plan()
+        self.assertEqual(plan['sources'][0]['conflicts'], 1)
         skipped = transfer(self.plan(), 'skip'); self.assertEqual(len(skipped['skipped']), 1)
         old = self.destination/self.source.name/self.file.name
         self.assertNotEqual(old.read_text(), self.file.read_text())
@@ -84,6 +86,27 @@ class ImportFiles(unittest.TestCase):
         self.assertIn('Açúcar &lt;b&gt;', rendered)
         self.assertNotIn('javascript:', rendered)
         self.assertNotIn('secret', rendered)
+
+    def test_browser_profiles_are_read_without_changing_them(self):
+        import sqlite3
+        from migration_bookmarks import load_bookmark_source
+        chromium = self.base/'Bookmarks'
+        chromium.write_text(json.dumps({'roots': {'bookmark_bar': {'children': [
+            {'type': 'url', 'name': 'Link', 'url': 'https://example.test/'},
+            {'type': 'url', 'name': 'Igual', 'url': 'https://example.test/'},
+            {'type': 'url', 'name': 'Local', 'url': 'file:///tmp/documento'},
+        ]}}}))
+        firefox = self.base/'places.sqlite'
+        with sqlite3.connect(firefox) as connection:
+            connection.executescript(
+                "CREATE TABLE moz_places (id INTEGER, url TEXT);"
+                "CREATE TABLE moz_bookmarks (id INTEGER, fk INTEGER, title TEXT, type INTEGER);"
+                "INSERT INTO moz_places VALUES (1, 'https://example.test/');"
+                "INSERT INTO moz_bookmarks VALUES (1, 1, 'Link', 1);")
+        before = firefox.read_bytes()
+        self.assertEqual(load_bookmark_source(chromium), {'https://example.test/': 'Link'})
+        self.assertEqual(load_bookmark_source(firefox), {'https://example.test/': 'Link'})
+        self.assertEqual(firefox.read_bytes(), before)
 
     def test_never_follows_source_links_or_special_files(self):
         outside = self.base/'fora.txt'; outside.write_text('preservado')

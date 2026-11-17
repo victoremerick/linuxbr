@@ -6,10 +6,11 @@ import time
 import uuid
 from PyQt6.QtCore import QProcess, QTimer, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import (QComboBox,QDialog,QDialogButtonBox,QHBoxLayout,QLabel,
-    QGroupBox,QLineEdit,QListWidget,QMessageBox,QPlainTextEdit,QProgressBar,QPushButton,QVBoxLayout)
+from PyQt6.QtWidgets import (QCheckBox,QComboBox,QDialog,QDialogButtonBox,QHBoxLayout,QLabel,
+    QGroupBox,QInputDialog,QLineEdit,QListWidget,QMessageBox,QPlainTextEdit,QProgressBar,QPushButton,QVBoxLayout)
 import store_backend as backend
 import store_transactions as transactions
+import store_holds
 
 
 class Operations(QDialog):
@@ -45,6 +46,12 @@ class Operations(QDialog):
             button=QPushButton(text);button.clicked.connect(lambda _checked=False,a=action:self.enqueue(a))
             button.setIcon(QIcon.fromTheme({'install':'list-add','update':'system-software-update','remove':'edit-delete'}[action]))
             row.addWidget(button);self.action_buttons.append((button,action))
+        self.impact = QPushButton(QIcon.fromTheme('document-preview'), 'Conferir impacto…')
+        self.impact.clicked.connect(self.preview_impact)
+        row.addWidget(self.impact)
+        self.pause = QPushButton(QIcon.fromTheme('media-playback-pause'), 'Pausar atualizações…')
+        self.pause.clicked.connect(self.update_pause)
+        row.addWidget(self.pause)
         actions.addLayout(row);self.targets.currentIndexChanged.connect(self.selection_changed)
         self.queue_group=QGroupBox('Fila de operações');queue=QVBoxLayout(self.queue_group);body.addWidget(self.queue_group)
         self.listing=QListWidget();self.listing.setMinimumHeight(42);self.listing.setMaximumHeight(64);queue.addWidget(self.listing)
@@ -86,15 +93,73 @@ class Operations(QDialog):
     def selection_changed(self):
         target=self.targets.currentData()
         limitation = target.get('blocked_reason', '') if target else ''
+        hold = store_holds.active(target) if target and target['installed'] else None
         confinement_note = target.get('confinement_note', '') if target else ''
         detail = limitation or confinement_note
-        self.prerequisite.setText(detail)
-        self.prerequisite.setVisible(bool(detail))
+        self.prerequisite.setText('\n'.join(filter(None, (detail, store_holds.description(hold) if hold else ''))))
+        self.prerequisite.setVisible(bool(detail or hold))
         for button,action in self.action_buttons:
             button.setVisible(not self.updates_mode or action=='update')
             button.setEnabled(bool(target and (action=='install')!=target['installed']
-                                   and (action == 'remove' or not limitation)))
+                                   and (action == 'remove' or not limitation)
+                                   and (action != 'update' or not hold)))
+        self.impact.setEnabled(bool(target and target['manager'] in ('deb', 'flatpak')))
+        self.pause.setEnabled(bool(target and target['installed']))
+        self.pause.setText('Retomar atualizações' if hold else 'Pausar atualizações…')
         self.show_format_evidence(target)
+
+    def update_pause(self):
+        target = self.targets.currentData()
+        if not target or not target['installed']:
+            return
+        days, reason = 0, ''
+        if not store_holds.active(target):
+            days, accepted = QInputDialog.getInt(self, 'Pausar atualizações na Loja',
+                'Dias de pausa. Outros gerenciadores mantêm suas próprias regras.', 7, 1, 90)
+            if not accepted:
+                return
+            reason, accepted = QInputDialog.getText(self, 'Motivo da pausa', 'Motivo exibido na atualização')
+            if not accepted:
+                return
+        try:
+            store_holds.change(target, days, reason)
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Pausa indisponível', str(error))
+        self.selection_changed()
+
+    def preview_impact(self):
+        target = self.targets.currentData()
+        if not target or target['manager'] not in ('deb', 'flatpak'):
+            return
+        from desktop_jobs import Query
+        from store_impact import preview
+
+        operation = 'remove' if target['installed'] else 'install'
+        self.impact.setEnabled(False)
+        job = Query(lambda: preview(target, operation), self)
+
+        def available(result):
+            dialog = QDialog(self)
+            dialog.setWindowTitle('Prévia da remoção' if operation == 'remove' else 'Prévia da instalação')
+            dialog.resize(650, 425)
+            body = QVBoxLayout(dialog)
+            heading = QLabel(target['label'])
+            heading.setTextFormat(Qt.TextFormat.PlainText)
+            heading.setWordWrap(True)
+            body.addWidget(heading)
+            content = QPlainTextEdit(result)
+            content.setReadOnly(True)
+            body.addWidget(content)
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            buttons.rejected.connect(dialog.reject)
+            body.addWidget(buttons)
+            dialog.exec()
+
+        job.result.connect(available)
+        job.failed.connect(lambda message: QMessageBox.warning(self, 'Prévia indisponível', message))
+        job.finished.connect(self.selection_changed)
+        job.finished.connect(job.deleteLater)
+        job.start()
 
     def show_format_evidence(self, target):
         from store_format_tests import UNKNOWN, records
@@ -149,18 +214,58 @@ class Operations(QDialog):
             detail += '\n\nO snapd administra os dados do aplicativo e suas cópias conforme a configuração do sistema.'
         elif action == 'remove' and request['manager'] == 'brew':
             detail += '\n\nO Homebrew removerá a fórmula selecionada do prefixo desta conta.'
+        elif action == 'remove' and request['manager'] == 'flatpak':
+            detail += '\n\nA desinstalação do Flatpak preserva as pastas da conta por padrão.'
         elif action == 'remove':
             detail += '\n\nNão apaga dados pessoais nem executa limpeza de dependências. A remoção DEB será recusada se exigir remover outros pacotes.'
         if request['manager'] in ('snap', 'brew') and action != 'remove':
             detail += '\n\nO gerenciador pode instalar dependências para concluir a operação.'
         elif request['manager'] not in ('snap', 'brew'):
             detail+='\n\nAs dependências e permissões serão apresentadas pelo gerenciador antes da confirmação final.'
-        if QMessageBox.question(self,question,detail,QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Cancel)!=QMessageBox.StandardButton.Yes:return
+        if action == 'remove' and request['manager'] == 'flatpak':
+            fields = self.review_flatpak_removal(request, detail)
+            if fields is None:
+                return
+            if fields:
+                request['trash_data'] = fields
+        elif QMessageBox.question(self,question,detail,QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel)!=QMessageBox.StandardButton.Yes:
+            return
         if classic:
             request['classic_confirmed'] = True
         if not self.add_requests([request]):
             QMessageBox.information(self,'Operação já solicitada','Esta operação já está na fila.');return
+
+    def review_flatpak_removal(self, request, detail):
+        from store_impact import DATA_FIELDS, data_directories
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Revisar remoção do Flatpak')
+        dialog.resize(660, 315)
+        layout = QVBoxLayout(dialog)
+        introduction = QLabel(detail)
+        introduction.setTextFormat(Qt.TextFormat.PlainText)
+        introduction.setWordWrap(True)
+        layout.addWidget(introduction)
+        paths = data_directories(request['target'])
+        selections = {}
+        if paths:
+            note = QLabel('Marque as pastas que deseja enviar à Lixeira após a desinstalação. '
+                          'A Loja preserva os dados enquanto outra instalação ou execução estiver em uso.')
+            note.setWordWrap(True)
+            layout.addWidget(note)
+            for field, path in paths.items():
+                option = QCheckBox(DATA_FIELDS[field] + ' · ' + str(path))
+                layout.addWidget(option)
+                selections[field] = option
+        controls = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        controls.button(QDialogButtonBox.StandardButton.Ok).setText('Remover aplicativo')
+        controls.button(QDialogButtonBox.StandardButton.Cancel).setDefault(True)
+        controls.accepted.connect(dialog.accept); controls.rejected.connect(dialog.reject)
+        layout.addWidget(controls)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            return [field for field, option in selections.items() if option.isChecked()]
+        return None
 
     def add_requests(self, requests):
         def key(request):

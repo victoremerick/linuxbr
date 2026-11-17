@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Espaços de trabalho
+Comment=Organize atividades do Plasma com nomes, papéis de parede e atalhos próprios
+Exec=/usr/bin/linuxbr-workspaces
+Icon=activities
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=áreas;espaços;atividades;janelas;atalhos;notificações;

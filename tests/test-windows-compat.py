@@ -46,6 +46,21 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(runner.read_environment(b)['architecture'],'win32')
         self.assertCountEqual([name for _,name in runner.environments()],['Editor','Jogo'])
 
+    def test_discover_per_user_installs_without_scanning_temp_or_links(self):
+        identifier = runner.create_environment('Teste')
+        local = runner.environment_path(identifier)/'prefix/drive_c/users/teste/AppData/Local'
+        program = local/'SumatraPDF'
+        program.mkdir(parents=True)
+        expected = executable(program/'SumatraPDF.exe')
+        (local/'Temp').mkdir()
+        executable(local/'Temp'/'Auxiliar.exe')
+        outside = self.directory/'fora-do-prefixo'
+        outside.mkdir()
+        executable(outside/'Fora.exe')
+        (local/'pasta-compartilhada').symlink_to(outside, target_is_directory=True)
+        results = runner.discover_programs(identifier)
+        self.assertEqual([item['file'] for item in results], [str(expected)])
+
     def test_root_cannot_execute(self):
         with patch.object(os,'geteuid',return_value=0),patch.object(runner.subprocess,'call') as call:
             with self.assertRaises(ValueError):runner.run('invalid','run','file.exe')

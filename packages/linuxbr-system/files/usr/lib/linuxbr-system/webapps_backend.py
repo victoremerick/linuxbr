@@ -118,7 +118,11 @@ def sessions(url, include_hidden=False):
     return [item for item in installed(include_hidden) if item['url'] == canonical]
 
 
-def export_shortcuts(path):
+def export_shortcuts(path, include_profiles=False):
+    if include_profiles:
+        from webapps_backup import export_file
+        export_file(path)
+        return
     records = shortcut_records()
     atomic_write(Path(path), json.dumps(dict(schema='linuxbr-webapp-shortcuts-1',
                                              shortcuts=list(records.values())), ensure_ascii=False) + '\n')
@@ -139,13 +143,14 @@ def shortcut_records(include_hidden=False):
 
 
 def load_shortcuts(path):
-    with Path(path).open('rb') as source:
-        raw = source.read(256 * 1024 + 1)
-    if len(raw) > 256 * 1024:
-        raise ValueError('O arquivo de atalhos é muito grande.')
-    document = json.loads(raw)
+    from webapps_backup import SCHEMA, load_records, read_file
+    document, size = read_file(path)
+    if isinstance(document, dict) and document.get('schema') == SCHEMA:
+        return load_records(document)
     if not isinstance(document, dict) or document.get('schema') != 'linuxbr-webapp-shortcuts-1':
         raise ValueError('Escolha um arquivo de atalhos do Linux BR.')
+    if size > 256 * 1024:
+        raise ValueError('O arquivo de atalhos é muito grande.')
     rows = document.get('shortcuts')
     if not isinstance(rows, list) or len(rows) > 200:
         raise ValueError('Lista de atalhos inválida.')

@@ -55,6 +55,23 @@ WINDOW_SCHEMA = """CREATE TABLE IF NOT EXISTS maintenance_windows (
     starts_at TEXT NOT NULL,
     ends_at TEXT NOT NULL
 )"""
+POLICY_SCHEMAS = (
+    """CREATE TABLE IF NOT EXISTS policy_exceptions (
+           device TEXT PRIMARY KEY REFERENCES devices(name), expires TEXT NOT NULL, reason TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS policy_reviews (
+           device TEXT PRIMARY KEY REFERENCES devices(name), requested_by TEXT NOT NULL,
+           profile TEXT NOT NULL REFERENCES policy_profiles(name), previous TEXT, expires TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS revision_health (
+           revision TEXT PRIMARY KEY REFERENCES revisions(name), checks TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS device_retirements (
+           device TEXT PRIMARY KEY REFERENCES devices(name), requested TEXT NOT NULL, completed TEXT)""",
+    """CREATE TABLE IF NOT EXISTS diagnostic_consent (
+           id TEXT PRIMARY KEY REFERENCES diagnostics(id) ON DELETE CASCADE,
+           operator TEXT NOT NULL, access_until TEXT)""",
+)
+CRITICAL_POLICY = ('login', 'ssh', 'remote-access', 'directory-auth', 'authentication', 'pam')
+HEALTH_NAMES = {'services': re.compile(r'[A-Za-z0-9][A-Za-z0-9_.@-]{0,119}\.service'),
+                'packages': re.compile(r'[a-z0-9][a-z0-9+.-]{0,119}(?::[a-z0-9-]{1,20})?')}
 
 
 class ServiceError(ValueError):
@@ -194,6 +211,23 @@ def policy_rules(value):
     return value
 
 
+def critical_rules(rules):
+    return [rule['id'] for rule in rules if any(
+        rule['id'] == name or rule['id'].startswith(name + '-') for name in CRITICAL_POLICY)]
+
+
+def health_checks(value):
+    if not isinstance(value, dict) or set(value) != set(HEALTH_NAMES):
+        raise ServiceError('Informe listas de serviços e pacotes para verificar após o boot.')
+    for field, pattern in HEALTH_NAMES.items():
+        items = value[field]
+        if (not isinstance(items, list) or len(items) > 12
+                or any(not isinstance(item, str) or not pattern.fullmatch(item) for item in items)
+                or len(items) != len(set(items))):
+            raise ServiceError('Use até 12 nomes distintos de serviços e pacotes.')
+    return value
+
+
 class Service:
     def __init__(self, database, signer=None, public_origin=None):
         self.database = Path(database)
@@ -213,6 +247,8 @@ class Service:
         with closing(self.connect()) as db, db:
             db.executescript(SCHEMA)
             db.execute(WINDOW_SCHEMA)
+            for schema in POLICY_SCHEMAS:
+                db.execute(schema)
             db.execute('INSERT INTO settings(id,organization) VALUES(1,?)', (organization,))
 
     @staticmethod
@@ -262,6 +298,23 @@ class Service:
                        (name, json_bytes(policy_rules(rules)).decode('utf-8'), now().isoformat()))
             self.audit(db, 'console', 'política cadastrada', name)
 
+    def stage_health(self, revision, checks):
+        checked(revision, NAME, 'Revisão inválida.')
+        with closing(self.connect()) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            for schema in POLICY_SCHEMAS:
+                db.execute(schema)
+            if db.execute("SELECT 1 FROM audit WHERE action='pilot' AND target=?", (revision,)).fetchone():
+                raise ServiceError('Cadastre os testes antes de liberar a revisão para o piloto.')
+            db.execute('INSERT INTO revision_health VALUES(?,?)',
+                       (revision, json_bytes(health_checks(checks)).decode('utf-8')))
+            self.audit(db, 'console', 'saúde da revisão cadastrada', revision)
+
+    @staticmethod
+    def health_for(db, revision):
+        row = db.execute('SELECT checks FROM revision_health WHERE revision=?', (revision,)).fetchone()
+        return json.loads(row['checks']) if row else None
+
     @staticmethod
     def prune(db):
         instant = now()
@@ -300,10 +353,126 @@ class Service:
         self.audit(db, actor, action, f"{revision} · {window['starts_at']} → {window['ends_at']}")
         return {'ok': True}
 
+    @staticmethod
+    def policy_for(db, device):
+        row = db.execute('SELECT profile FROM policy_assignments WHERE device=?', (device,)).fetchone()
+        return row['profile'] if row else None
+
+    @staticmethod
+    def policy_by_name(db, profile):
+        profile = checked(profile, NAME, 'Perfil inválido.')
+        row = db.execute('SELECT rules FROM policy_profiles WHERE name=?', (profile,)).fetchone()
+        if not row:
+            raise ServiceError('Perfil não cadastrado.')
+        return json.loads(row['rules'])
+
+    @staticmethod
+    def enabled_device(db, name):
+        checked(name, NAME, 'Dispositivo inválido.')
+        row = db.execute('SELECT name,wave FROM devices WHERE name=? AND enabled=1', (name,)).fetchone()
+        if row is None:
+            raise ServiceError('Dispositivo não cadastrado ou desabilitado.')
+        return row
+
+    def simulate_policy(self, db, target, profile):
+        device = self.enabled_device(db, target)
+        rules = self.policy_by_name(db, profile)
+        current = self.policy_for(db, target)
+        exception = db.execute('SELECT expires,reason FROM policy_exceptions WHERE device=? AND expires>?',
+                               (target, now().isoformat())).fetchone()
+        return dict(device=target, wave=device['wave'], proposed=profile, current=current,
+                    exception=dict(exception) if exception else None, critical=critical_rules(rules),
+                    previous_rules=self.policy_by_name(db, current) if current else [],
+                    proposed_rules=rules, precedence=[
+                        'Exceção temporária ativa suspende a entrega da política.',
+                        'A atribuição explícita por dispositivo seleciona um perfil inteiro.',
+                        'Políticas obrigatórias são conferidas pelo sistema do dispositivo.',
+                    ])
+
+    def assign_policy(self, db, actor, target, profile):
+        db.execute("""INSERT INTO policy_assignments(device,profile) VALUES(?,?)
+                      ON CONFLICT(device) DO UPDATE SET profile=excluded.profile""", (target, profile))
+        db.execute('DELETE FROM policy_reviews WHERE device=?', (target,))
+        self.audit(db, actor, 'assign-policy', target + ' · ' + profile)
+
+    def change_policy(self, db, actor, payload):
+        action, target = payload['action'], payload.get('target')
+        self.enabled_device(db, target)
+        if action == 'assign-policy':
+            profile = payload.get('profile')
+            rules = self.policy_by_name(db, profile)
+            previous = self.policy_for(db, target)
+            affected = critical_rules(rules) or previous and critical_rules(self.policy_by_name(db, previous))
+            if affected:
+                expires = (now() + timedelta(hours=24)).isoformat()
+                db.execute("""INSERT INTO policy_reviews(device,requested_by,profile,previous,expires)
+                              VALUES(?,?,?,?,?) ON CONFLICT(device) DO UPDATE SET
+                              requested_by=excluded.requested_by,profile=excluded.profile,
+                              previous=excluded.previous,expires=excluded.expires""",
+                           (target, actor, profile, previous, expires))
+                self.audit(db, actor, 'request-policy-review', target + ' · ' + profile)
+                return {'ok': True, 'pending_review': True}
+            self.assign_policy(db, actor, target, profile)
+        elif action == 'approve-policy':
+            review = db.execute('SELECT * FROM policy_reviews WHERE device=? AND expires>?',
+                                (target, now().isoformat())).fetchone()
+            if not review or review['requested_by'] == actor or review['profile'] != payload.get('profile'):
+                raise ServiceError('A revisão expirou ou precisa de outro operador de aprovação.', '409 Conflict')
+            if self.policy_for(db, target) != review['previous']:
+                raise ServiceError('A política atual mudou. Solicite uma nova revisão.', '409 Conflict')
+            self.assign_policy(db, actor, target, review['profile'])
+            self.audit(db, actor, action, target + ' · ' + review['profile'])
+        elif action == 'clear-policy':
+            existing = self.policy_for(db, target)
+            if existing and critical_rules(self.policy_by_name(db, existing)):
+                raise ServiceError('Atribua uma política substituta para revisar a retirada das regras críticas.')
+            db.execute('DELETE FROM policy_assignments WHERE device=?', (target,))
+            db.execute('DELETE FROM policy_reviews WHERE device=?', (target,))
+            self.audit(db, actor, action, target)
+        elif action == 'pause-policy':
+            expires = window_time(payload.get('expires'))
+            instant = now()
+            reason = payload.get('reason')
+            if not instant < expires <= instant + timedelta(days=30):
+                raise ServiceError('Escolha um prazo futuro de até 30 dias.')
+            if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 160 or not reason.isprintable():
+                raise ServiceError('Informe um motivo de até 160 caracteres.')
+            if not self.policy_for(db, target):
+                raise ServiceError('Atribua um perfil ao dispositivo antes de suspender a entrega.')
+            db.execute("""INSERT INTO policy_exceptions(device,expires,reason) VALUES(?,?,?)
+                          ON CONFLICT(device) DO UPDATE SET expires=excluded.expires,reason=excluded.reason""",
+                       (target, expires.isoformat(), reason.strip()))
+            self.audit(db, actor, action, target + ' · ' + expires.isoformat() + ' · ' + reason.strip())
+        else:
+            db.execute('DELETE FROM policy_exceptions WHERE device=?', (target,))
+            self.audit(db, actor, action, target)
+        return {'ok': True}
+
+    def export_audit(self, db, actor, payload):
+        interval = normalized_window(payload)
+        start, end = interval['starts_at'], interval['ends_at']
+        rows = db.execute('SELECT * FROM audit WHERE checked>=? AND checked<? ORDER BY id LIMIT 10001',
+                          (start, end)).fetchall()
+        if len(rows) > 10000:
+            raise ServiceError('Reduza o intervalo para exportar até 10.000 eventos.')
+        self.audit(db, actor, 'export-audit', start + ' → ' + end)
+        return self.signer(json_bytes(dict(schema=1, kind='linuxbr-organization-audit',
+                                           organization=self.active(db)['organization'],
+                                           exported_at=now().isoformat(), interval=interval,
+                                           events=[dict(row) for row in rows])))
+
     def change(self, db, actor, payload):
         action, target = payload.get('action'), payload.get('target')
         if action in ('set-window', 'clear-window'):
             return self.change_window(db, actor, payload)
+        if action in ('assign-policy', 'approve-policy', 'clear-policy', 'pause-policy', 'resume-policy'):
+            return self.change_policy(db, actor, payload)
+        if action == 'schedule-retirement':
+            self.enabled_device(db, target)
+            db.execute('INSERT INTO device_retirements(device,requested) VALUES(?,?)',
+                       (target, now().isoformat()))
+            self.audit(db, actor, action, target)
+            return {'ok': True}
         active = self.active(db)
         if action == 'pilot':
             checked(target, NAME, 'Revisão inválida.')
@@ -334,33 +503,23 @@ class Service:
             if not db.execute('SELECT 1 FROM devices WHERE name=? AND enabled=1', (target,)).fetchone():
                 raise ServiceError('Dispositivo não cadastrado ou desabilitado.')
             instant = now()
+            identifier = secrets.token_hex(16)
             db.execute("""INSERT INTO diagnostics(id,device,created,expires,state)
                           VALUES(?,?,?,?,'pending')""",
-                       (secrets.token_hex(16), target, instant.isoformat(),
+                       (identifier, target, instant.isoformat(),
                         (instant + timedelta(hours=24)).isoformat()))
+            db.execute('INSERT INTO diagnostic_consent(id,operator) VALUES(?,?)', (identifier, actor))
         elif action == 'delete-diagnostic':
             checked(target, REQUEST_ID, 'Identificador de diagnóstico inválido.')
             if not db.execute('DELETE FROM diagnostics WHERE id=?', (target,)).rowcount:
                 raise ServiceError('Solicitação de diagnóstico não encontrada.')
         elif action in ('disable-device', 'enable-device'):
             checked(target, NAME, 'Dispositivo inválido.')
+            if db.execute('SELECT 1 FROM device_retirements WHERE device=?', (target,)).fetchone():
+                raise ServiceError('O dispositivo está em processo de retirada ou já foi retirado.')
             if not db.execute('UPDATE devices SET enabled=? WHERE name=?',
                               (action == 'enable-device', target)).rowcount:
                 raise ServiceError('Dispositivo não encontrado.')
-        elif action in ('assign-policy', 'clear-policy'):
-            checked(target, NAME, 'Dispositivo inválido.')
-            if not db.execute('SELECT 1 FROM devices WHERE name=? AND enabled=1', (target,)).fetchone():
-                raise ServiceError('Dispositivo não cadastrado ou desabilitado.')
-            if action == 'assign-policy':
-                profile = checked(payload.get('profile'), NAME, 'Perfil inválido.')
-                if not db.execute('SELECT 1 FROM policy_profiles WHERE name=?', (profile,)).fetchone():
-                    raise ServiceError('Perfil não cadastrado.')
-                db.execute("""INSERT INTO policy_assignments VALUES(?,?)
-                              ON CONFLICT(device) DO UPDATE SET profile=excluded.profile""",
-                           (target, profile))
-                self.audit(db, actor, action, target + ' · ' + profile)
-                return {'ok': True}
-            db.execute('DELETE FROM policy_assignments WHERE device=?', (target,))
         else:
             raise ServiceError('Ação de administração inválida.')
         self.audit(db, actor, action, target)
@@ -402,6 +561,25 @@ class Service:
 
     def client(self, db, device, method, path, payload):
         name = device['name']
+        retirement = db.execute('SELECT requested,completed FROM device_retirements WHERE device=?', (name,)).fetchone()
+        if path == '/v1/retirement' and method in ('GET', 'POST'):
+            if not retirement:
+                raise ServiceError('Peça à TI para iniciar a retirada deste dispositivo.', '409 Conflict')
+            if method == 'POST':
+                if payload != {'confirmed': True}:
+                    raise ServiceError('Confirme a remoção dos controles locais.')
+                if not retirement['completed']:
+                    db.execute('UPDATE device_retirements SET completed=? WHERE device=?',
+                               (now().isoformat(), name))
+                    db.execute('UPDATE devices SET enabled=0 WHERE name=?', (name,))
+                    for table in ('policy_assignments', 'policy_exceptions', 'policy_reviews'):
+                        db.execute(f'DELETE FROM {table} WHERE device=?', (name,))
+                    db.execute("UPDATE diagnostics SET state='expired' WHERE device=? AND state='pending'", (name,))
+                    self.audit(db, name, 'confirm-retirement', name)
+            state = 'retired' if method == 'POST' or retirement['completed'] else 'pending'
+            return {'state': state, 'device': name, 'organization': self.active(db)['organization']}
+        if retirement:
+            raise ServiceError('O dispositivo foi encaminhado para retirada.', '403 Forbidden')
         db.execute('UPDATE devices SET last_contact=? WHERE name=?', (now().isoformat(), name))
         if path == '/v1/manifest' and method == 'POST':
             return self.manifest(db, device, payload)
@@ -410,8 +588,19 @@ class Service:
             db.execute('UPDATE devices SET release=?,free_bytes=?,reboot_pending=? WHERE name=?',
                        (release, free_bytes, reboot, name))
             return {'ok': True}
+        if path == '/v1/health-checks' and method == 'POST':
+            revision = checked(payload.get('revision'), NAME, 'Revisão inválida.')
+            nonce = checked(payload.get('nonce'), HASH, 'Solicitação de saúde inválida.')
+            if not db.execute('SELECT 1 FROM results WHERE device=? AND revision=?', (name, revision)).fetchone():
+                raise ServiceError('Nenhuma autorização para consultar os testes desta revisão.', '409 Conflict')
+            return self.signer(json_bytes(dict(schema=1, kind='linuxbr-wave-health', device=name,
+                                               organization=self.active(db)['organization'], revision=revision,
+                                               nonce=nonce, checks=self.health_for(db, revision))))
         if path == '/v1/policy' and method == 'POST':
             nonce = checked(payload.get('nonce'), HASH, 'Solicitação de política inválida.')
+            if db.execute('SELECT 1 FROM policy_exceptions WHERE device=? AND expires>?',
+                          (name, now().isoformat())).fetchone():
+                raise ServiceError('A entrega da política foi suspensa temporariamente.', '409 Conflict')
             profile = db.execute("""SELECT p.name,p.rules FROM policy_profiles p
                                  JOIN policy_assignments a ON a.profile=p.name WHERE a.device=?""",
                                  (name,)).fetchone()
@@ -434,18 +623,39 @@ class Service:
             if not result or (result['state'] == 'restored' and state != 'restored') or (
                     result['state'] == 'failed' and state == 'completed'):
                 raise ServiceError('Nenhuma autorização válida para registrar este resultado.', '409 Conflict')
+            checks = self.health_for(db, revision)
+            if checks and state == 'completed':
+                expected = {f'{field}:{item}' for field, items in checks.items() for item in items}
+                observed = payload.get('checks', {})
+                if not isinstance(observed, dict) or observed.keys() != expected or any(
+                        value is not True for value in observed.values()):
+                    raise ServiceError('A conclusão exige todos os testes de saúde desta revisão.', '409 Conflict')
             if result['state'] != state:
                 db.execute('UPDATE results SET state=?,checked=? WHERE device=? AND revision=?',
                            (state, now().isoformat(), name, revision))
                 self.audit(db, name, state, revision)
             return {'ok': True}
         if path == '/v1/diagnostic' and method == 'GET':
-            row = db.execute("SELECT id,expires FROM diagnostics WHERE device=? AND state='pending'",
+            row = db.execute("""SELECT d.id,d.expires,c.operator FROM diagnostics d
+                              LEFT JOIN diagnostic_consent c ON c.id=d.id WHERE d.device=? AND d.state='pending'""",
                              (name,)).fetchone()
+            active = db.execute("""SELECT d.id,c.operator,c.access_until FROM diagnostics d
+                                 JOIN diagnostic_consent c ON c.id=d.id
+                                 WHERE d.device=? AND d.state='received' AND c.access_until>?
+                                 ORDER BY d.completed DESC LIMIT 10""", (name, now().isoformat())).fetchall()
             return {'request_id': row['id'] if row else None,
-                    'expires_at': row['expires'] if row else None}
+                    'expires_at': row['expires'] if row else None,
+                    'requested_by': row['operator'] if row else None,
+                    'active': [dict(entry) for entry in active]}
         if path == '/v1/diagnostic' and method == 'POST':
             identifier = checked(payload.get('request_id'), REQUEST_ID, 'Solicitação inválida.')
+            if payload == {'request_id': identifier, 'revoke': True}:
+                if not db.execute("""UPDATE diagnostics SET state='revoked',report=NULL
+                                     WHERE id=? AND device=? AND state='received'""",
+                                  (identifier, name)).rowcount:
+                    raise ServiceError('O acesso ao diagnóstico já foi encerrado.', '409 Conflict')
+                self.audit(db, name, 'diagnostic-revoked', identifier)
+                return {'ok': True}
             if payload.keys() == {'request_id', 'decline'} and payload['decline'] is True:
                 state, report = 'declined', None
             elif payload.keys() == {'request_id', 'report'}:
@@ -456,6 +666,9 @@ class Service:
                                  WHERE id=? AND device=? AND state='pending'""",
                               (state, report, now().isoformat(), identifier, name)).rowcount:
                 raise ServiceError('A solicitação não está pendente neste dispositivo.', '409 Conflict')
+            if state == 'received':
+                db.execute('UPDATE diagnostic_consent SET access_until=? WHERE id=?',
+                           ((now() + timedelta(minutes=30)).isoformat(), identifier))
             self.audit(db, name, state, identifier)
             return {'ok': True}
         raise ServiceError('Operação desconhecida.', '404 Not Found')
@@ -475,17 +688,22 @@ class Service:
                 'devices': [dict(row) for row in db.execute("""
                     SELECT d.name,d.wave,d.enabled,d.last_contact,d.release,d.free_bytes,
                            d.reboot_pending,r.state,r.checked,a.profile,
+                           e.expires AS policy_paused_until, p.profile AS policy_pending,
+                           t.requested AS retirement_requested, t.completed AS retirement_completed,
                            (SELECT revision FROM results WHERE device=d.name AND state='completed'
                             ORDER BY checked DESC LIMIT 1) AS confirmed_revision
                     FROM devices d LEFT JOIN results r ON r.device=d.name AND r.revision=?
                     LEFT JOIN policy_assignments a ON a.device=d.name
+                    LEFT JOIN policy_exceptions e ON e.device=d.name AND e.expires>?
+                    LEFT JOIN policy_reviews p ON p.device=d.name AND p.expires>?
+                    LEFT JOIN device_retirements t ON t.device=d.name
                     ORDER BY d.name
-                """, (active['revision'],))],
+                """, (active['revision'], now().isoformat(), now().isoformat()))],
                 'diagnostics': [dict(row) for row in db.execute("""SELECT id,device,created,expires,state,
                     completed FROM diagnostics ORDER BY created DESC LIMIT 200""")],
                 'audit': [dict(row) for row in db.execute('SELECT * FROM audit ORDER BY id DESC LIMIT 100')]}
 
-    def credential(self, db, header, admin):
+    def credential(self, db, header, admin, retirement=False):
         kind, _, value = header.partition(' ')
         user = None
         if admin and kind.lower() == 'basic' and len(value) <= 256:
@@ -502,6 +720,8 @@ class Service:
         if admin:
             row = db.execute('SELECT name,role FROM operators WHERE token_hash=?', (digest(value),)).fetchone()
             return row if row and (user is None or row['name'] == user) else None
+        if retirement:
+            return db.execute('SELECT name,wave FROM devices WHERE token_hash=?', (digest(value),)).fetchone()
         return db.execute('SELECT name,wave FROM devices WHERE token_hash=? AND enabled=1',
                           (digest(value),)).fetchone()
 
@@ -519,11 +739,11 @@ class Service:
 
     def dispatch(self, environ):
         path, method = environ['PATH_INFO'], environ['REQUEST_METHOD']
-        admin = path in ('/', '/panel.js', '/panel.css', '/v1/admin/status',
-                         '/v1/admin/action', '/v1/admin/report')
+        admin = path in ('/', '/panel.js', '/panel.css', '/v1/admin/status', '/v1/admin/policy-simulation',
+                         '/v1/admin/action', '/v1/admin/report', '/v1/admin/audit-export')
         with closing(self.connect()) as db, db:
             db.execute('BEGIN IMMEDIATE')
-            actor = self.credential(db, environ.get('HTTP_AUTHORIZATION', ''), admin)
+            actor = self.credential(db, environ.get('HTTP_AUTHORIZATION', ''), admin, path == '/v1/retirement')
             if not actor:
                 extra = [('WWW-Authenticate', 'Basic realm="Linux BR"')] if admin else []
                 return '401 Unauthorized', 'application/json', json_bytes({'error': 'Acesso recusado.'}), extra
@@ -536,6 +756,8 @@ class Service:
                 payload = {}
             # Older deployments get the additional table in the existing write transaction.
             db.execute(WINDOW_SCHEMA)
+            for schema in POLICY_SCHEMAS:
+                db.execute(schema)
             self.prune(db)
             if admin:
                 assets = {'/': ('panel.html', 'text/html; charset=utf-8'),
@@ -547,6 +769,14 @@ class Service:
                 if method == 'GET' and path == '/v1/admin/status':
                     result = self.dashboard(db)
                     result['operator_role'] = actor['role']
+                elif method == 'POST' and path == '/v1/admin/policy-simulation':
+                    if actor['role'] not in ('admin', 'audit'):
+                        raise ServiceError('O papel deste operador não permite simular a política.', '403 Forbidden')
+                    result = self.simulate_policy(db, payload.get('device'), payload.get('profile'))
+                elif method == 'POST' and path == '/v1/admin/audit-export':
+                    if actor['role'] not in ('admin', 'audit'):
+                        raise ServiceError('O papel deste operador não permite exportar auditoria.', '403 Forbidden')
+                    result = self.export_audit(db, actor['name'], payload)
                 elif method == 'POST' and path == '/v1/admin/action':
                     action = payload.get('action')
                     if not isinstance(action, str):
@@ -557,15 +787,20 @@ class Service:
                         'support': {'diagnostic', 'delete-diagnostic'},
                         'audit': set(),
                     }
-                    if actor['role'] != 'admin' and action not in allowed.get(actor['role'], set()):
+                    if action == 'approve-policy' and actor['role'] != 'audit':
+                        raise ServiceError('A aprovação de políticas críticas exige o papel de auditoria.', '403 Forbidden')
+                    if actor['role'] != 'admin' and action != 'approve-policy' and action not in allowed.get(actor['role'], set()):
                         raise ServiceError('O papel deste operador não permite a ação.', '403 Forbidden')
                     result = self.change(db, actor['name'], payload)
                 elif method == 'POST' and path == '/v1/admin/report':
                     if actor['role'] not in ('admin', 'support'):
                         raise ServiceError('O papel deste operador não permite consultar relatórios.', '403 Forbidden')
                     identifier = checked(payload.get('request_id'), REQUEST_ID, 'Solicitação inválida.')
-                    report = db.execute('SELECT report FROM diagnostics WHERE id=? AND state=?',
-                                        (identifier, 'received')).fetchone()
+                    report = db.execute("""SELECT d.report FROM diagnostics d
+                                           LEFT JOIN diagnostic_consent c ON c.id=d.id
+                                           WHERE d.id=? AND d.state='received'
+                                           AND (c.id IS NULL OR (c.operator=? AND c.access_until>?))""",
+                                        (identifier, actor['name'], now().isoformat())).fetchone()
                     if not report:
                         raise ServiceError('Relatório não encontrado.', '404 Not Found')
                     self.audit(db, actor['name'], 'diagnóstico consultado', identifier)
@@ -644,6 +879,9 @@ def main(argv=None):
     policy = commands.add_parser('stage-policy')
     policy.add_argument('name')
     policy.add_argument('file', type=Path)
+    health = commands.add_parser('stage-health')
+    health.add_argument('revision')
+    health.add_argument('file', type=Path)
     commands.add_parser('purge')
     args = parser.parse_args(argv)
     service = Service(args.database)
@@ -654,12 +892,15 @@ def main(argv=None):
             print(service.register(args.name, getattr(args, 'wave', None), getattr(args, 'role', 'admin')))
         elif args.command == 'stage':
             service.stage(args.revision, args.archives)
-        elif args.command == 'stage-policy':
+        elif args.command in ('stage-policy', 'stage-health'):
             with args.file.open('rb') as stream:
                 raw = stream.read(MAX_BODY + 1)
             if len(raw) > MAX_BODY:
                 raise ServiceError('Perfil de política grande demais.')
-            service.stage_policy(args.name, json.loads(raw))
+            if args.command == 'stage-policy':
+                service.stage_policy(args.name, json.loads(raw))
+            else:
+                service.stage_health(args.revision, json.loads(raw))
         else:
             with closing(service.connect()) as db, db:
                 service.prune(db)

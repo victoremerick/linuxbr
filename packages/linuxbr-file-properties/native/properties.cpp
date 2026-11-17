@@ -798,6 +798,15 @@ private:
         network->addWidget(zones);
         auto *firewall = action(QStringLiteral("Permitir SMB nesta rede…"), QStringLiteral("security-medium"), network);
         firewall->setEnabled(false);
+        auto *temporary = new QPushButton(QIcon::fromTheme(QStringLiteral("folder-publicshare")),
+                                          QStringLiteral("Acessos temporários…"), content);
+        box->addWidget(temporary, 0, Qt::AlignLeft);
+        connect(temporary, &QPushButton::clicked, this, [this]() {
+            if (!QProcess::startDetached(QStringLiteral("/usr/bin/linuxbr-share-grants"), {m_path})) {
+                QMessageBox::warning(properties, QStringLiteral("Acessos temporários"),
+                                     QStringLiteral("Não foi possível abrir o gerenciador de concessões."));
+            }
+        });
         box->addWidget(note(QStringLiteral("Ativar o serviço ou liberar o firewall afeta o compartilhamento deste computador. Cada ação pede sua confirmação e, quando necessário, autorização do sistema. As permissões da pasta continuam sendo definidas no editor acima.")));
         service->setEnabled(!QStandardPaths::findExecutable(QStringLiteral("systemctl")).isEmpty());
         connect(refresh, &QPushButton::clicked, this, [this, refresh, text, copy, open, address, zones, firewall]() {

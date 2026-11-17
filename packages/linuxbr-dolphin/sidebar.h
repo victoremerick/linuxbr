@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QPersistentModelIndex>
 #include <QPointer>
+#include <QProcess>
 #include <QTimer>
 #include <QTreeWidget>
 #include <QHeaderView>
@@ -209,6 +210,7 @@ public:
         setMinimumWidth(260); setIndentation(16); setUniformRowHeights(true); header()->setStretchLastSection(true);
         quick=add(nullptr,QStringLiteral("Acesso rápido"),"bookmarks",{},"group");
         recent=add(nullptr,QStringLiteral("Mais acessados"),"document-open-recent",{},"group");
+        add(nullptr, QStringLiteral("Etiquetas de projeto"), QStringLiteral("tag"), {}, QStringLiteral("project-tags"));
         computer=add(nullptr,QStringLiteral("Este computador"),"computer",QUrl("linuxbr:/"),"group");
         for (const auto &name : {QStringLiteral("Discos locais"),QStringLiteral("Dispositivos removíveis"),QStringLiteral("Unidades de rede")}) {
             auto *group=add(computer,name,"drive-harddisk",{},"group"); group->setExpanded(true); drives.append(group);
@@ -221,10 +223,18 @@ public:
         for (auto *group : {quick,recent,computer}) group->setExpanded(true);
         connect(this,&QTreeWidget::itemExpanded,this,[this](QTreeWidgetItem *item){load(item);});
         auto activate=[this](QTreeWidgetItem *item,int) {
+            if (item->data(0, KindRole).toString() == QLatin1String("project-tags")) {
+                QProcess::startDetached(QStringLiteral("/usr/bin/linuxbr-file-tools"), {QStringLiteral("--project-tags")});
+                return;
+            }
             const QUrl url=item->data(0,UrlRole).toUrl();
             if (!url.isEmpty()) navigate(url,QApplication::keyboardModifiers().testFlag(Qt::ControlModifier));
         };
-        connect(this,&QTreeWidget::itemClicked,this,activate);
+        connect(this,&QTreeWidget::itemClicked,this,[activate](QTreeWidgetItem *item, int column) {
+            if (item->data(0, KindRole).toString() != QLatin1String("project-tags")) {
+                activate(item, column);
+            }
+        });
         connect(this,&QTreeWidget::itemActivated,this,activate);
         connect(this,&QTreeWidget::customContextMenuRequested,this,&LinuxBRSidebar::contextMenu);
         state.seed(); settingsChanged(); refreshDrives();

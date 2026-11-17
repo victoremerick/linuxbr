@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/python3 /usr/lib/linuxbr-file-properties/share_grants_page.py "$@"

@@ -6,9 +6,11 @@ from pathlib import Path
 import subprocess
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QLabel,QSpinBox,QCheckBox,QPushButton,QComboBox,QPlainTextEdit,QMessageBox
+from PyQt6.QtWidgets import (QApplication,QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QLabel,QSpinBox,QCheckBox,
+    QPushButton,QComboBox,QGroupBox,QLineEdit,QPlainTextEdit,QMessageBox,QTreeWidget,QTreeWidgetItem)
 from desktop_jobs import Query,Command
 import app_permissions
+from temporary_clipboard import DURATIONS,TemporaryClipboard
 
 
 class Clipboard(QWidget):
@@ -17,12 +19,49 @@ class Clipboard(QWidget):
         note=QLabel('Gerencie o histórico local de itens copiados. Dados sensíveis copiados por aplicativos podem aparecer no histórico; a limpeza abaixo não altera seus documentos.');note.setWordWrap(True);layout.addWidget(note)
         form=QFormLayout();layout.addLayout(form);self.size=QSpinBox();self.size.setRange(1,2048);form.addRow('Máximo de itens:',self.size)
         self.options={}
-        for key,label,default in [('KeepClipboardContents','Lembrar histórico entre sessões',True),('NoEmptyClipboard','Manter conteúdo quando o aplicativo de origem fechar',True),('SyncClipboards','Copiar também o texto selecionado com o mouse',False),('IgnoreSelection','Ignorar seleções não copiadas explicitamente',True),('IgnoreImages','Não armazenar imagens no histórico',True)]:
+        for key,label,default in [('KeepClipboardContents','Lembrar histórico entre sessões',True),('NoEmptyClipboard','Manter conteúdo quando o aplicativo de origem fechar',True),('SyncClipboards','Copiar também o texto selecionado com o mouse',False),('IgnoreSelection','Ignorar seleções não copiadas explicitamente',True),('IgnoreImages','Não armazenar imagens no histórico',True),('SelectionTextOnly','Guardar somente texto quando a seleção com o mouse estiver habilitada',True)]:
             check=QCheckBox(label);self.options[key]=(check,default);form.addRow(check)
         row=QHBoxLayout()
         for label,icon,callback in [('Aplicar','dialog-ok-apply',self.apply),('Recarregar','view-refresh',self.load),('Abrir histórico','edit-paste',lambda:self.call('showKlipperPopupMenu')),('Limpar histórico…','edit-clear-history',self.clear)]:
             button=QPushButton(QIcon.fromTheme(icon),label);button.clicked.connect(callback);row.addWidget(button)
-        layout.addLayout(row);self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status);layout.addStretch();self.load()
+        layout.addLayout(row);self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status)
+        temporary = QGroupBox('Cópia temporária')
+        private = QFormLayout(temporary)
+        tip = QLabel('Digite um texto para colar uma vez ou várias até o prazo selecionado. O Klipper exclui cópias temporárias marcadas do histórico.')
+        tip.setWordWrap(True)
+        private.addRow(tip)
+        self.private_text = QLineEdit()
+        self.private_text.setEchoMode(QLineEdit.EchoMode.Password)
+        self.private_text.setMaxLength(4096)
+        self.private_time = QComboBox()
+        for seconds in DURATIONS:
+            self.private_time.addItem(f'{seconds} segundos',seconds)
+        self.private_time.setCurrentIndex(1)
+        private.addRow('&Texto',self.private_text)
+        private.addRow('&Prazo',self.private_time)
+        self.temporary = TemporaryClipboard(QApplication.clipboard(),self)
+        copy = QPushButton(QIcon.fromTheme('edit-copy'),'Copiar temporariamente')
+        copy.clicked.connect(self.copy_private)
+        self.private_text.returnPressed.connect(self.copy_private)
+        private.addRow(copy)
+        self.private_status = QLabel('')
+        self.private_status.setTextFormat(Qt.TextFormat.PlainText)
+        self.private_status.setWordWrap(True)
+        private.addRow(self.private_status)
+        self.temporary.status.connect(self.private_status.setText)
+        layout.addWidget(temporary);layout.addStretch();self.load()
+
+    def copy_private(self):
+        try:
+            self.temporary.copy(self.private_text.text(),self.private_time.currentData())
+            self.private_text.clear()
+        except ValueError as error:
+            self.private_status.setText(str(error))
+
+    def shutdown(self):
+        self.private_text.clear()
+        self.temporary.expire()
+        return True
 
     def load(self):
         parser=configparser.ConfigParser(interpolation=None,strict=False);parser.optionxform=str
@@ -55,14 +94,28 @@ class Permissions(QWidget):
     def __init__(self,parent=None):
         super().__init__(parent);self.jobs=set();self.commands=[];layout=QVBoxLayout(self);title=QLabel('Permissões de aplicativos');title.setStyleSheet('font-size:26px;font-weight:600');layout.addWidget(title)
         note=QLabel('Estas opções alteram permissões Flatpak para sua conta, incluindo aplicativos instalados no sistema. Programas nativos sem isolamento e permissões dos sites têm controles diferentes. Restrições de pastas não anulam outras concessões mais amplas; confira o relatório efetivo abaixo.');note.setWordWrap(True);layout.addWidget(note)
+        self.pending_app=None
         self.apps=QComboBox();self.apps.setAccessibleName('Aplicativo Flatpak');layout.addWidget(self.apps);form=QFormLayout();layout.addLayout(form);self.options={}
         for key,label in [('camera','Câmera pelo portal'),('audio','Som e microfone pelo acesso PulseAudio'),('network','Acesso direto à rede'),('home','Concessão à pasta pessoal'),('documents','Concessão a Documentos'),('downloads','Concessão a Downloads'),('devices','Concessão ampla a dispositivos')]:
             combo=QComboBox();combo.addItem('Manter configuração atual',None);combo.addItem('Permitir',True);combo.addItem('Revogar esta concessão',False);form.addRow(label+':',combo);self.options[key]=combo
         self.details=QPlainTextEdit();self.details.setReadOnly(True);self.details.setAccessibleName('Permissões efetivas informadas pelo Flatpak');layout.addWidget(self.details,1)
+        decisions = QLabel('Decisões guardadas pelos portais')
+        layout.addWidget(decisions)
+        self.portal_decisions = QTreeWidget()
+        self.portal_decisions.setHeaderLabels(['Recurso', 'Decisão da sessão'])
+        self.portal_decisions.setAccessibleName(decisions.text())
+        self.portal_decisions.setRootIsDecorated(False)
+        self.portal_decisions.setMaximumHeight(112)
+        layout.addWidget(self.portal_decisions)
         row=QHBoxLayout()
         for label,icon,callback in [('Aplicar alterações','dialog-ok-apply',self.apply),('Recarregar aplicativos','view-refresh',self.refresh),('Restaurar ajustes Flatpak…','edit-undo',self.reset),('Esquecer decisões dos portais…','edit-clear-history',self.reset_portals)]:
             button=QPushButton(QIcon.fromTheme(icon),label);button.clicked.connect(callback);row.addWidget(button)
         layout.addLayout(row);self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status);self.apps.currentIndexChanged.connect(self.load_details);self.refresh()
+        capture = QPushButton(QIcon.fromTheme('video-display'), 'Testar compartilhamento de tela inteira…')
+        capture.setToolTip('Abre a seleção de monitor durante um teste que encerra o compartilhamento automaticamente.')
+        capture.clicked.connect(lambda: self.command('Diagnóstico de compartilhamento',
+            ['/usr/bin/python3', str(Path(__file__).with_name('screen_share_check.py'))]))
+        layout.addWidget(capture)
 
     def query(self,callback,done):
         task=Query(callback,self);self.jobs.add(task);task.result.connect(done);task.failed.connect(self.status.setText);task.finished.connect(lambda:self.jobs.discard(task));task.finished.connect(task.deleteLater);task.start()
@@ -72,13 +125,44 @@ class Permissions(QWidget):
             self.apps.clear()
             for row in rows:self.apps.addItem(row['name']+' · '+row['id']+' · '+('sua conta' if row['scope']=='user' else 'sistema'),row)
             self.status.setText(str(len(rows))+' instalações Flatpak encontradas.' if rows else 'Nenhum aplicativo Flatpak instalado. Aplicativos nativos comuns não oferecem estes mesmos controles de isolamento.')
+            if self.pending_app:
+                self.select_app(self.pending_app)
         self.query(app_permissions.applications,loaded)
+
+    def select_app(self,identifier):
+        for index in range(self.apps.count()):
+            if self.apps.itemData(index)['id']==identifier:
+                self.pending_app=None
+                self.apps.setCurrentIndex(index)
+                return
+        self.pending_app=identifier
+        if self.apps.count():
+            self.apps.setCurrentIndex(-1)
+            self.status.setText('O Flatpak selecionado ainda não consta na lista de instalações desta conta.')
 
     def load_details(self):
         item=self.apps.currentData()
         for combo in self.options.values():combo.setCurrentIndex(0)
-        if item:self.query(lambda:app_permissions.details(item['id'],item['scope']),self.details.setPlainText)
-        else:self.details.clear()
+        self.portal_decisions.clear()
+        self.details.clear()
+        if not item:
+            return
+
+        def loaded(result):
+            if self.apps.currentData() != item:
+                return
+            effective, decisions = result
+            self.details.setPlainText(effective)
+            if decisions is None:
+                decisions = [('Consulta ao portal', 'Indisponível')]
+            elif not decisions:
+                decisions = [('Decisões registradas', 'Nenhuma encontrada')]
+            for resource, decision in decisions:
+                self.portal_decisions.addTopLevelItem(QTreeWidgetItem([resource, decision]))
+            self.portal_decisions.resizeColumnToContents(0)
+
+        self.query(lambda: (app_permissions.details(item['id'], item['scope']),
+                            app_permissions.portal_decisions(item['id'])), loaded)
 
     def command(self,title,argv,request=None):
         dialog=Command(title,argv,self,json.dumps(request).encode() if request else None);self.commands.append(dialog);dialog.completed.connect(lambda _:self.load_details())

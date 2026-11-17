@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wiki do Linux BR</title>
+  <link rel="stylesheet" href="wiki.css">
+  <script src="wiki.js" defer></script>
+</head>
+<body id="inicio">
+  <a class="skip" href="#conteudo">Ir para os guias</a>
+  <header>
+    <div class="wrap">
+      <h1>Wiki do Linux BR</h1>
+      <p>Guias de uso do sistema disponíveis offline.</p>
+      <p class="wiki-version"><a href="versoes.html">Linux BR Desktop 1.1.1 · Mudanças nos guias</a></p>
+      <div id="busca" hidden>
+        <label for="termo">Pesquisar nos guias</label>
+        <input id="termo" type="search" placeholder="Ex.: arquivos ocultos, Wine, Wi-Fi" autocomplete="off">
+        <p id="resultado" role="status"></p>
+      </div>
+    </div>
+  </header>
+  <div class="wrap layout">
+    <nav aria-label="Assuntos">
+      <a href="#primeiros-passos">Primeiros passos</a>
+      <a href="#arquivos">Arquivos e pastas</a>
+      <a href="#aplicativos">Aplicativos e jogos</a>
+      <a href="#configuracoes">Configurações</a>
+      <a href="#rede">Rede e outros computadores</a>
+      <a href="#manutencao">Manutenção e recuperação</a>
+      <a href="#virtualizacao">Máquinas virtuais</a>
+      <a href="https://linuxbr.homedeveloper.com.br/">Site do Linux BR</a>
+    </nav>
+    <main id="conteudo" tabindex="-1">
+      <p id="sem-resultados" hidden>Nenhum guia encontrado. Tente buscar pelo nome do recurso ou por uma tarefa.</p>
+      <section id="primeiros-passos">
+        <h2>Primeiros passos</h2>
+        <article id="menu-iniciar" data-keywords="barra de tarefas fixar atalhos">
+          <h3><a href="guias/menu-iniciar.html">Encontrar programas e configurações</a></h3>
+        </article>
+        <article id="janelas" data-keywords="maximizar minimizar encaixar alt tab">
+          <h3><a href="guias/janelas.html">Organizar janelas</a></h3>
+        </article>
+        <article id="sessao" data-keywords="ctrl alt del usuário logout reiniciar desligar">
+          <h3><a href="guias/sessao.html">Bloquear a tela e gerenciar a sessão</a></h3>
+        </article>
+        <article id="terminal" data-keywords="konsole prompt dos powershell cmd bat">
+          <h3><a href="guias/terminal.html">Usar o Terminal</a></h3>
+        </article>
+      </section>
+      <section id="arquivos">
+        <h2>Arquivos e pastas</h2>
+        <article id="copiar-arquivos" data-keywords="recortar colar excluir renomear lixeira dolphin">
+          <h3><a href="guias/copiar-arquivos.html">Copiar, mover e renomear arquivos</a></h3>
+        </article>
+        <article id="pesquisa-arquivos" data-keywords="encontrar busca nome conteúdo busca textual endereço">
+          <h3><a href="guias/pesquisa-arquivos.html">Pesquisar arquivos por nome ou conteúdo</a></h3>
+        </article>
+        <article id="opcoes-de-pasta" data-keywords="opções de pasta modo de exibição arquivos ocultos arquivos de sistema protegidos extensão detalhes ctrl h">
+          <h3><a href="guias/opcoes-de-pasta.html">Configurar a exibição das pastas</a></h3>
+        </article>
+        <article id="propriedades" data-keywords="permissões segurança validação checksum hash compatibilidade compartilhamento">
+          <h3><a href="guias/propriedades.html">Consultar propriedades de um arquivo ou pasta</a></h3>
+        </article>
+      </section>
+      <section id="aplicativos">
+        <h2>Aplicativos e jogos</h2>
+        <article id="loja" data-keywords="instalar remover atualizar apt deb flatpak snap homebrew fontes catálogo">
+          <h3><a href="guias/loja.html">Instalar, atualizar e remover pela Loja</a></h3>
+        </article>
+        <article id="fontes-loja" data-keywords="snap store homebrew core brew snapd flatpak apt repositório">
+          <h3><a href="guias/fontes-loja.html">Habilitar fontes adicionais na Loja</a></h3>
+        </article>
+        <article id="migrar-aplicativos" data-keywords="exportar importar reinstalar lista migração formatos testados">
+          <h3><a href="guias/migrar-aplicativos.html">Levar a lista de aplicativos para outro computador</a></h3>
+        </article>
+        <article id="webapps" data-keywords="pwa chromium whatsapp contas perfis favicon site">
+          <h3><a href="guias/webapps.html">Instalar um aplicativo web e separar contas</a></h3>
+        </article>
+        <article id="windows" data-keywords="wine bottles steam proton exe msi office">
+          <h3><a href="guias/windows.html">Executar programas e jogos Windows</a></h3>
+        </article>
+      </section>
+      <section id="configuracoes">
+        <h2>Configurações</h2>
+        <article id="tela-som" data-keywords="resolução monitor áudio microfone volume som webcam acessibilidade">
+          <h3><a href="guias/tela-som.html">Ajustar tela, som e acessibilidade</a></h3>
+        </article>
+        <article id="tarefas-programas" data-keywords="processos cpu memória travou barra de tarefas">
+          <h3><a href="guias/tarefas-programas.html">Ver consumo e fechar um programa travado</a></h3>
+        </article>
+        <article id="inicializacao" data-keywords="msconfig login autostart recursos opcionais">
+          <h3><a href="guias/inicializacao.html">Gerenciar programas de inicialização e recursos opcionais</a></h3>
+        </article>
+        <article id="servicos" data-keywords="systemd daemon log habilitar desabilitar">
+          <h3><a href="guias/servicos.html">Criar e administrar serviços</a></h3>
+        </article>
+        <article id="agendador" data-keywords="cron timer agendar tarefa recorrente">
+          <h3><a href="guias/agendador.html">Agendar tarefas</a></h3>
+        </article>
+        <article id="ambiente" data-keywords="variáveis de ambiente path">
+          <h3><a href="guias/ambiente.html">Editar variáveis de ambiente</a></h3>
+        </article>
+        <article id="credenciais" data-keywords="kwallet cofre senhas credenciais">
+          <h3><a href="guias/credenciais.html">Desbloquear senhas salvas</a></h3>
+        </article>
+      </section>
+      <section id="rede">
+        <h2>Rede e outros computadores</h2>
+        <article id="conexoes" data-keywords="wifi wi-fi vpn ethernet adaptador ip dns gateway mac">
+          <h3><a href="guias/conexoes.html">Conectar-se à rede e consultar IP e DNS</a></h3>
+        </article>
+        <article id="compartilhar" data-keywords="rede smb samba pasta unidade mapear compartilhamento impressão impressora digitalização">
+          <h3><a href="guias/compartilhar.html">Acessar pastas e periféricos compartilhados</a></h3>
+        </article>
+        <article id="parear" data-keywords="kde connect kdeconnect pareamento enviar arquivo link texto sincronização">
+          <h3><a href="guias/parear.html">Parear computadores e enviar arquivos</a></h3>
+        </article>
+        <article id="tela-remota" data-keywords="segunda tela assistência compartilhar espelhar rdp">
+          <h3><a href="guias/tela-remota.html">Usar outro computador como tela</a></h3>
+        </article>
+      </section>
+      <section id="manutencao">
+        <h2>Manutenção e recuperação</h2>
+        <article id="atualizacoes" data-keywords="apt atualização ondas piloto política corporativa">
+          <h3><a href="guias/atualizacoes.html">Instalar atualizações do sistema</a></h3>
+        </article>
+        <article id="backup" data-keywords="timeshift ponto de restauração live shift reiniciar grub modo de segurança">
+          <h3><a href="guias/backup.html">Fazer backup e recuperar o sistema</a></h3>
+        </article>
+        <article id="diagnostico" data-keywords="relatório logs suporte triagem problemas">
+          <h3><a href="guias/diagnostico.html">Preparar um relatório para o suporte</a></h3>
+        </article>
+        <article id="migracao" data-keywords="windows documentos favoritos migrar computador">
+          <h3><a href="guias/migracao.html">Trazer arquivos e preferências do Windows</a></h3>
+        </article>
+        <article id="preparo" data-keywords="trabalho escola políticas grupo organização domínio">
+          <h3><a href="guias/preparo.html">Preparar um computador para trabalho ou escola</a></h3>
+        </article>
+      </section>
+      <section id="virtualizacao">
+        <h2>Máquinas virtuais</h2>
+        <article id="criar-vm" data-keywords="hyper-v qemu kvm libvirt criar vm iso memória disco">
+          <h3><a href="guias/criar-vm.html">Criar uma máquina virtual</a></h3>
+        </article>
+        <article id="editar-vm" data-keywords="adaptador ponte nat rede checkpoint snapshot exportar importar">
+          <h3><a href="guias/editar-vm.html">Alterar uma VM existente</a></h3>
+        </article>
+        <article id="vm-server" data-keywords="configuração do servidor vm server linuxbr-console hyper-v server">
+          <h3><a href="guias/vm-server.html">Configurar o Linux BR VM Server</a></h3>
+        </article>
+        <article id="administracao-remota" data-keywords="host remoto delegação replicação hyper-v">
+          <h3><a href="guias/administracao-remota.html">Administrar um host de VMs de outro computador</a></h3>
+        </article>
+      </section>
+      <a class="top" href="#inicio">Voltar ao início</a>
+    </main>
+  </div>
+</body>
+</html>

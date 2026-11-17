@@ -453,6 +453,10 @@ def main():
     options.add_argument('--map-network', action='store_true')
     options.add_argument('--in-use', metavar='ITEM')
     options.add_argument('--rename-batch', metavar='ITEM', nargs='+')
+    options.add_argument('--workflows', metavar='ITEM', nargs='+')
+    options.add_argument('--project-tags', metavar='ITEM', nargs='*')
+    options.add_argument('--saved-searches', metavar='PASTA')
+    options.add_argument('--compare-folders', metavar='PASTA', nargs='+')
     args = parser.parse_args()
     app = QApplication(sys.argv)
     app.setApplicationName('Arquivos e atalhos')
@@ -480,6 +484,18 @@ def main():
         if args.rename_batch:
             from batch_rename import BatchRename
             BatchRename(args.rename_batch).exec()
+            return 0
+        if args.workflows or args.project_tags is not None or args.saved_searches is not None or args.compare_folders:
+            from file_workflows import Comparison, Searches, Tags, Workflows, local_selection
+            if args.workflows:
+                dialog = Workflows(args.workflows[0], args.workflows[1:])
+            elif args.project_tags is not None:
+                dialog = Tags(local_selection(args.project_tags))
+            elif args.saved_searches is not None:
+                dialog = Searches(args.saved_searches)
+            else:
+                dialog = Comparison(args.compare_folders)
+            dialog.exec()
             return 0
         window = Window()
         window.show()

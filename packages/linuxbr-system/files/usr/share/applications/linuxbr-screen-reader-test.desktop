@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Teste do leitor de tela
+Comment=Experimente a navegação por teclado e confira os nomes acessíveis dos controles
+Exec=/usr/bin/linuxbr-screen-reader-test
+Icon=preferences-desktop-accessibility
+Terminal=false
+Categories=Settings;Accessibility;
+Keywords=Orca;foco;teclado;atalhos;acessibilidade;

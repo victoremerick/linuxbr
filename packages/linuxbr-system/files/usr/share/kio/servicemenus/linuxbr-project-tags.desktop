@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+MimeType=application/octet-stream;inode/directory;
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+Actions=linuxbr-project-tags;
+Icon=tag
+
+[Desktop Action linuxbr-project-tags]
+Name=Etiquetas de projeto…
+Icon=tag
+Exec=/usr/bin/linuxbr-file-tools --project-tags %U

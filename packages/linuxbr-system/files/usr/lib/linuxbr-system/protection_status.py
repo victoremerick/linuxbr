@@ -187,8 +187,11 @@ def preflight(root=Path('/')):
 
 def protection_report():
     volumes = mounted_volumes()
+    from snapshot_service import STATE, read_json
+    from post_update import REPORT
     return {'backups': backup_plans(volumes=volumes), 'snapshots': snapshot_status(volumes),
-            'preflight': preflight(), 'indexes': index_validity()}
+            'preflight': preflight(), 'indexes': index_validity(),
+            'boot_check': read_json(STATE / REPORT)}
 
 
 def repository_addresses(directory=Path('/etc/apt/sources.list.d')):

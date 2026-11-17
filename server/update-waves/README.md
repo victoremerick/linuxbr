@@ -65,13 +65,17 @@ Para restringir novas autorizações a um horário, selecione a revisão no pain
 
 A janela permite autorizações a partir do início e as bloqueia a partir do fim. Dentro do intervalo, a validade do manifesto assinado termina em até dois minutos ou no fim da janela, o que chegar primeiro. Pausar ou reagendar afeta as próximas solicitações. Uma autorização já emitida mantém a validade registrada. O usuário inicia a atualização e decide quando reiniciar pelos controles locais. O registro do resultado continua disponível depois do horário.
 
+No cadastro do cliente, `"defer_active_sessions": true` adia o lote enquanto houver uma sessão interativa ativa e em uso. O gancho registra o motivo em `journalctl -t linuxbr-update-waves`. Tente novamente na janela definida para o dispositivo.
+
+Antes de liberar para o piloto, use `stage-health REVISAO testes.json` para exigir serviços ativos e pacotes presentes após o reinício. Por exemplo, `{"services":["display-manager.service"],"packages":["linuxbr-release"]}`. O cliente valida a assinatura da lista, executa as verificações e envia o resultado. A promoção exige sucesso em todas as verificações cadastradas.
+
 Use o cache do repositório APT ou copie um DEB de laboratório para um diretório administrativo antes de testar. O gancho aceita apenas arquivos regulares, protegidos e pertencentes ao root, em um caminho protegido contra substituição por outras contas. Essa proteção vale desde a conferência do lote até a abertura pelo dpkg.
 
 Para atualizar apenas o inventário, use `sudo python3 /usr/lib/linuxbr-system/update_waves.py heartbeat`. O inventário inclui a versão do Linux BR, o espaço livre do sistema, a indicação de reinício e o último contato registrado pelo servidor.
 
 ## Diagnóstico
 
-O painel pode solicitar diagnóstico de um dispositivo cadastrado. A solicitação expira após 24 horas. A máquina consulta a solicitação e o envio exige revisão local e consentimento. O servidor aceita somente campos estruturados, permite descartar os dados e registra a consulta administrativa no histórico. Uma solicitação para uma máquina não pode ser respondida por outra.
+O painel pode solicitar diagnóstico de um dispositivo cadastrado. A solicitação expira após 24 horas. A tela local mostra o operador solicitante e as categorias que podem ser compartilhadas. Após o consentimento, o solicitante tem 30 minutos para ler o relatório no painel. Use **Diagnóstico da organização** para encerrar antes do prazo. O histórico registra consulta e encerramento.
 
 ## Perfis de preparação
 
@@ -91,6 +95,16 @@ Com `required: true`, `store-snap` e `store-brew` controlam as permissões das d
 Nas configurações de preparação, um administrador local revisa os valores e autoriza a aplicação pelo Polkit. Na aplicação, o cliente busca de novo o perfil assinado e confirma a revisão e a impressão digital apresentadas. A mudança das duas permissões usa um único arquivo protegido do sistema. O histórico local registra as aplicações e reversões. Uma revisão que deixa de gerenciar uma fonte devolve a configuração anterior daquela fonte. A opção de restaurar desfaz as permissões gerenciadas; se um valor gerenciado tiver sido alterado manualmente, o cliente aponta o conflito e preserva os valores atuais.
 
 Regras futuras podem ser distribuídas como valores declarativos limitados em tamanho. Uma regra obrigatória sem suporte impede a aplicação dos controles da máquina e mantém o preparo pendente. Uma nova revisão recebe outro identificador. Retirar uma atribuição interrompe sua distribuição; para desfazer controles já aplicados, restaure-os localmente ou atribua uma nova revisão que deixe de gerenciá-los.
+
+Use **Simular política** para comparar o perfil atual com o perfil selecionado para o dispositivo. Uma atribuição que altere regras críticas de login ou acesso remoto exige solicitação com papel `admin` e aprovação com papel `audit`. O piloto ainda depende do suporte a cada regra no cliente.
+
+**Suspender política** adia a entrega de um perfil ao dispositivo pelo prazo indicado. Os controles que já estão presentes podem ser restaurados localmente com autorização administrativa. A entrega volta na expiração ou quando a TI retoma a política no painel.
+
+Em **Preparar para trabalho ou escola**, **Conferir divergências** mostra os valores observados e os valores esperados dos controles da Loja. Um administrador local pode autorizar a correção depois de revisar os dois valores. Use **Exportar inventário de aplicativos** nessa mesma tela para obter formato, origem, versão disponível e executor para a conta e o sistema.
+
+Para encerrar o cadastro, a TI usa **Encaminhar retirada** e um administrador local confirma em **Retirar da organização**. O cliente restaura os controles registrados, recebe o comprovante do servidor e apaga a credencial local das ondas. O painel registra a confirmação. Vínculos de autenticação com diretórios externos usam os controles próprios da conta.
+
+O histórico do painel exporta por intervalo em arquivo OpenPGP. Confira a assinatura antes de abrir os dados com `gpgv --keyring /caminho/chaveiro-organizacao.gpg --output auditoria.json linuxbr-auditoria.gpg`.
 
 ## Validação
 

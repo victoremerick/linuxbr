@@ -26,7 +26,7 @@ SOURCE=$(find . -mindepth 1 -maxdepth 1 -type d -name 'dolphin-*' -print -quit)
 [[ -n "$SOURCE" ]]
 python3 "$ROOT/scripts/patch-dolphin.py" "$SOURCE"
 cd "$SOURCE"
-DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --newversion "${VERSION}+linuxbr5" --distribution trixie 'Abre a Wiki do Linux BR pela Ajuda do Explorador e corrige o título da pesquisa.'
+DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --newversion "${VERSION}+linuxbr6" --distribution trixie 'Integra ações em dois painéis, recuperação de abas, consultas salvas e privacidade de miniaturas.'
 DEB_BUILD_OPTIONS='nocheck' dpkg-buildpackage -b -uc -us -j2
 cd "$WORK"
 # Publish the matching runtime/data/library packages together; exclude symbols.

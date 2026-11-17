@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Configurar e testar o touchpad
+Comment=Ajuste cliques, arraste e rolagem em cada touchpad e experimente os gestos
+Exec=/usr/bin/linuxbr-touchpad
+Icon=input-touchpad
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=touchpad;toque;gestos;rolagem;arrastar;

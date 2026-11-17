@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Bloqueio por chave de segurança
+Exec=systemctl --user start linuxbr-key-lock.service
+OnlyShowIn=KDE;
+NoDisplay=true

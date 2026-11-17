@@ -442,6 +442,12 @@ def versions(path):
     return dict(rows=rows, notes=notes)
 
 
+def usershare_entries(text):
+    parser = configparser.RawConfigParser(strict=False)
+    parser.read_string(text)
+    return {name: dict(parser.items(name)) for name in parser.sections()}
+
+
 def sharing(path, authorize_firewall=False):
     path = local_path(str(path))
     states = []
@@ -456,17 +462,16 @@ def sharing(path, authorize_firewall=False):
         states.append('Publicações: não foi possível consultar o registro de pastas compartilhadas.')
         partial = True
     if reply and reply.returncode == 0:
-        parser = configparser.RawConfigParser(strict=False)
         try:
-            parser.read_string(reply.stdout)
             shares_complete = True
-            for name in parser.sections():
-                if parser.get(name, 'path', fallback='').rstrip('/') == str(path).rstrip('/'):
+            for name, values in usershare_entries(reply.stdout).items():
+                if values.get('path', '').rstrip('/') == str(path).rstrip('/'):
                     shares.append(dict(name=name, smb='smb://' + socket.gethostname() + '/' + name,
                                        unc='\\\\' + socket.gethostname() + '\\' + name,
-                                       guest=parser.get(name, 'guest_ok', fallback='desconhecido'),
-                                       acl=parser.get(name, 'usershare_acl', fallback='não consultada')))
+                                       guest=values.get('guest_ok', 'desconhecido'),
+                                       acl=values.get('usershare_acl', 'não consultada')))
         except configparser.Error:
+            shares_complete = False
             states.append('Publicações: o registro retornou dados não reconhecidos.')
             partial = True
     if shutil.which('systemctl'):

@@ -74,7 +74,8 @@ class MigrationWindow(QMainWindow):
         row.addWidget(self.policy, 1)
         preview_label = QLabel('&Prévia da cópia')
         body.addWidget(preview_label)
-        self.preview = QTableWidget(0, 3); self.preview.setHorizontalHeaderLabels(['Pasta no destino', 'Arquivos', 'Tamanho'])
+        self.preview = QTableWidget(0, 4)
+        self.preview.setHorizontalHeaderLabels(['Pasta no destino', 'Arquivos', 'Tamanho', 'Nomes em conflito'])
         preview_label.setBuddy(self.preview)
         self.preview.setAccessibleName('Prévia da cópia')
         self.preview.verticalHeader().hide()
@@ -82,6 +83,7 @@ class MigrationWindow(QMainWindow):
         self.preview.horizontalHeader().setSectionResizeMode(0,QHeaderView.ResizeMode.Stretch)
         self.preview.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeMode.ResizeToContents)
         self.preview.horizontalHeader().setSectionResizeMode(2,QHeaderView.ResizeMode.ResizeToContents)
+        self.preview.horizontalHeader().setSectionResizeMode(3,QHeaderView.ResizeMode.ResizeToContents)
         body.addWidget(self.preview)
         self.status = QLabel(self.INITIAL_STATUS)
         self.status.setTextFormat(Qt.TextFormat.PlainText); self.status.setWordWrap(True); body.addWidget(self.status)
@@ -146,13 +148,15 @@ class MigrationWindow(QMainWindow):
         if folder: self.destination.setText(folder)
 
     def prepare_bookmarks(self):
-        from migration_bookmarks import browser_file, load_bookmarks
+        from migration_bookmarks import browser_file, load_bookmark_source
 
-        source, _ = QFileDialog.getOpenFileName(self, 'Escolher favoritos exportados', '', 'HTML (*.html *.htm)')
+        source, _ = QFileDialog.getOpenFileName(
+            self, 'Escolher favoritos exportados ou arquivo de um perfil', '',
+            'Favoritos (*.html *.htm Bookmarks places.sqlite);;Todos os arquivos (*)')
         if not source:
             return
         try:
-            links = load_bookmarks(source)
+            links = load_bookmark_source(source)
             if QMessageBox.question(self, 'Preparar favoritos',
                     f'Foram encontrados {len(links)} endereços web. Salvar uma cópia para importar pelo navegador?'
                     ) != QMessageBox.StandardButton.Yes:
@@ -164,7 +168,7 @@ class MigrationWindow(QMainWindow):
             with Path(target).open('x', encoding='utf-8') as output:
                 output.write(browser_file(links))
             QMessageBox.information(self, 'Favoritos preparados',
-                'Abra o gerenciador de favoritos do navegador e escolha Importar de um arquivo HTML.')
+                'No navegador, mude para o perfil de destino. Abra o gerenciador de favoritos e escolha Importar de um arquivo HTML.')
         except (OSError, ValueError) as error:
             QMessageBox.warning(self, 'Favoritos não preparados', str(error))
 
@@ -216,8 +220,13 @@ class MigrationWindow(QMainWindow):
     def scanned(self, plan):
         self.plan = plan; self.preview.setRowCount(len(plan['sources']))
         for row, item in enumerate(plan['sources']):
-            for column, value in enumerate((item['label'], str(item['files']), size_text(item['bytes']))):
-                self.preview.setItem(row, column, QTableWidgetItem(value))
+            target = str(Path(plan['destination']) / item['label'])
+            for column, value in enumerate((item['label'], str(item['files']), size_text(item['bytes']),
+                                            str(item['conflicts']))):
+                cell = QTableWidgetItem(value)
+                if column == 0:
+                    cell.setToolTip(target)
+                self.preview.setItem(row, column, cell)
         message = f"{len(plan['files'])} arquivos · {size_text(plan['bytes'])} · {size_text(plan['available'])} livres · {plan['conflicts']} nomes já existentes."
         if plan['resume_bytes']:
             message += f" {size_text(plan['resume_bytes'])} já conferidos no destino."

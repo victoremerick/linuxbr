@@ -17,7 +17,7 @@ HELP_GUIDES = {
     'display': 'tela-som', 'display-advanced': 'tela-som', 'sound': 'tela-som', 'media-test': 'tela-som',
     'connections': 'conexoes', 'ip': 'conexoes', 'network-information': 'conexoes',
     'services': 'servicos', 'scheduler': 'agendador', 'environment': 'ambiente',
-    'startup': 'inicializacao', 'optional-features': 'inicializacao',
+    'startup': 'inicializacao', 'background-apps': 'inicializacao', 'optional-features': 'inicializacao',
     'updates': 'atualizacoes', 'update-recovery': 'backup', 'recovery': 'backup',
     'maintenance': 'diagnostico', 'store': 'loja', 'installed': 'loja',
     'sources': 'fontes-loja', 'webapps': 'webapps', 'windows-apps': 'windows',
@@ -160,6 +160,12 @@ class Window(QMainWindow):
         guide = HELP_GUIDES.get(self.current)
         self.launch(['linuxbr-wiki', guide] if guide else ['linuxbr-wiki'])
 
+    def open_app_permissions(self, identifier):
+        self.navigate('permissions')
+        page = self.cache.get('permissions')
+        if page:
+            page.select_app(identifier)
+
     def launch(self,argv):
         if argv and argv[0]=='linuxbr-system' and len(argv)>=3 and argv[1]=='--page':self.navigate(argv[2]);return
         if not QProcess.startDetached(argv[0],argv[1:])[0]:QMessageBox.warning(self,'Não foi possível abrir','A ferramenta não está disponível nesta instalação. Confira a Loja Linux BR.')
@@ -200,6 +206,21 @@ class Window(QMainWindow):
             from network_details_page import NetworkDetails
             return NetworkDetails()
         if kind=='tool':
+            if target == 'read-aloud':
+                from read_aloud import ReadAloud
+                return ReadAloud()
+            if target == 'controllers':
+                from gamepad_test import ControllerTest
+                return ControllerTest()
+            if target == 'local-certificates':
+                from local_certificates import LocalCertificates
+                return LocalCertificates()
+            if target == 'background-apps':
+                from background_apps import BackgroundApps
+                return BackgroundApps(self.navigate,self.open_app_permissions)
+            if target == 'consent-history':
+                from consent_history import ConsentHistory
+                return ConsentHistory()
             if target == 'media-test':
                 from media_test import MediaTest
                 return MediaTest()

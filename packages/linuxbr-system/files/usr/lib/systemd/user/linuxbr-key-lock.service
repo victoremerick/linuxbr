@@ -1,0 +1,12 @@
+[Unit]
+Description=Bloqueio por chave de segurança no Linux BR
+PartOf=graphical-session.target
+ConditionPathExists=%E/linuxbr/key-lock.json
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/key_lock.py --monitor
+Restart=on-failure
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=graphical-session.target

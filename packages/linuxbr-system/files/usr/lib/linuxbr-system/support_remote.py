@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+from datetime import datetime
 
 from support_diagnostics import CATEGORIES, GRAPHICS_EVENTS
 
@@ -76,18 +77,34 @@ def dispatch(config, action, transport, source):
     if action == 'pending':
         response = transport(config, 'GET', '/v1/diagnostic')
         identifier = response['request_id']
-        return {'request_id': None if identifier is None else request_id(identifier)}
-    if action not in ('send', 'decline'):
+        result = {'request_id': None if identifier is None else request_id(identifier)}
+        if identifier is not None and matches(response.get('requested_by'), REQUEST_ID):
+            result['requested_by'] = response['requested_by']
+        expires = response.get('expires_at')
+        if identifier is not None and isinstance(expires, str) and len(expires) <= 40:
+            try:
+                if datetime.fromisoformat(expires).tzinfo:
+                    result['expires_at'] = expires
+            except ValueError:
+                pass
+        active = response.get('active')
+        if isinstance(active, list) and active:
+            result['active'] = [entry for entry in active[:10] if isinstance(entry, dict)
+                                and set(entry) == {'id', 'operator', 'access_until'}
+                                and matches(entry['id'], REQUEST_ID) and matches(entry['operator'], REQUEST_ID)
+                                and isinstance(entry['access_until'], str) and len(entry['access_until']) <= 40]
+        return result
+    if action not in ('send', 'decline', 'revoke'):
         raise ValueError('Operação de suporte inválida.')
     raw = source.read(16 * 1024 + 1)
     if len(raw) > 16 * 1024:
         raise ValueError('Diagnóstico excede o limite de tamanho.')
     value = json.loads(raw)
-    if action == 'decline':
+    if action in ('decline', 'revoke'):
         if not isinstance(value, dict) or set(value) != {'request_id'}:
-            raise ValueError('Recusa de diagnóstico inválida.')
-        transport(config, 'POST', '/v1/diagnostic', {'request_id': request_id(value['request_id']), 'decline': True})
-        return {'declined': True}
+            raise ValueError('Solicitação de encerramento inválida.')
+        transport(config, 'POST', '/v1/diagnostic', {'request_id': request_id(value['request_id']), action: True})
+        return {'declined' if action == 'decline' else 'revoked': True}
     if not isinstance(value, dict) or set(value) != {'request_id', 'report'}:
         raise ValueError('Envio de diagnóstico inválido.')
     payload = {'request_id': request_id(value['request_id']), 'report': checked_report(value['report'])}

@@ -71,6 +71,9 @@ class RecoveryPage(QWidget):
                  'Recuperar atualização…':'edit-undo',
                  'Revisar resultado da atualização gerenciada…':'document-preview',
                  'Gerar diagnóstico…':'document-export',
+                 'Consultar linha do tempo…':'view-calendar-timeline',
+                 'Reparar preferências da área de trabalho…':'preferences-desktop',
+                 'Preparar mídia de recuperação…':'drive-removable-media-usb',
                  'Histórico de compartilhamento…':'document-open-recent',
                  'Consultar pedido de diagnóstico da TI…':'network-server',
                  'Atualizar informações':'view-refresh',
@@ -265,6 +268,10 @@ class RecoveryPage(QWidget):
         self.button(body,'Consultar discos e partições',['partitionmanager'])
         self.button(body,'Abrir guia de recuperação',['linuxbr-welcome','--topic','Recuperação e ajuda'])
         self.diagnostic_button = self.button(body,'Gerar diagnóstico…',callback=self.export_report)
+        self.restart_button = self.button(body, 'Analisar reinício anterior…', callback=self.analyze_restart)
+        self.timeline_button = self.button(body, 'Consultar linha do tempo…', callback=self.show_timeline)
+        self.button(body, 'Reparar preferências da área de trabalho…', callback=self.show_profile_repair)
+        self.button(body, 'Preparar mídia de recuperação…', callback=self.prepare_recovery_media)
         self.button(body,'Histórico de compartilhamento…',callback=self.diagnostic_share_history)
         self.remote_diagnostic_button = self.button(body, 'Consultar pedido de diagnóstico da TI…',
                                                     callback=self.check_remote_diagnostic)
@@ -275,6 +282,132 @@ class RecoveryPage(QWidget):
             self.button(body,'Abrir instalador do Linux BR',['calamares-install-linuxbr'])
         body.addStretch()
 
+    def prepare_recovery_media(self):
+        from desktop_jobs import Command
+        from recovery_media import destinations
+
+        try:
+            drives = {f'{mount} · {device}': mount for mount, device in destinations()}
+        except (OSError, ValueError):
+            drives = {}
+        if not drives:
+            QMessageBox.information(self, 'Preparar mídia de recuperação',
+                                    'Conecte um pendrive com Ventoy já instalado e abra a partição principal dele.')
+            return
+        drive, ok = QInputDialog.getItem(self, 'Preparar mídia de recuperação',
+                                         'Pendrive de destino', list(drives), editable=False)
+        if not ok:
+            return
+        image, _ = QFileDialog.getOpenFileName(self, 'Escolher ISO do Linux BR', str(Path.home()), 'Imagem ISO (*.iso)')
+        if not image:
+            return
+        digest, ok = QInputDialog.getText(self, 'Conferir imagem',
+                                          'SHA-256 publicado para esta ISO no lançamento do Linux BR')
+        if ok:
+            Command('Preparar mídia de recuperação', ['/usr/bin/python3',
+                    '/usr/lib/linuxbr-system/recovery_media.py', image, digest.strip(), drives[drive]], self)
+
+    def show_profile_repair(self):
+        from desktop_jobs import Command
+        from profile_repair import STATE, queue, saved
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Reparar preferências da área de trabalho')
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(plain('Teste o Plasma em uma janela separada. No reparo, as preferências '
+                               'selecionadas serão aplicadas no próximo login.'))
+        preview = QPushButton(QIcon.fromTheme('window-new'), 'Abrir sessão de teste')
+        preview.clicked.connect(lambda: Command('Sessão de teste', ['/usr/bin/python3',
+                                 '/usr/lib/linuxbr-system/profile_repair.py', 'preview'], dialog))
+        layout.addWidget(preview)
+        choices = {'panel': QCheckBox('Painel e widgets'), 'windows': QCheckBox('Janelas')}
+        for box in choices.values():
+            layout.addWidget(box)
+        note = plain('Escolha pelo menos um grupo.')
+        if (STATE / 'pending.json').is_file():
+            note.setText('Já há um reparo agendado para o próximo login.')
+        layout.addWidget(note)
+        submit = QPushButton(QIcon.fromTheme('document-revert'), 'Agendar reparo…')
+
+        def schedule():
+            groups = [key for key, box in choices.items() if box.isChecked()]
+            if not groups:
+                note.setText('Escolha pelo menos um grupo.')
+                return
+            actions = {'Usar preferências padrão': 'defaults', **{f'Restaurar cópia {item}': item for item in saved()}}
+            action, accepted = QInputDialog.getItem(dialog, 'Agendar reparo', 'Ação no próximo login',
+                                                    list(actions), editable=False)
+            if accepted:
+                try:
+                    queue(groups, actions[action])
+                    note.setText('Reparo agendado. Uma cópia das preferências atuais será guardada.')
+                except (OSError, ValueError) as error:
+                    note.setText(str(error))
+
+        submit.clicked.connect(schedule)
+        layout.addWidget(submit)
+        cancel_repair = QPushButton('Cancelar reparo agendado')
+        def cancel():
+            try:
+                (STATE / 'pending.json').unlink(missing_ok=True)
+                note.setText('Nenhum reparo agendado.')
+            except OSError as error:
+                note.setText(str(error))
+        cancel_repair.clicked.connect(cancel)
+        layout.addWidget(cancel_repair)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        dialog.exec()
+
+    def show_timeline(self):
+        from desktop_jobs import Query
+        from recovery_timeline import EVENTS, render
+
+        choices = {'Todos os eventos': 'all', **{label: key for key, label in EVENTS.items()}}
+        label, ok = QInputDialog.getItem(self, 'Linha do tempo do computador', 'Filtrar por',
+                                         list(choices), editable=False)
+        if not ok:
+            return
+        self.timeline_button.setEnabled(False)
+        job = self.timeline_job = Query(lambda: render(choices[label]), self)
+
+        def show(result):
+            dialog = QDialog(self)
+            dialog.setWindowTitle('Linha do tempo do computador')
+            dialog.resize(850, 570)
+            layout = QVBoxLayout(dialog)
+            layout.addWidget(plain('Eventos mais recentes nos registros locais disponíveis.'))
+            output = QPlainTextEdit(readOnly=True)
+            output.setPlainText(result)
+            layout.addWidget(output)
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+            dialog.exec()
+
+        job.result.connect(show)
+        job.failed.connect(lambda _: QMessageBox.warning(self, 'Linha do tempo',
+                          'Não foi possível consultar os registros do computador.'))
+        job.finished.connect(lambda: self.timeline_button.setEnabled(True))
+        job.finished.connect(job.deleteLater)
+        job.start()
+
+    def analyze_restart(self):
+        from desktop_jobs import Query
+        from restart_diagnosis import inspect
+
+        if not self.restart_button.isEnabled():
+            return
+        self.restart_button.setEnabled(False)
+        task = self.restart_query = Query(inspect, self)
+        task.result.connect(lambda evidence: QMessageBox.information(self, *evidence))
+        task.failed.connect(lambda _error: QMessageBox.warning(
+            self, 'Diagnóstico indisponível', 'Não foi possível consultar o diário do sistema.'))
+        task.finished.connect(lambda: self.restart_button.setEnabled(True))
+        task.finished.connect(task.deleteLater)
+        task.start()
+
     def restore_versions(self):
         folder = QFileDialog.getExistingDirectory(self,'Escolher pasta da cópia com versões',str(Path.home()))
         if folder: launch(self,['kup-filedigger',folder])
@@ -283,12 +416,12 @@ class RecoveryPage(QWidget):
         folder = QFileDialog.getExistingDirectory(self,'Escolher pasta da cópia simples',str(Path.home()))
         if folder: launch(self,['dolphin',folder])
 
-    def export_report(self, request_id=None):
+    def export_report(self, request_id=None, request_details=None):
         process = QProcess(self)
         self.diagnostic_button.setEnabled(False)
         self.remote_diagnostic_button.setEnabled(False)
-        process.finished.connect(lambda *_: self.preview_report(process, request_id))
-        process.errorOccurred.connect(lambda error: self.preview_report(process, request_id)
+        process.finished.connect(lambda *_: self.preview_report(process, request_id, request_details))
+        process.errorOccurred.connect(lambda error: self.preview_report(process, request_id, request_details)
             if error == QProcess.ProcessError.FailedToStart else None)
         process.start('/usr/bin/python3', [str(Path(__file__).with_name('support_diagnostics.py'))])
 
@@ -325,12 +458,35 @@ class RecoveryPage(QWidget):
         def reviewed(data):
             identifier = data.get('request_id')
             if not identifier:
-                QMessageBox.information(self, 'Diagnóstico da organização', 'Nenhum pedido pendente.')
+                self.revoke_diagnostic(data.get('active', []))
                 return
-            self.export_report(identifier)
+            self.export_report(identifier, data)
         self.remote_diagnostic('pending', reviewed)
 
-    def preview_report(self, process, request_id=None):
+    def revoke_diagnostic(self, active):
+        from datetime import datetime
+        from PyQt6.QtWidgets import QInputDialog
+
+        title = 'Diagnóstico da organização'
+        if not active:
+            QMessageBox.information(self, title, 'Nenhum pedido pendente ou acesso ativo.')
+            return
+        choices = {}
+        for item in active:
+            try:
+                end = datetime.fromisoformat(item['access_until']).astimezone().strftime('%d/%m às %H:%M')
+            except ValueError:
+                continue
+            choices[f'{item["operator"]} · até {end} · {item["id"][:8]}'] = item['id']
+        if not choices:
+            return
+        text, ok = QInputDialog.getItem(self, title, 'Selecione o acesso de diagnóstico que deseja encerrar.',
+                                       list(choices), editable=False)
+        if ok:
+            self.remote_diagnostic('revoke', lambda _: QMessageBox.information(self, title, 'Acesso ao diagnóstico encerrado.'),
+                                   {'request_id': choices[text]})
+
+    def preview_report(self, process, request_id=None, request_details=None):
         from support_diagnostics import CATEGORIES, render, summary
         if self.diagnostic_button.isEnabled():
             return
@@ -368,6 +524,13 @@ class RecoveryPage(QWidget):
             share = buttons.addButton('Salvar e compartilhar…', QDialogButtonBox.ButtonRole.ActionRole)
             share.clicked.connect(lambda: dialog.done(3))
         if request_id:
+            from datetime import datetime
+            details = request_details or {}
+            requester = details.get('requested_by', 'Operador da organização')
+            try:
+                expires = datetime.fromisoformat(details.get('expires_at', '')).astimezone().strftime('%d/%m às %H:%M')
+            except ValueError:
+                expires = 'Confira com a TI'
             send = buttons.button(QDialogButtonBox.StandardButton.Save)
             send.setText('Enviar à organização')
             send.setAutoDefault(False)
@@ -377,8 +540,9 @@ class RecoveryPage(QWidget):
             decline = buttons.addButton('Recusar pedido', QDialogButtonBox.ButtonRole.ActionRole)
             decline.setAutoDefault(False)
             decline.clicked.connect(lambda: dialog.done(2))
-            layout.insertWidget(0, plain('A organização receberá somente as categorias marcadas abaixo. '
-                                         'Você pode recusar o pedido ou decidir depois.'))
+            layout.insertWidget(0, plain(f'Solicitante · {requester}\nPrazo para decidir · {expires}\n'
+                                         'O acesso às categorias marcadas dura 30 minutos. Você pode encerrá-lo '
+                                         'pela tela Diagnóstico da organização.'))
         layout.addWidget(buttons)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
@@ -410,7 +574,8 @@ class RecoveryPage(QWidget):
         if request_id:
             def sent(data):
                 if data.get('sent') is True:
-                    QMessageBox.information(self, 'Diagnóstico da organização', 'Diagnóstico enviado.')
+                    QMessageBox.information(self, 'Diagnóstico da organização',
+                                            'Diagnóstico enviado. Consulte esta tela novamente para encerrar o acesso.')
             self.remote_diagnostic('send', sent, {
                 'request_id': request_id, 'report': json.loads(report)})
             return

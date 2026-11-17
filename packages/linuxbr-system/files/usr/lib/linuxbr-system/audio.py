@@ -41,7 +41,9 @@ class Audio(QWidget):
         profile_row=QHBoxLayout();self.cards=QComboBox();self.cards.currentIndexChanged.connect(self.profiles)
         self.profile=QComboBox();profile_row.addWidget(self.cards);profile_row.addWidget(self.profile,1)
         select=QPushButton('Aplicar perfil');select.clicked.connect(self.set_profile);profile_row.addWidget(select);dev.addLayout(profile_row)
-        self.format=QLabel();self.format.setWordWrap(True);dev.addWidget(self.format);dev.addStretch()
+        self.format=QLabel();self.format.setWordWrap(True);dev.addWidget(self.format)
+        routes=QPushButton('Saídas para chamadas, mídia e jogos');routes.clicked.connect(self.audio_routes)
+        dev.addWidget(routes,0,Qt.AlignmentFlag.AlignLeft);dev.addStretch()
         tabs.addTab(devices,'Dispositivos')
         mixer=QWidget();mix=QVBoxLayout(mixer)
         info=QLabel('Volume e roteamento dos aplicativos em uso. O WirePlumber pode restaurar a escolha de dispositivo quando o aplicativo abrir novamente.')
@@ -99,6 +101,14 @@ class Audio(QWidget):
             self.profile.addItem(profile.get('description') or key,key)
             active=card.get('active_profile',{})
             if key==(active.get('name') if isinstance(active,dict) else active):self.profile.setCurrentIndex(self.profile.count()-1)
+
+    def audio_routes(self):
+        from audio_roles import AudioRoutes
+
+        try:
+            AudioRoutes(self.data.get('sinks', []), self).exec()
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Saídas por tipo de uso', str(error))
 
     def set_profile(self):
         if not self.cards.currentData() or not self.profile.currentData():return

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+MimeType=application/pdf;text/plain;text/csv;image/png;image/jpeg;image/webp;application/vnd.oasis.opendocument.text;application/vnd.oasis.opendocument.spreadsheet;application/vnd.oasis.opendocument.presentation;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.openxmlformats-officedocument.presentationml.presentation;
+Actions=LinuxBROpenIsolated;
+X-KDE-RequiredNumberOfUrls=1
+X-KDE-Protocols=file
+
+[Desktop Action LinuxBROpenIsolated]
+Name=Abrir em ambiente isolado
+Icon=security-high
+Exec=/usr/bin/linuxbr-open-isolated %f

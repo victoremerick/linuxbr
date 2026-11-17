@@ -31,9 +31,12 @@ class ProfilePreferences(QDialog):
         title=QLabel(backend.display_name(item));title.setTextFormat(Qt.TextFormat.PlainText)
         title.setStyleSheet('font-size:22px;font-weight:600');layout.addWidget(title)
         note=QLabel('Downloads e permissões são configurados no Chromium deste perfil. As alterações nas janelas do navegador são aplicadas por ele e não são desfeitas ao cancelar este diálogo.');note.setWordWrap(True);layout.addWidget(note)
-        for label,section in [('Pasta e confirmação de &downloads','downloads'),
-                              ('Permissões deste &site:\nnotificações, câmera e microfone','site')]:
-            button=QPushButton(QIcon.fromTheme('configure'),label)
+        for label,section,icon in [('Pasta e confirmação de &downloads','downloads','folder-download'),
+                                   ('Permissões deste &site','site','preferences-system-privacy'),
+                                   ('&Notificações deste perfil','notifications','preferences-desktop-notification'),
+                                   ('&Câmera deste perfil','camera','camera-web'),
+                                   ('&Microfone deste perfil','microphone','audio-input-microphone')]:
+            button=QPushButton(QIcon.fromTheme(icon),label)
             button.clicked.connect(lambda checked=False,key=section:self.open_native(key));layout.addWidget(button)
         self.startup=QCheckBox('Abrir este perfil ao &entrar na sessão');self.startup.setChecked(options['session_start']);layout.addWidget(self.startup)
         form=QFormLayout();form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);layout.addLayout(form)
@@ -192,37 +195,52 @@ class Window(QMainWindow):
             QMessageBox.warning(self, title, 'Não foi possível atualizar a configuração da pasta.')
 
     def export_shortcuts(self):
+        choices = ['Somente sites públicos', 'Atalhos e preferências dos perfis']
+        selection, accepted = QInputDialog.getItem(
+            self, 'Exportar atalhos', 'Escolha o conteúdo do arquivo. Os dados do Chromium ficam neste computador.',
+            choices, editable=False)
+        if not accepted:
+            return
         path, _ = QFileDialog.getSaveFileName(self, 'Exportar atalhos', 'linuxbr-webapps.json', 'JSON (*.json)')
         if path:
             try:
-                backend.export_shortcuts(path)
+                backend.export_shortcuts(path, include_profiles=selection == choices[1])
             except (OSError, ValueError) as error:
                 QMessageBox.warning(self, 'Exportar atalhos', str(error))
 
     def import_shortcuts(self):
+        from webapps_backup import pending, restore
+
         path, _ = QFileDialog.getOpenFileName(self, 'Importar atalhos', '', 'JSON (*.json)')
         if not path:
             return
         try:
-            known = {item['url'] for item in backend.installed(include_hidden=True)}
-            rows = [item for item in backend.load_shortcuts(path) if item['url'] not in known]
+            rows = list(pending(backend.load_shortcuts(path)))
         except (OSError, ValueError) as error:
             QMessageBox.warning(self, 'Importar atalhos', str(error))
             return
         if not rows:
             QMessageBox.information(self, 'Importar atalhos', 'Nenhum atalho novo neste arquivo.')
             return
-        preview = '\n'.join(item['name'] + '   ' + item['url'] for item in rows)
+        preview = '\n'.join(item['name'] + ((' — ' + item['session']) if 'session' in item else '')
+                            + '   ' + item['url'] for item in rows)
         dialog = QMessageBox(QMessageBox.Icon.Question, 'Importar atalhos',
-                             f'Adicionar {len(rows)} atalhos ao menu Iniciar?',
+                             f'Adicionar {len(rows)} atalhos ao menu Iniciar? Cada perfil começa com uma nova sessão do Chromium.',
                              QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel, self)
         dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
         dialog.setDetailedText(preview)
+        startup = QCheckBox('Restaurar a inicialização automática dos perfis indicados no arquivo')
+        if any(item.get('options', {}).get('session_start') for item in rows):
+            dialog.setCheckBox(startup)
         if dialog.exec() != QMessageBox.StandardButton.Yes:
             return
         try:
-            for item in rows:
-                backend.install(item)
+            count, notices = restore(rows, restore_startup=startup.isChecked())
+            summary = f'{count} atalhos adicionados ao menu Iniciar.'
+            if notices:
+                summary += ('\nConfigure o navegador padrão para encaminhar links externos dos seguintes perfis:\n'
+                            + '\n'.join(notices))
+            QMessageBox.information(self, 'Importar atalhos', summary)
         except (OSError, ValueError) as error:
             QMessageBox.warning(self, 'Importar atalhos', str(error))
         finally:
@@ -491,7 +509,10 @@ def main():
         except (OSError,ValueError) as exc:QMessageBox.warning(None,'Não foi possível abrir',str(exc))
         return
     if args.offer:
-        try:dialog=InstallDialog(json.loads(args.offer))
+        try:
+            offer=json.loads(args.offer)
+            if not isinstance(offer,dict):raise ValueError('Cadastro inválido.')
+            dialog=InstallDialog(offer, new_session=offer.get('new_session') is True)
         except (ValueError,KeyError,TypeError) as exc:QMessageBox.warning(None,'Endereço inválido',str(exc));return
         if dialog.exec():
             if dialog.new_session:backend.launch(dialog.identifier)

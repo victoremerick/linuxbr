@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Energia por carregador e dock
+Comment=Escolha opções de energia para bateria, carregador e estação conectada
+Exec=/usr/bin/linuxbr-power-devices
+Icon=preferences-system-power-management
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=bateria;energia;dock;carregador;suspensão;economia;

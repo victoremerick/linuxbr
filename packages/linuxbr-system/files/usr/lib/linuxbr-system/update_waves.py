@@ -27,7 +27,15 @@ TOKEN = re.compile(r'[A-Za-z0-9_-]{43}')
 CLIENT_ROUTES = {
     ('POST', '/v1/manifest'), ('POST', '/v1/inventory'), ('POST', '/v1/result'),
     ('GET', '/v1/diagnostic'), ('POST', '/v1/diagnostic'), ('POST', '/v1/policy'),
+    ('POST', '/v1/health-checks'),
+    ('GET', '/v1/retirement'), ('POST', '/v1/retirement'),
 }
+
+
+class HttpStatusError(ValueError):
+    def __init__(self, status):
+        super().__init__('Serviço da organização recusou a operação (HTTP %d).' % status)
+        self.status = status
 
 
 def trusted_file(path, private=False):
@@ -75,18 +83,21 @@ def verify_manifest(manifest, organization, wave, archives, now):
     return revision
 
 
-def read_config():
+def read_config(source=None):
+    source = CONFIG if source is None else source
     try:
-        CONFIG.lstat()
+        source.lstat()
     except FileNotFoundError:
         return None
-    config = json.loads(trusted_file(CONFIG))
+    config = json.loads(trusted_file(source))
     if not isinstance(config, dict) or type(config.get('schema')) is not int or config['schema'] != 1:
         raise ValueError('Configuração das ondas inválida.')
     if config.get('wave') not in ('pilot', 'general') or not config.get('organization'):
         raise ValueError('Onda ou organização inválida.')
     if not isinstance(config['organization'], str):
         raise ValueError('Organização inválida.')
+    if type(config.get('defer_active_sessions', False)) is not bool:
+        raise ValueError('A preferência de adiamento por sessão é inválida.')
     if 'endpoint' in config:
         if not IDENTIFIER.fullmatch(config['organization']):
             raise ValueError('Organização inválida.')
@@ -143,7 +154,7 @@ def request(config, method, path, payload=None):
                            headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'})
         response = connection.getresponse()
         if response.status != 200:
-            raise ValueError('Serviço da organização recusou a operação (HTTP %d).' % response.status)
+            raise HttpStatusError(response.status)
         result = response.read(MAX_MANIFEST + 1)
         if len(result) > MAX_MANIFEST:
             raise ValueError('Resposta do serviço de atualização grande demais.')
@@ -210,6 +221,12 @@ def authorize(lines):
     config = read_config()
     if config is None:
         return None
+    if config.get('defer_active_sessions') and active_interactive_session():
+        message = 'Atualização da organização adiada · sessão interativa em uso.'
+        import syslog
+        syslog.openlog('linuxbr-update-waves')
+        syslog.syslog(syslog.LOG_NOTICE, message)
+        raise ValueError(message)
     wave, organization = config['wave'], config['organization']
     archives = []
     for line in lines:
@@ -227,6 +244,30 @@ def authorize(lines):
     else:
         manifest = decode_manifest(trusted_file(MANIFEST))
     return verify_manifest(manifest, organization, wave, archives, datetime.now(timezone.utc))
+
+
+def active_interactive_session():
+    def loginctl(*arguments):
+        environment = {'PATH': '/usr/bin:/bin', 'LC_ALL': 'C'}
+        return subprocess.check_output(['/usr/bin/loginctl', *arguments], text=True,
+                                       timeout=3, env=environment, stderr=subprocess.DEVNULL)
+
+    try:
+        sessions = loginctl('list-sessions', '--no-legend', '--no-pager').splitlines()
+        if len(sessions) > 48:
+            return True
+        for line in sessions:
+            parts = line.split()
+            if not parts or not re.fullmatch(r'[A-Za-z0-9]{1,32}', parts[0]):
+                continue
+            properties = set(loginctl('show-session', parts[0], '-p', 'Active', '-p', 'Class',
+                                     '-p', 'IdleHint', '-p', 'Type').splitlines())
+            if {'Active=yes', 'Class=user', 'IdleHint=no'} <= properties and properties.intersection(
+                    {'Type=wayland', 'Type=x11', 'Type=tty'}):
+                return True
+    except (OSError, subprocess.SubprocessError):
+        return True
+    return False
 
 
 def main(argv=None):

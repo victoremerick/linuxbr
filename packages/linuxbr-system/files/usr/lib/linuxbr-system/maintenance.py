@@ -128,6 +128,16 @@ class MaintenancePage(QWidget):
                   'Último sucesso automático: ' + date_text(snapshot['last_success'])]
         if snapshot.get('free') is not None: lines.append('Espaço livre no destino: ' + size_text(snapshot['free']))
         if snapshot['last'].get('status') == 'failed': lines.append('A última proteção automática falhou; confira o Timeshift antes de atualizar.')
+        boot = data.get('boot_check')
+        if boot:
+            from post_update import MESSAGES
+            lines += ['', 'PRIMEIRA INICIALIZAÇÃO APÓS ATUALIZAR',
+                      'Revisão: ' + str(boot.get('revision', '—')),
+                      'Verificação: ' + date_text(boot.get('checked_at'))]
+            lines += [f"{label}: {'OK' if boot.get('checks', {}).get(key) else 'Requer atenção'}"
+                      for key, label in MESSAGES.items()]
+            if boot.get('notified'):
+                lines.append('Resultado enviado à organização.')
         preflight = data['preflight']
         lines += ['', 'CONDIÇÕES PARA ATUALIZAR', 'Consulta: ' + date_text(preflight['checked_at'])]
         if preflight['free'] is not None: lines.append('Espaço livre no sistema (C:): ' + size_text(preflight['free']))

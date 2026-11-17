@@ -15,6 +15,8 @@ from PyQt6.QtWidgets import (QApplication,QMainWindow,QWidget,QVBoxLayout,QHBoxL
     QDialogButtonBox,QFormLayout,QSpinBox,QCheckBox,QFileDialog,QMessageBox,QTabWidget,
     QPlainTextEdit,QInputDialog,QSplitter,QProgressDialog,QMenu)
 import virtualization_backend as backend
+import virtualization_disks as disk_tools
+import virtualization_observability as observations
 import virtualization_preferences as preferences
 
 
@@ -73,6 +75,81 @@ class Form(QDialog):
         self.controls=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel)
         self.controls.accepted.connect(self.accept);self.controls.rejected.connect(self.reject)
     def finish(self):self.body.addWidget(self.controls)
+
+
+class Performance(QDialog):
+    def __init__(self, owner, vm):
+        super().__init__(owner)
+        self.setWindowTitle('Desempenho · ' + vm['name'])
+        self.resize(885, 475)
+        self.uri, self.identifier = owner.uri, vm['id']
+        self.samples, self.task = [], None
+        layout = QVBoxLayout(self)
+        form = QFormLayout()
+        self.interval = QComboBox()
+        for seconds in (2, 5, 15, 60):
+            self.interval.addItem(f'{seconds} s', seconds * 1000)
+        self.interval.setCurrentIndex(1)
+        form.addRow('Intervalo de coleta', self.interval)
+        layout.addLayout(form)
+        self.status = QLabel('Consultando a máquina virtual…')
+        self.status.setWordWrap(True)
+        layout.addWidget(self.status)
+        self.results = table(['Horário local', 'CPU', 'RAM do convidado', 'Leitura', 'Gravação', 'Rede ↓', 'Rede ↑'])
+        self.results.setAccessibleName('Histórico de desempenho da máquina virtual')
+        layout.addWidget(self.results)
+        close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        close.rejected.connect(self.reject)
+        layout.addWidget(close)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.poll)
+        self.interval.currentIndexChanged.connect(self.schedule)
+        self.schedule()
+        self.poll()
+
+    def schedule(self):
+        self.timer.start(self.interval.currentData())
+
+    def poll(self):
+        if self.task:
+            return
+        task = Task(self.uri, lambda manager: observations.sample(manager.domain(self.identifier)))
+        self.task = task
+        task.result.connect(self.show_sample)
+        task.failed.connect(self.status.setText)
+        task.finished.connect(self.finished_sample)
+        task.finished.connect(task.deleteLater)
+        task.start()
+
+    def finished_sample(self):
+        if self.task and self.task.manager:
+            self.task.manager.close()
+        self.task = None
+
+    def show_sample(self, observed):
+        previous = self.samples[-1][0] if self.samples else None
+        self.samples = (self.samples + [(observed, observations.rates(previous, observed))])[-120:]
+        self.status.setText('Últimas 120 amostras desta janela. A memória em uso depende do suporte do convidado.'
+                            if observed['active'] else 'Máquina desligada. A coleta continua enquanto esta janela estiver aberta.')
+        rows = []
+        for item, rates in reversed(self.samples):
+            capacity = item['memory'] // 1024
+            memory = '—'
+            if item['active']:
+                memory = f'{item["actual"] // 1024} / {capacity} MiB' if item['actual'] is not None else f'{capacity} MiB alocados'
+            row = dict(time=item['time'][11:], memory=memory,
+                       cpu=f'{rates["cpu"]:.1f} %' if rates['cpu'] is not None else '—')
+            row.update({key: f'{rates[key] / 1024:.1f} KiB/s' if rates[key] is not None else '—'
+                        for key in ('read', 'write', 'rx', 'tx')})
+            rows.append(row)
+        populate(self.results, rows, ['time', 'cpu', 'memory', 'read', 'write', 'rx', 'tx'], select_first=False)
+
+    def done(self, result):
+        if self.task:
+            self.status.setText('Aguarde o término da consulta em andamento para fechar.')
+            return
+        self.timer.stop()
+        super().done(result)
 
 
 class Editor(QDialog):
@@ -218,6 +295,7 @@ class Window(QMainWindow):
         profile=self.host_profile.findData(self.uri)
         if profile>=0:self.host_profile.setCurrentIndex(profile)
         row.addWidget(button('Preferências','configure',self.configure))
+        row.addWidget(button('Orçamento de recursos','view-statistics',self.resource_budget))
         def profile_changed():
             value=self.host_profile.currentData();self.address.setVisible(not bool(value));self.address.setText(value or 'qemu+ssh://usuario@servidor/system')
         self.host_profile.activated.connect(profile_changed)
@@ -247,6 +325,8 @@ class Window(QMainWindow):
         transfer_button = QPushButton(QIcon.fromTheme('document-import'),'Importar e exportar')
         transfer = QMenu(transfer_button);transfer_button.setMenu(transfer);row.addWidget(transfer_button)
         for caption,icon,callback in [('Importar VM completa…','document-import',self.import_bundle),
+                                     ('Converter disco VHD ou VHDX…','drive-harddisk',self.import_hyperv),
+                                     ('Recuperar arquivo de disco…','document-revert',self.recover_file),
                                      ('Importar definição XML…','text-xml',self.import_definition)]:
             transfer.addAction(QIcon.fromTheme(icon),caption,callback)
         transfer.addSeparator()
@@ -254,7 +334,11 @@ class Window(QMainWindow):
         self.vm_controls['export_xml'] = transfer.addAction(QIcon.fromTheme('text-xml'),'Exportar definição XML…',self.export_definition)
         more_button = QPushButton(QIcon.fromTheme('view-more'),'Mais ações')
         more = QMenu(more_button);more_button.setMenu(more);row.addWidget(more_button)
-        for caption,icon,key,callback in [('Clonar…','edit-copy','clone',self.clone),
+        for caption,icon,key,callback in [('Desempenho…','utilities-system-monitor','performance',self.performance),
+                 ('Clonar…','edit-copy','clone',self.clone),
+                 ('Criar acesso temporário…','dialog-password','lab_access',self.lab_access),
+                 ('Delegar mídia ISO…','media-optical','delegate_media',self.delegate_media),
+                 ('Checar destino da migração…','network-connect','migration_check',self.migration_check),
                  ('Migrar…','network-server','migrate',self.migrate),
                  ('Réplica offline…','document-save-as','replica',self.replicate_offline),
                  ('Remover definição…','edit-delete','remove',self.remove)]:
@@ -265,10 +349,12 @@ class Window(QMainWindow):
         networks=QWidget();layout=QVBoxLayout(networks);self.networks=table(['Nome','Tipo','Ativa','Início automático']);layout.addWidget(self.networks)
         row=QHBoxLayout();row.addWidget(button('Criar rede','list-add',self.create_network));row.addWidget(button('Editar rede','configure',self.edit_network))
         row.addWidget(button('DNS e DHCP','network-server',self.network_hosts))
+        row.addWidget(button('Mapa da rede','network-wired',self.topology))
         for caption,action,icon in [('Ativar','start','network-connect'),('Desativar','stop','network-disconnect'),('Início automático','autostart','system-run'),('Remover','remove','edit-delete')]:row.addWidget(button(caption,icon,lambda _=False,a=action:self.network_action(a)))
         layout.addLayout(row);self.pages.addTab(networks,QIcon.fromTheme('network-wired'),'Redes e comutadores')
         storage=QWidget();layout=QVBoxLayout(storage);self.pools=table(['Local','Tipo','Ativo','Livre (GiB)','Diretório no hospedeiro']);layout.addWidget(self.pools)
         row=QHBoxLayout();row.addWidget(button('Novo local','folder-new',self.create_pool));row.addWidget(button('Volumes','drive-harddisk',self.volumes));row.addWidget(button('Criar disco','list-add',self.create_volume));row.addWidget(button('Expandir disco','zoom-in',self.resize_volume));layout.addLayout(row)
+        row.addWidget(button('Cadeia de checkpoints…','view-list-tree',self.inspect_chain))
         row=QHBoxLayout()
         for title,icon,action in [('Ativar local','media-playback-start','start'),('Desativar local','media-playback-stop','stop'),('Início automático','system-run','autostart'),('Remover definição do local','edit-delete','remove')]:row.addWidget(button(title,icon,lambda _=False,a=action:self.pool_action(a)))
         layout.addLayout(row);self.pages.addTab(storage,QIcon.fromTheme('drive-harddisk'),'Armazenamento')
@@ -318,7 +404,10 @@ class Window(QMainWindow):
 
     def refresh(self):
         if self.tasks or self.editors:return
-        def query(m):return dict(domains=m.domains(),networks=m.networks(),pools=m.pools(),capabilities=m.capabilities())
+        def query(m):
+            host = m.connection.getInfo()
+            return dict(domains=m.domains(), networks=m.networks(), pools=m.pools(),
+                        capabilities=m.capabilities(), host_memory=host[1], host_cpus=host[2])
         self.work(query,self.loaded,lambda _:self.timer.stop(),quiet=True)
 
     def loaded(self,data):
@@ -364,17 +453,121 @@ class Window(QMainWindow):
         vm = selected(self.vms)
         enabled = set()
         if vm:
-            enabled.update(('settings','export_xml','migrate'))
+            enabled.update(('settings','export_xml','migrate','migration_check','performance'))
             if vm['active']:
-                enabled.update(('console','shutdown','reboot','save','poweroff'))
+                enabled.update(('console','shutdown','reboot','save','poweroff','lab_access'))
                 if vm['state'] == backend.STATES[3]:
                     enabled.add('resume')
                 elif vm['state'] in (backend.STATES[1], backend.STATES[2]):
                     enabled.add('pause')
             else:
                 enabled.update(('start','clone','replica','remove','export_vm'))
+                if self.uri == 'qemu:///system':
+                    enabled.add('delegate_media')
         for key,control in self.vm_controls.items():
             control.setEnabled(key in enabled)
+
+    def performance(self):
+        vm = selected(self.vms)
+        if vm:
+            Performance(self, vm).exec()
+
+    def topology(self):
+        def display(rows):
+            dialog = Form('Topologia virtual', self)
+            dialog.resize(1000, 480)
+            results = table(['Máquina virtual', 'Interface', 'Modo', 'Rede virtual', 'Ponte', 'VLAN', 'Saída'])
+            results.setAccessibleName('Caminho de rede das interfaces virtuais')
+            populate(results, rows, ['vm', 'interface', 'kind', 'network', 'bridge', 'vlan', 'upstream'])
+            if not rows:
+                dialog.body.addWidget(QLabel('Nenhuma interface virtual encontrada neste hospedeiro.'))
+            dialog.body.addWidget(results)
+            close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            close.rejected.connect(dialog.reject)
+            dialog.body.addWidget(close)
+            dialog.exec()
+        self.work(observations.topology, display, quiet=True)
+
+    def resource_budget(self):
+        if not self.data:
+            QMessageBox.information(self, 'Orçamento de recursos', 'Conecte a um hospedeiro para consultar a capacidade.')
+            return
+        groups = ('Laboratório', 'Trabalho', 'Produção')
+        host_record = self.preferences.get('resource_budgets', {}).get(self.uri, {})
+        limits, assignments = host_record.get('limits', {}), host_record.get('assignments', {})
+        dialog = Form('Orçamento de recursos', self)
+        dialog.resize(730, 540)
+        dialog.form.addRow('Capacidade física', QLabel(
+            f'{self.data["host_cpus"]} processadores · {self.data["host_memory"]} MiB'))
+        controls = {}
+        for group in groups:
+            configured = limits.get(group, {})
+            memory = spin(0, 16777216, configured.get('memory', 0), ' MiB')
+            cpus = spin(0, 8192, configured.get('cpus', 0), ' vCPU')
+            memory.setSpecialValueText('RAM sem limite')
+            cpus.setSpecialValueText('CPU sem limite')
+            memory.setAccessibleName(f'Limite de RAM · {group}')
+            cpus.setAccessibleName(f'Limite de CPU · {group}')
+            row = QHBoxLayout()
+            row.addWidget(memory); row.addWidget(cpus)
+            dialog.form.addRow(group, row)
+            controls[group] = memory, cpus
+        listing = table(['Máquina virtual', 'RAM configurada (MiB)', 'vCPU', 'Grupo'])
+        listing.setAccessibleName('Distribuição de máquinas pelos grupos')
+        domains = self.data['domains']
+        populate(listing, domains, ['name', 'memory', 'cpus'], select_first=False)
+        choices = {}
+        for index, domain in enumerate(domains):
+            choice = QComboBox()
+            choice.setAccessibleName('Grupo · ' + domain['name'])
+            choice.addItems(('Sem grupo', *groups))
+            choice.setCurrentText(assignments.get(domain['id'], 'Sem grupo'))
+            listing.setCellWidget(index, 3, choice)
+            choices[domain['id']] = choice
+        dialog.body.addWidget(listing, 1)
+        result = QLabel()
+        result.setWordWrap(True)
+        dialog.body.addWidget(result)
+
+        def update():
+            totals = {name: dict(memory=0, cpus=0) for name in ('Sem grupo', *groups)}
+            for domain in domains:
+                row = totals[choices[domain['id']].currentText()]
+                for metric in ('memory', 'cpus'):
+                    row[metric] += domain[metric]
+            notices = []
+            for name, row in totals.items():
+                memory, cpus = controls[name] if name in controls else (None, None)
+                excess = ((memory and memory.value() and row['memory'] > memory.value())
+                          or (cpus and cpus.value() and row['cpus'] > cpus.value()))
+                notices.append(f'{name} · {row["memory"]} MiB · {row["cpus"]} vCPU'
+                               + (' · limite excedido' if excess else ''))
+            if any(sum(row[key] for row in totals.values()) > self.data['host_' + key]
+                   for key in ('memory', 'cpus')):
+                notices.append('A soma dos recursos configurados ultrapassa a capacidade do hospedeiro.')
+            result.setText('\n'.join(notices))
+
+        for memory, cpus in controls.values():
+            memory.valueChanged.connect(update)
+            cpus.valueChanged.connect(update)
+        for choice in choices.values():
+            choice.currentIndexChanged.connect(update)
+        update()
+        dialog.controls.button(QDialogButtonBox.StandardButton.Ok).setText('Salvar orçamento')
+        dialog.finish()
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        record = dict(limits={name: dict(memory=memory.value(), cpus=cpus.value())
+                              for name, (memory, cpus) in controls.items()},
+                      assignments={identifier: control.currentText() for identifier, control in choices.items()})
+        updated = dict(self.preferences, resource_budgets={
+            **self.preferences.get('resource_budgets', {}), self.uri: record})
+        try:
+            preferences.save(updated)
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Orçamento não salvo', str(error))
+        else:
+            self.preferences = updated
 
     def action(self,action):
         row=selected(self.vms)
@@ -383,6 +576,8 @@ class Window(QMainWindow):
         self.work(lambda m:m.action(row['id'],action),lambda _:QTimer.singleShot(200,self.refresh))
 
     def create(self):
+        from virtualization_catalog import catalog
+
         dialog=Form('Criar máquina virtual',self);name=QLineEdit();memory=spin(256,262144,2048,' MiB');cpus=spin(1,256,2);size=spin(4,2048,40,' GiB');pool=QComboBox();pool.addItems([p['name'] for p in self.data.get('pools',[]) if p['active']]);network=QComboBox();network.addItem('NAT do processo QEMU','')
         for n in self.data.get('networks',[]):network.addItem(n['name'],n['name'])
         iso=QLineEdit();iso.setPlaceholderText('Caminho no hospedeiro; pode ficar vazio');iso_row=QWidget();iso_layout=QHBoxLayout(iso_row);iso_layout.setContentsMargins(0,0,0,0);iso_layout.addWidget(iso,1)
@@ -401,9 +596,51 @@ class Window(QMainWindow):
         if network.findData(saved.get('network',''))>=0:network.setCurrentIndex(network.findData(saved.get('network','')))
         if pool.count()==0:
             pool.addItem('Criar local padrão ao confirmar','new');dialog.form.addRow('Diretório do novo local:',directory)
+        models, model_errors = catalog()
+        model = QComboBox()
+        model.addItem('Configuração personalizada', None)
+        for profile in models:
+            model.addItem(f"{profile['name']} · revisão {profile['revision']}", profile)
+        model_status = QLabel()
+        model_status.setTextFormat(Qt.TextFormat.PlainText)
+        model_status.setWordWrap(True)
+        warning = QLabel('\n'.join(model_errors))
+        warning.setTextFormat(Qt.TextFormat.PlainText)
+        warning.setWordWrap(True)
+        warning.setVisible(bool(model_errors))
+        dialog.form.insertRow(0, 'Modelo administrado:', model)
+        dialog.form.insertRow(1, '', model_status)
+        dialog.body.addWidget(warning)
+
+        def apply_model():
+            profile = model.currentData()
+            for widget in (memory, cpus, size, network, windows, uefi, secure, tpm):
+                widget.setEnabled(profile is None)
+            model_status.clear()
+            if profile is None:
+                return
+            windows.setChecked(profile['windows'])
+            uefi.setChecked(profile['firmware'] != 'bios')
+            secure.setChecked(profile['firmware'] == 'uefi-secure')
+            tpm.setChecked(profile['tpm'])
+            memory.setValue(profile['memory'])
+            cpus.setValue(profile['cpus'])
+            size.setValue(profile['disk_gib'])
+            index = network.findData(profile['network'])
+            network.setCurrentIndex(index)
+            model_status.setText(f"{profile['id']} · revisão {profile['revision']}"
+                                 + (' · rede indisponível neste hospedeiro' if index < 0 else ''))
+
+        model.currentIndexChanged.connect(apply_model)
         label=QLabel('O assistente cria a definição e um novo disco. Nenhum disco físico será usado. A VM será criada desligada.');label.setWordWrap(True);dialog.body.addWidget(label);dialog.finish()
         if dialog.exec()!=QDialog.DialogCode.Accepted:return
         new_pool=pool.currentData()=='new';spec=dict(name=name.text().strip(),memory=memory.value(),cpus=cpus.value(),disk_gib=size.value(),pool='linuxbr' if new_pool else pool.currentText(),network=network.currentData(),iso=iso.text().strip(),uefi=uefi.isChecked(),secure_boot=secure.isChecked(),tpm=tpm.isChecked(),windows=windows.isChecked());location=directory.text().strip()
+        profile = model.currentData()
+        if profile:
+            if network.currentIndex() < 0:
+                QMessageBox.warning(self, 'Rede indisponível', 'Crie a rede indicada no modelo ou escolha outro modelo.')
+                return
+            spec['managed_template'] = (profile['id'], profile['revision'])
         def create(manager):
             if new_pool:manager.create_pool('linuxbr',location)
             return manager.create(spec)
@@ -549,6 +786,80 @@ class Window(QMainWindow):
         specification=(path,pool.currentText(),name.text().strip(),identity.isChecked(),network.currentData())
         self.work(lambda m:m.import_bundle(*specification),lambda _:QTimer.singleShot(200,self.refresh),transfer=True)
 
+    def complete_disk_copy(self, path):
+        QMessageBox.information(self, 'Cópia concluída', path)
+
+    def import_hyperv(self):
+        path, _ = QFileDialog.getOpenFileName(self, 'Selecionar disco Hyper-V independente', '',
+                                              'Discos Hyper-V (*.vhd *.vhdx)')
+        if not path:
+            return
+        def review(spec):
+            dialog = Form('Revisar disco Hyper-V', self)
+            dialog.form.addRow('Disco de origem', QLabel(path))
+            dialog.form.addRow('Capacidade virtual', QLabel(f'{spec["capacity"] / disk_tools.GIB:.2f} GiB'))
+            dialog.form.addRow('Tabela de partições', QLabel(spec['scheme']))
+            dialog.form.addRow('Firmware sugerido', QLabel(spec['firmware']))
+            note = QLabel('Para Windows, comece com SATA ou use o controlador do ambiente de origem '
+                          'se o convidado já tiver o driver correspondente. Confirme o modo de boot antes de iniciar.')
+            note.setWordWrap(True)
+            dialog.body.addWidget(note)
+            dialog.controls.button(QDialogButtonBox.StandardButton.Ok).setText('Salvar cópia…')
+            dialog.finish()
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                return
+            save, _ = QFileDialog.getSaveFileName(self, 'Salvar nova imagem QCOW2',
+                                                 str(Path(path).with_suffix('.qcow2')), 'QCOW2 (*.qcow2)')
+            if save:
+                self.work(lambda m:disk_tools.convert(path, save, spec['capacity'], spec['format'], m.cancelled),
+                          self.complete_disk_copy, transfer=True)
+        self.work(lambda _:disk_tools.hyperv_preview(path), review, quiet=True)
+
+    def inspect_chain(self):
+        path, _ = QFileDialog.getOpenFileName(self, 'Selecionar disco de uma VM desligada', '', 'QCOW2 (*.qcow2)')
+        if not path:
+            return
+        def review(rows):
+            dialog = Form('Cadeia de checkpoints', self)
+            dialog.resize(960, 455)
+            view = table(['Imagem', 'Formato', 'Capacidade (GiB)', 'Imagem de base'])
+            populate(view, [dict(row, gib=round(row['capacity'] / disk_tools.GIB, 2)) for row in rows],
+                     ['path', 'format', 'gib', 'parent'])
+            dialog.body.addWidget(view)
+            note = QLabel('Uma cópia independente consolida o estado atual num novo disco. '
+                          'Confira a ordem dos arquivos acima e a recuperação antes de conectá-lo a uma VM.')
+            note.setWordWrap(True)
+            dialog.body.addWidget(note)
+            save = dialog.controls.button(QDialogButtonBox.StandardButton.Ok)
+            save.setText('Criar cópia independente…')
+            save.setEnabled(len(rows) > 1)
+            dialog.finish()
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                return
+            destination, _ = QFileDialog.getSaveFileName(self, 'Salvar disco recuperado', '', 'QCOW2 (*.qcow2)')
+            def consolidate(manager):
+                if disk_tools.chain(path) != rows:
+                    raise ValueError('A cadeia mudou. Inspecione os discos novamente.')
+                return disk_tools.convert(path, destination, rows[0]['capacity'], 'qcow2', manager.cancelled)
+            if destination:
+                self.work(consolidate, self.complete_disk_copy, transfer=True)
+        self.work(lambda _:disk_tools.chain(path), review, quiet=True)
+
+    def recover_file(self):
+        path, selected_filter = QFileDialog.getOpenFileName(self, 'Selecionar disco de uma VM desligada', '',
+                                                'QCOW2 (*.qcow2);;Disco bruto (*.raw *.img)')
+        if not path:
+            return
+        source, ok = QInputDialog.getText(self, 'Caminho no convidado',
+                                         'Informe o caminho absoluto do arquivo, como /home/usuario/arquivo.txt.')
+        if not ok:
+            return
+        destination, _ = QFileDialog.getSaveFileName(self, 'Salvar arquivo recuperado', Path(source).name)
+        if destination:
+            format_name = 'qcow2' if selected_filter.startswith('QCOW2') else 'raw'
+            self.work(lambda m:disk_tools.restore_file(path, format_name, source, destination, m.cancelled),
+                      self.complete_disk_copy, transfer=True)
+
     def import_definition(self):
         path,_=QFileDialog.getOpenFileName(self,'Importar definição existente','','Definição libvirt (*.xml)')
         if not path:return
@@ -572,6 +883,118 @@ class Window(QMainWindow):
         if not ok:return
         if not self.confirm('Clonar discos, firmware e TPM? A nova VM terá outra identidade no hospedeiro, mas manterá arquivos, contas e configurações do convidado. A cópia temporária exige espaço neste computador.'):return
         self.work(lambda m:m.clone(row['id'],pool,name),lambda _:QTimer.singleShot(200,self.refresh),transfer=True)
+
+    def lab_access(self):
+        from datetime import date, timedelta
+        from virtualization_guest_access import create
+
+        row = selected(self.vms)
+        if not row or not row['active']:
+            return
+        expires, ok = QInputDialog.getText(
+            self, 'Criar acesso temporário · ' + row['name'],
+            'Data de expiração (AAAA-MM-DD, UTC). O convidado Linux receberá uma conta comum.',
+            text=(date.today() + timedelta(days=1)).isoformat())
+        if not ok:
+            return
+
+        def show(reply):
+            dialog = Form('Credencial temporária · ' + row['name'], self)
+            for label, key in (('Usuário', 'username'), ('Senha', 'password'), ('Expira em (UTC)', 'expires')):
+                value = QLineEdit(reply[key])
+                value.setReadOnly(True)
+                dialog.form.addRow(label, value)
+            text = QLabel('Entregue a credencial ao participante. A conta expira na data definida.')
+            text.setWordWrap(True)
+            dialog.body.addWidget(text)
+            actions = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            actions.rejected.connect(dialog.reject)
+            dialog.body.addWidget(actions)
+            dialog.exec()
+
+        self.work(lambda manager: create(manager, row['id'], expires.strip()), show, quiet=True)
+
+    def delegate_media(self):
+        row = selected(self.vms)
+        if not row or row['active'] or self.uri != 'qemu:///system':
+            return
+        dialog = Form('Delegar mídia ISO · ' + row['name'], self)
+        operator, image, sha256 = (QLineEdit() for _ in range(3))
+        hours = spin(1, 168, 12, ' h')
+        image.setPlaceholderText('Somente o nome do arquivo, com extensão .iso')
+        sha256.setMaxLength(64)
+        for label, widget in (('Conta do operador', operator), ('ISO aprovada', image),
+                              ('SHA-256', sha256), ('Validade', hours)):
+            dialog.form.addRow(label, widget)
+        note = QLabel('O administrador guarda as ISOs aprovadas em /var/lib/linuxbr/vm-approved-media. '
+                      'A VM deve ter um leitor de mídia de arquivo. O código vale para esta conta, '
+                      'esta VM e esta ISO, e pode ser usado uma vez.')
+        note.setWordWrap(True)
+        dialog.body.addWidget(note)
+        dialog.finish()
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        values = [operator.text().strip(), row['id'], image.text().strip(), sha256.text().strip(), str(hours.value())]
+
+        def issue(_):
+            result = subprocess.run(['/usr/bin/pkexec', '/usr/bin/linuxbr-vm-media-admin', 'issue', *values],
+                                    timeout=600, capture_output=True, text=True, check=False)
+            if result.returncode:
+                raise ValueError(result.stderr.strip()[:600] or 'A autorização administrativa não foi concluída.')
+            return json.loads(result.stdout)
+
+        def present(result):
+            answer = Form('Autorização de mídia emitida', self)
+            code = QLineEdit(result['code'])
+            code.setReadOnly(True)
+            answer.form.addRow('Código', code)
+            answer.form.addRow('Expira em (UTC)', QLabel(result['expires']))
+            answer.body.addWidget(QLabel('Entregue o código ao operador para usar em Anexar mídia autorizada.'))
+            close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            close.rejected.connect(answer.reject)
+            answer.body.addWidget(close)
+            answer.exec()
+
+        self.work(issue, present, quiet=True)
+
+    def migration_review(self, row, destination, mode, continuation=None, pool=None, network=None, name=None):
+        from virtualization_migration_check import check
+
+        status = {'ok': 'Conferido', 'review': 'Requer revisão', 'blocked': 'Impede migração'}
+
+        def present(results):
+            dialog = Form('Compatibilidade de migração · ' + row['name'], self)
+            dialog.resize(780, 480)
+            grid = table(['Área', 'Resultado', 'Observação'])
+            grid.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+            populate(grid, [{**item, 'result': status[item['status']]} for item in results],
+                     ['area', 'result', 'detail'], select_first=False)
+            grid.resizeRowsToContents()
+            dialog.body.addWidget(grid)
+            blocked = any(item['status'] == 'blocked' for item in results)
+            label = QLabel('Revise os avisos antes de confirmar. O resultado reflete as condições atuais dos dois servidores.')
+            label.setWordWrap(True)
+            dialog.body.addWidget(label)
+            options = QDialogButtonBox.StandardButton.Close
+            if continuation and not blocked:
+                options |= QDialogButtonBox.StandardButton.Ok
+            actions = QDialogButtonBox(options)
+            actions.accepted.connect(dialog.accept)
+            actions.rejected.connect(dialog.reject)
+            if actions.button(QDialogButtonBox.StandardButton.Ok):
+                actions.button(QDialogButtonBox.StandardButton.Ok).setText('Migrar…')
+            dialog.body.addWidget(actions)
+            if dialog.exec() == QDialog.DialogCode.Accepted and continuation:
+                continuation()
+
+        self.work(lambda m: check(m, row['id'], destination, mode, pool, network, name), present, quiet=True)
+
+    def migration_check(self):
+        row = selected(self.vms)
+        if row:
+            destination, ok = QInputDialog.getText(self, 'Checar destino da migração', 'URI libvirt do destino')
+            if ok:
+                self.migration_review(row, destination.strip(), 'shared')
 
     def migrate(self):
         row=selected(self.vms)
@@ -597,9 +1020,15 @@ class Window(QMainWindow):
                    'Confira também a compatibilidade de CPU e rede.' if copy_disks else
                    'Confira o armazenamento compartilhado e a compatibilidade de CPU e rede.')
         destination,ok=QInputDialog.getText(self,'Migrar VM',context + '\nURI libvirt do destino')
-        if ok and self.confirm('Migrar '+row['name']+' para '+destination+'? '+('A VM continuará em execução durante a migração.' if row['active'] else 'A VM está desligada.')):
-            self.work(lambda m:m.migrate(row['id'],destination,row['active'],copy_disks),
-                      lambda _:QTimer.singleShot(200,self.refresh))
+        if ok:
+            destination = destination.strip()
+
+            def commit():
+                if self.confirm('Migrar '+row['name']+' para '+destination+'?'):
+                    self.work(lambda m:m.migrate(row['id'],destination,row['active'],copy_disks),
+                              lambda _:QTimer.singleShot(200,self.refresh))
+
+            self.migration_review(row, destination, 'live-copy' if copy_disks else 'shared', commit)
 
     def replicate_offline(self):
         row = selected(self.vms)
@@ -660,9 +1089,6 @@ class Window(QMainWindow):
             self.work(lambda manager: manager.replicate_offline(row['id'], *values),
                       lambda result: self.replica_created(values[0], result), transfer=True)
             return
-        if not self.confirm('Mover a VM para o hospedeiro selecionado? Mantenha a VM de origem desligada durante a transferência.'):
-            return
-
         def completed(result):
             if result['source_removed']:
                 QMessageBox.information(self, title, 'VM transferida e desligada no destino. Os discos originais foram preservados.')
@@ -671,7 +1097,12 @@ class Window(QMainWindow):
                 QMessageBox.warning(self, title, 'A cópia está desligada no destino. A remoção da definição de origem não foi confirmada. Confira a origem antes de ligar a cópia.')
             QTimer.singleShot(200, self.refresh)
 
-        self.work(lambda manager: manager.move_offline(row['id'], *values), completed, transfer=True)
+        def commit():
+            if self.confirm('Mover a VM para o hospedeiro selecionado? Mantenha a VM de origem desligada durante a transferência.'):
+                self.work(lambda manager: manager.move_offline(row['id'], *values), completed, transfer=True)
+
+        self.migration_review(row, values[0], 'offline-copy', commit, pool=values[1], network=values[3],
+                              name=values[2])
 
     def replica_created(self, destination, result):
         if not self.confirm('Réplica criada e desligada no destino. Deseja iniciar um teste de ativação na rede isolada agora?'):

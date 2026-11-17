@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Anexar mídia autorizada
+Comment=Usar uma autorização de mídia de máquina virtual
+Exec=linuxbr-vm-media
+TryExec=/usr/bin/virsh
+Icon=media-optical
+Categories=System;Settings;
+Terminal=false

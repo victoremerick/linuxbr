@@ -33,6 +33,24 @@ registerShortcut("LinuxBR Restore or Minimize", "Linux BR: restaurar ou minimiza
     }
 });
 
+registerShortcut("LinuxBR Bring Window to Screen", "Linux BR: trazer janela para a tela do ponteiro", "Meta+Shift+Home", function () {
+    var window = activeApplication();
+    var output = workspace.screenAt(workspace.cursorPos) || workspace.activeScreen;
+    if (!window || !output) return;
+
+    if (window.output !== output) {
+        if (!window.moveableAcrossScreens) return;
+        workspace.sendClientToScreen(window, output);
+    }
+    if (!window.moveable || window.maximizeMode !== 0) return;
+
+    var area = workspace.clientArea(KWin.PlacementArea, output, workspace.currentDesktop);
+    var frame = window.frameGeometry;
+    frame.x = Math.round(area.x + Math.max(0, area.width - frame.width) / 2);
+    frame.y = Math.round(area.y + Math.max(0, area.height - frame.height) / 2);
+    window.frameGeometry = frame;
+});
+
 function onCurrentDesktop(window) {
     return (!window.desktops.length || window.desktops.indexOf(workspace.currentDesktop) !== -1)
         && (!window.activities.length || window.activities.indexOf(workspace.currentActivity) !== -1);

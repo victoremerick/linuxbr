@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Capturar e ocultar informações
+Comment=Recorte a captura, cubra informações e salve ou copie a imagem final
+Exec=/usr/bin/linuxbr-redact-screenshot
+Icon=camera-photo
+Terminal=false
+Categories=Graphics;Utility;
+Keywords=captura;imagem;cortar;mascarar;ocultar;print;screenshot;

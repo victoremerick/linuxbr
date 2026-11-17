@@ -53,10 +53,11 @@ def details(item, release=None):
     text = [decision['label']]
     for row in checked_records(item):
         runner = row.get('runner') or 'não registrado'
+        gpu = row.get('gpu') or 'não registrada'
         when = row.get('date') or 'não registrada'
         text.append('Linux BR '+row['release']+' · aplicativo '+row['application_version']+
                     ' · resultado: '+RESULTS[row['result']].replace(' nesta versão', '')+
-                    '\nWine / Proton: '+runner+' · data: '+when+
+                    '\nWine / Proton: '+runner+' · GPU: '+gpu+' · data: '+when+
                     '\nCenários: '+', '.join(row['checks'])+'\nEvidência: '+row['evidence'])
     if not decision['current']:
         text.append('Nenhum resultado aprova este aplicativo na versão instalada do Linux BR.')

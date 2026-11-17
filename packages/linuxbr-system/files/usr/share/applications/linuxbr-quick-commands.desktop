@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Comandos rápidos
+Comment=Abra pastas, links e aplicativos juntos pelo menu Iniciar
+Exec=/usr/bin/linuxbr-quick-commands
+Icon=system-run
+Terminal=false
+Categories=Utility;
+Keywords=atalhos;comandos;abrir;produtividade;

@@ -13,6 +13,9 @@ def main():
     if sys.argv[1] == 'list':
         from partitioning import annotate
         return enrich(annotate(inventory(objects), objects))
+    if sys.argv[1] == 'health':
+        from health import collect
+        return collect(bus, manager, objects)
     if sys.argv[1] == 'partition':
         from partition_worker import execute
         return execute(bus, manager, json.loads(sys.argv[2]))

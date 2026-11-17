@@ -181,6 +181,8 @@ class WindowsCompatibility(QWidget):
         row=QHBoxLayout();self.button(row,'Atualizar jogos instalados',self.refresh_steam_games,'view-refresh')
         self.button(row,'Abrir detalhes na Steam',self.steam_details,'steam')
         self.button(row,'Pasta de compatibilidade do jogo',self.steam_prefix,'folder-open');page.addLayout(row)
+        self.button(page,'Gráficos do jogo na Steam…',self.steam_graphics,'preferences-desktop-display')
+        self.button(page,'Registrar ensaio do jogo…',self.report_proton,'document-export')
         self.note(page,'A lista lê os registros locais da Steam. Não altera Proton, opções de inicialização, '
             'saves ou ambientes. Jogos sem avaliação aparecem como Não testado nesta versão.')
         self.refresh_steam_games()
@@ -220,12 +222,48 @@ class WindowsCompatibility(QWidget):
         elif shutil.which('flatpak'):self.launch(['flatpak','run','com.valvesoftware.Steam',uri])
         else:self.problem('O cliente Steam não está disponível nesta sessão.')
 
+    def steam_graphics(self):
+        from windows_graphics import SteamGraphics
+        row=self.steam_games.currentItem();item=row.data(0,Qt.ItemDataRole.UserRole) if row else None
+        if not item:self.problem('Selecione um jogo instalado na lista.');return
+        try:SteamGraphics(item,shutil.which('gamescope') is not None,self).exec()
+        except (OSError,ValueError) as error:self.problem(str(error))
+
     def steam_prefix(self):
         row=self.steam_games.currentItem();item=row.data(0,Qt.ItemDataRole.UserRole) if row else None
         if not item:self.problem('Selecione um jogo instalado na lista.');return
         path=Path(item['prefix'])
         if path.is_dir():self.open_path(path)
         else:self.problem('Este jogo não possui ambiente Proton local. Pode usar uma edição Linux ou ainda não ter sido iniciado.')
+
+    def report_proton(self):
+        from compatibility_report import CompatibilityReport, proton_version
+        row=self.steam_games.currentItem()
+        item=row.data(0,Qt.ItemDataRole.UserRole) if row else None
+        if not item:
+            self.problem('Selecione um jogo instalado na lista.');return
+        CompatibilityReport(item['name'],'Proton',proton_version(item['prefix']),self).exec()
+
+    def report_wine(self):
+        from compatibility_report import CompatibilityReport, wine_version
+        identifier=self.selected_program()
+        if not identifier:
+            self.problem('Selecione um programa Windows na lista.');return
+        try:item=read_program(identifier)
+        except (OSError,ValueError) as error:self.problem(str(error));return
+        CompatibilityReport(item['name'],'Wine',wine_version(),self).exec()
+
+    def diagnose_login(self):
+        from windows_auth import LoginDiagnostics
+        identifier=self.selected_program()
+        if not identifier:
+            self.problem('Selecione um programa Windows na lista.');return
+        try:
+            item=read_program(identifier)
+            prefix=environment_path(item['environment'])/'prefix'
+        except (OSError,ValueError) as error:
+            self.problem(str(error));return
+        LoginDiagnostics(item['name'],prefix,self).exec()
 
     def help_page(self):
         page=self.page('Ajuda de compatibilidade',True)
@@ -266,7 +304,7 @@ class WindowsCompatibility(QWidget):
         body=QVBoxLayout(group);body.setSpacing(10);layout.addWidget(group);return body
 
     def recipes_page(self):
-        from windows_recipes import catalog,STATUS
+        from windows_recipes import catalog,component_catalog,STATUS
         from compatibility_records import assessment
         page=self.page('Receitas e compatibilidade',True)
         self.note(page,'Receitas por aplicativo e versão','Cada receita informa o que foi verificado e seus limites. '
@@ -291,12 +329,32 @@ class WindowsCompatibility(QWidget):
         row=QHBoxLayout()
         self.button(row,'Fonte oficial da receita',self.recipe_source,'internet-web-browser')
         self.button(row,'Instalar dependência indicada…',self.recipe_dependency,'package-x-generic');dependencies.addLayout(row)
+        components=self.card(page,'Central de componentes Windows')
+        self.component_choice=QComboBox()
+        self.component_choice.setAccessibleName('Componente do catálogo de receitas')
+        for component in component_catalog(values):
+            self.component_choice.addItem(component['name'],component)
+        components.addWidget(self.component_choice)
+        self.component_info=QLabel()
+        self.component_info.setWordWrap(True)
+        self.component_info.setTextFormat(Qt.TextFormat.PlainText)
+        components.addWidget(self.component_info)
+        component_row=QHBoxLayout()
+        self.component_source_button=self.button(component_row,'Abrir fonte do componente',self.component_source,'internet-web-browser')
+        self.component_install_button=self.button(component_row,'Instalar no ambiente selecionado…',self.component_install,'package-x-generic')
+        components.addLayout(component_row)
+        self.component_choice.currentIndexChanged.connect(self.component_review)
+        self.component_review()
         recovery=self.card(page,'Cópias e reparação')
         self.note(recovery,'Cópia antes de alterar','Feche os programas do ambiente. A receita e a reparação criam uma cópia '
             'antes de alterar a configuração; links para documentos pessoais são preservados como links. '
             'A cópia não inclui arquivos fora do ambiente. Outros ambientes, Steam e Bottles não são alterados.')
         row=QHBoxLayout();self.button(row,'Abrir cópias de ambientes',self.open_environment_backups,'folder-documents')
         self.button(row,'Reparar ambiente selecionado…',self.repair_environment,'tools-wizard');recovery.addLayout(row)
+        copies=QHBoxLayout()
+        self.button(copies,'Criar cópia agora',lambda:self.begin_maintenance('backup'),'document-save')
+        self.button(copies,'Restaurar como outro ambiente…',self.restore_environment_backup,'document-revert')
+        recovery.addLayout(copies)
         games=self.card(page,'Jogos e Proton')
         for item in values['games']:
             self.note(games,item['name']+' — '+STATUS[item['status']],item['evidence']+' '+item['limits'])
@@ -320,14 +378,16 @@ class WindowsCompatibility(QWidget):
         item=self.recipe_choices.currentData()
         if item:self.open_web(item['source'])
 
-    def begin_maintenance(self,action,recipe_id=None,filename=None):
+    def begin_maintenance(self,action,recipe_id=None,filename=None,backup_name=None):
         from windows_recipes import start_maintenance
         if self.job:self.problem('Aguarde a operação em andamento antes de iniciar manutenção.');return
         identifier=self.environments.currentData()
         try:
-            self.job=start_maintenance(identifier,action,recipe_id,filename)
+            self.job=start_maintenance(identifier,action,recipe_id,filename,backup_name)
             self.job_context=(identifier,filename);self.job_action=action;self.last_job_result=None
-            self.log.clear();self.status.setText('Criando cópia e preparando a operação somente neste ambiente.');self.tabs.setCurrentIndex(1)
+            self.log.clear();self.status.setText('Preparando restauração em ambiente separado.' if action=='restore'
+                else 'Criando cópia e preparando a operação neste ambiente.')
+            self.tabs.setCurrentIndex(1)
         except (OSError,ValueError) as error:self.problem(str(error))
 
     def apply_recipe(self,new):
@@ -351,13 +411,40 @@ class WindowsCompatibility(QWidget):
         name,ok=QInputDialog.getItem(self,'Dependência','Componente exigido pelo fornecedor:',[value['name'] for value in values],0,False)
         if not ok:return
         dependency=next(value for value in values if value['name']==name)
+        self.install_dependency(item['id'],dependency)
+
+    def component_review(self):
+        item=self.component_choice.currentData()
+        self.component_source_button.setEnabled(bool(item))
+        self.component_install_button.setEnabled(bool(item))
+        if item:
+            titles='\n'.join(recipe['name']+' · '+recipe['architecture'] for recipe in item['recipes'])
+            self.component_info.setText('Aplicativos e receitas que indicam este componente\n'+titles+
+                '\n\nArquivo esperado\n'+item['filename']+'\n\n'+item['note'])
+        else:self.component_info.setText('Nenhum componente indicado pelas receitas disponíveis.')
+
+    def component_source(self):
+        item=self.component_choice.currentData()
+        if item:self.open_web(item['source'])
+
+    def component_install(self):
+        item=self.component_choice.currentData()
+        if not item:return
+        try:environment=read_environment(self.environments.currentData())
+        except (OSError,ValueError) as error:self.problem(str(error));return
+        match=next((recipe for recipe in item['recipes'] if recipe['architecture']==environment['architecture']),None)
+        if not match:
+            self.problem('O componente exige um ambiente da arquitetura indicada. Escolha outro ambiente.');return
+        self.install_dependency(match['id'],item)
+
+    def install_dependency(self,recipe_id,dependency):
         text=(dependency['name']+'\n\n'+dependency['note']+'\n\nFonte oficial: '+dependency['source']+
             '\n\nA instalação altera todos os programas do ambiente selecionado. Será feita uma cópia antes. '
             'O arquivo escolhido não tem origem ou assinatura verificada automaticamente. Continuar com um instalador já obtido desta fonte?')
         if QMessageBox.question(self,'Instalar dependência no ambiente selecionado',text,
             QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.Cancel,QMessageBox.StandardButton.Cancel)!=QMessageBox.StandardButton.Yes:return
         filename,_=QFileDialog.getOpenFileName(self,'Selecionar '+dependency['filename'],'','Instaladores Windows (*.exe *.msi)')
-        if filename:self.begin_maintenance('dependency',item['id'],filename)
+        if filename:self.begin_maintenance('dependency',recipe_id,filename)
 
     def repair_environment(self):
         text='Reparar o ambiente “'+self.environments.currentText()+'” com a atualização nativa do Wine?\n\n'
@@ -371,6 +458,20 @@ class WindowsCompatibility(QWidget):
         path=data_root()/'backups'
         if path.is_dir():self.open_path(path)
         else:self.problem('Ainda não há cópias de ambientes nesta conta.')
+
+    def restore_environment_backup(self):
+        from windows_recipes import environment_backups
+        try:
+            copies=environment_backups(self.environments.currentData())
+        except (OSError,ValueError) as error:
+            self.problem(str(error));return
+        if not copies:
+            self.problem('O ambiente selecionado ainda não tem uma cópia completa do prefixo.');return
+        labels={f'{name} · {identifier[37:52]} · {identifier[-8:]}':identifier for identifier,name in copies}
+        choice,ok=QInputDialog.getItem(self,'Restaurar cópia','Escolha uma cópia para criar outro ambiente:',
+                                       list(labels),0,False)
+        if ok and choice in labels:
+            self.begin_maintenance('restore',backup_name=labels[choice])
 
     def refresh_environments(self,selected=None):
         values=environments()
@@ -473,6 +574,8 @@ class WindowsCompatibility(QWidget):
         layout.addWidget(architecture)
         def update():
             name.setEnabled(target.currentData() is None);architecture.setEnabled(target.currentData() is None)
+            if not script:
+                confirm.setText('Preparar e abrir instalador' if target.currentData() is None else 'Criar cópia e abrir instalador')
         target.currentIndexChanged.connect(update)
         error_label=QLabel();error_label.setWordWrap(True);layout.addWidget(error_label)
         buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
@@ -489,18 +592,22 @@ class WindowsCompatibility(QWidget):
                 identifier=target.currentData()
                 if identifier and kind=='x64' and read_environment(identifier)['architecture']=='win32':
                     raise ValueError('Este arquivo exige um ambiente de 64 bits.')
-                if identifier is None:identifier=create_environment(name.text(),architecture.currentData())
-                self.refresh_environments(identifier);self.start('run',str(path),identifier)
+                existing=identifier is not None
+                if not existing:identifier=create_environment(name.text(),architecture.currentData())
+                self.refresh_environments(identifier)
+                if existing and not script:self.begin_maintenance('installer',filename=str(path))
+                else:self.start('run',str(path),identifier)
                 if self.job:dialog.accept()
             except (OSError,ValueError) as error:error_label.setText(str(error))
         buttons.accepted.connect(install);dialog.exec()
 
-    def start(self,action,filename=None,identifier=None):
+    def start(self,action,filename=None,identifier=None,program_id=None):
         try:
             if not shutil.which('wine'):raise ValueError('Wine não está instalado.')
             filename=(filename or self.file.text()) if action=='run' else None
             identifier=identifier or self.environments.currentData()
-            self.job=start_job(identifier,action,filename)
+            if program_id:self.job=start_job(identifier,action,filename,program_id)
+            else:self.job=start_job(identifier,action,filename)
             self.job_context=(identifier,filename);self.last_job_result=None;self.job_action=action
             self.log.clear();self.status.setText('Preparando / executando. Você pode fechar esta janela sem encerrar o programa.')
         except (OSError,ValueError) as error:self.problem(str(error))
@@ -533,8 +640,14 @@ class WindowsCompatibility(QWidget):
         except OSError:pass
         try:result=json.loads((root/(self.job+'.json')).read_text(encoding='utf-8'))
         except (OSError,ValueError):return
-        self.status.setText(('Manutenção concluída. A cópia anterior está em Receitas e compatibilidade → Abrir cópias de ambientes.'
-            if self.job_action in ('repair','apply','dependency') else 'Execução concluída. Use Localizar instalados para adicionar atalhos.')
+        if result.get('code')==0 and self.job_action=='restore':
+            self.refresh_environments()
+        completed={'restore':'Cópia restaurada em um ambiente separado. Selecione esse ambiente para localizar programas.',
+                   'backup':'Cópia concluída. Consulte Receitas e compatibilidade para restaurar.',
+                   'installer':'Instalador concluído. A cópia anterior está disponível em Receitas e compatibilidade.'}
+        self.status.setText((completed.get(self.job_action) or (
+            'Manutenção concluída. A cópia anterior está em Receitas e compatibilidade → Abrir cópias de ambientes.'
+            if self.job_action in ('repair','apply','dependency') else 'Execução concluída. Use Localizar instalados para adicionar atalhos.'))
             if result.get('code')==0 else 'O programa terminou com erro. '+result.get('error','')+
             ' Consulte o registro em Instalar / configurar e a Ajuda de compatibilidade.')
         self.last_job_result=result;self.job=None;self.refresh_programs()
@@ -618,6 +731,9 @@ class WindowsCompatibility(QWidget):
         menu.addAction('Abrir',self.launch_selected)
         menu.addAction('Abrir local do arquivo',self.program_folder)
         menu.addAction('Diagnóstico do programa',self.diagnose_selected)
+        menu.addAction('Registrar ensaio do programa…',self.report_wine)
+        menu.addAction('Diagnosticar retorno de autenticação…',self.diagnose_login)
+        menu.addAction('Gráficos do programa…',self.program_graphics)
         menu.addAction('Atualizar ícone do EXE',self.refresh_program_icon)
         menu.addSeparator();menu.addAction('Renomear atalho…',self.rename_program)
         menu.addAction('Remover atalho',self.forget_selected)
@@ -628,7 +744,16 @@ class WindowsCompatibility(QWidget):
         if not identifier:return
         try:
             item=read_program(identifier)
-            self.start('run',item['file'],item['environment'])
+            self.start('run',item['file'],item['environment'],identifier)
+        except (OSError,ValueError) as error:self.problem(str(error))
+
+    def program_graphics(self):
+        from windows_graphics import GraphicsOptions
+        identifier=self.selected_program()
+        if not identifier:return
+        try:
+            dialog=GraphicsOptions(identifier,self)
+            if dialog.exec() and dialog.reopen:self.launch_selected()
         except (OSError,ValueError) as error:self.problem(str(error))
 
     def add_program(self):
@@ -815,7 +940,7 @@ if __name__=='__main__':
             if not shutil.which('wine'):raise ValueError('Wine não está instalado.')
             window=WindowsCompatibility();window.refresh_environments(item['environment'])
             window.monitor_only=True;app.setQuitOnLastWindowClosed(False)
-            window.start('run',item['file'],item['environment'])
+            window.start('run',item['file'],item['environment'],args.launch)
             if not window.job:raise ValueError('Não foi possível iniciar a execução.')
         except (OSError,ValueError,TypeError) as error:
             QMessageBox.warning(None,'Não foi possível abrir o programa',str(error));raise SystemExit(1)

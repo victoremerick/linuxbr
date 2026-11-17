@@ -12,11 +12,22 @@ const labels = {
   'enable-device': 'Dispositivo habilitado',
   'set-window': 'Janela cadastrada', 'reschedule-window': 'Janela reagendada',
   'clear-window': 'Janela removida',
+  'request-policy-review': 'Revisão de política solicitada',
+  'approve-policy': 'Política crítica aprovada',
+  'pause-policy': 'Entrega da política suspensa',
+  'resume-policy': 'Entrega da política retomada',
+  'export-audit': 'Auditoria exportada',
+  'schedule-retirement': 'Retirada de dispositivo encaminhada',
+  'confirm-retirement': 'Retirada de dispositivo confirmada',
+  'diagnostic-revoked': 'Acesso ao diagnóstico encerrado pelo dispositivo',
+  revoked: 'Encerrada pelo usuário',
 };
 let currentRevision = null;
 let busy = false;
 let revisionsByName = new Map();
 let canManageWindows = false;
+let pauseTarget = null;
+const isoSeconds = (value) => value.toISOString().replace(/\.\d+Z$/, 'Z');
 
 async function api(path, payload) {
   const options = payload === undefined ? {} : {
@@ -129,6 +140,7 @@ async function refresh() {
   element('pause').disabled = !releaseAllowed || !currentRevision || !!active.paused;
   element('resume').disabled = !releaseAllowed || !currentRevision || !active.paused;
   element('retire').disabled = !releaseAllowed || !currentRevision;
+  element('audit-export-controls').disabled = !['admin', 'audit'].includes(role);
 
   element('devices').replaceChildren();
   for (const device of devices) {
@@ -137,17 +149,35 @@ async function refresh() {
       device.free_bytes === null ? '—' : (device.free_bytes / 1073741824).toFixed(1) + ' GiB',
       device.reboot_pending === null ? '—' : device.reboot_pending ? 'Pendente' : 'Em dia',
       contact(device.last_contact), labels[device.state] || 'Aguardando', device.confirmed_revision,
-      device.profile,
+      [device.profile, device.retirement_completed ? 'Retirado' : device.retirement_requested && 'Retirada pendente',
+        device.policy_pending && 'Revisão pendente · ' + device.policy_pending,
+        device.policy_paused_until && 'Suspensa até ' + when(device.policy_paused_until)].filter(Boolean).join('\n'),
     ]);
     const actions = row.insertCell();
-    if (device.enabled) {
+    if (device.enabled && !device.retirement_requested) {
       if (supportAllowed) button(actions, 'Solicitar diagnóstico', () => change('diagnostic', device.name));
+      if (policies.length && ['admin', 'audit'].includes(role)) {
+        button(actions, 'Simular política', () => simulatePolicy(device.name));
+      }
+      if (role === 'audit' && device.policy_pending) {
+        button(actions, 'Aprovar política crítica', () => change('approve-policy', device.name,
+          {profile: device.policy_pending}, 'Aprovar ' + device.policy_pending + ' para ' + device.name + '?'));
+      }
       if (role === 'admin') {
         if (policies.length) button(actions, 'Atribuir política', () => change('assign-policy', device.name));
-        if (device.profile) button(actions, 'Retirar atribuição', () => change('clear-policy', device.name));
+        if (device.profile) {
+          button(actions, 'Retirar atribuição', () => change('clear-policy', device.name));
+          if (device.policy_paused_until) {
+            button(actions, 'Retomar política', () => change('resume-policy', device.name));
+          } else {
+            button(actions, 'Suspender política', () => openPolicyPause(device.name));
+          }
+        }
         button(actions, 'Desabilitar', () => change('disable-device', device.name));
+        button(actions, 'Encaminhar retirada', () => change('schedule-retirement', device.name,
+          {}, 'Encaminhar ' + device.name + ' para retirada? O computador precisará confirmar a remoção local.'));
       }
-    } else if (role === 'admin') {
+    } else if (role === 'admin' && !device.retirement_requested) {
       button(actions, 'Habilitar', () => change('enable-device', device.name));
     }
   }
@@ -178,6 +208,8 @@ const actions = {
   'disable-device': 'Desabilitar dispositivo', 'enable-device': 'Habilitar dispositivo',
   'assign-policy': 'Atribuir política', 'clear-policy': 'Retirar atribuição de política',
   'set-window': 'Salvar janela', 'clear-window': 'Remover janela',
+  'approve-policy': 'Aprovar política crítica', 'pause-policy': 'Suspender política',
+  'resume-policy': 'Retomar política',
 };
 async function change(action, target, fields = {}, confirmation = undefined) {
   if (busy || !target || !window.confirm(confirmation ?? actions[action] + ' · ' + target + '?')) return;
@@ -188,16 +220,88 @@ async function change(action, target, fields = {}, confirmation = undefined) {
   try {
     const payload = {action, target, ...fields};
     if (action === 'assign-policy') payload.profile = element('policies').value;
-    await api('/v1/admin/action', payload);
+    const result = await api('/v1/admin/action', payload);
     element('report').hidden = true;
     element('report').textContent = '';
     await refresh();
-    feedback.textContent = 'Alteração registrada.';
+    feedback.textContent = result.pending_review ?
+      'Pedido registrado. A atribuição aguarda aprovação por um operador de auditoria.' :
+      'Alteração registrada.';
   } catch (error) { feedback.textContent = error.message; }
   finally {
     busy = false;
     updateWindowButtons();
   }
+}
+
+async function simulatePolicy(device) {
+  const profile = element('policies').value;
+  if (!profile) return;
+  try {
+    const result = await api('/v1/admin/policy-simulation', {device, profile});
+    const preview = element('policy-preview');
+    const rules = (items) => items.length ? items.map((rule) =>
+      `• ${rule.id} · ${rule.required ? 'Obrigatória' : 'Opcional'} · ${JSON.stringify(rule.value)}`).join('\n') :
+      'Nenhuma regra atribuída';
+    preview.textContent = [
+      result.device + ' · Onda ' + labels[result.wave],
+      'Perfil atual · ' + (result.current || 'Nenhum'), rules(result.previous_rules),
+      'Perfil proposto · ' + result.proposed, rules(result.proposed_rules),
+      result.critical.length ? 'Regras com dupla aprovação · ' + result.critical.join(', ') : '',
+      result.exception ? 'Exceção até ' + when(result.exception.expires) + ' · ' + result.exception.reason : '',
+      ...result.precedence,
+    ].filter(Boolean).join('\n');
+    preview.hidden = false;
+    preview.focus();
+  } catch (error) { element('message').textContent = error.message; }
+}
+
+function openPolicyPause(device) {
+  pauseTarget = device;
+  element('policy-device').textContent = device;
+  element('policy-expires').value = '';
+  element('policy-reason').value = '';
+  element('policy-pause').showModal();
+}
+
+function pausePolicy() {
+  const expires = element('policy-expires');
+  const reason = element('policy-reason');
+  if (!expires.reportValidity() || !reason.reportValidity()) return;
+  const instant = new Date(expires.value);
+  if (!Number.isFinite(instant.getTime())) return;
+  element('policy-pause').close();
+  return change('pause-policy', pauseTarget, {expires: isoSeconds(instant), reason: reason.value.trim()});
+}
+
+async function exportAudit() {
+  const start = element('audit-start');
+  const end = element('audit-end');
+  const feedback = element('audit-feedback');
+  const button = element('audit-export');
+  if (!start.reportValidity() || !end.reportValidity()) return;
+  const first = new Date(start.value);
+  const last = new Date(end.value);
+  if (!(first < last)) {
+    feedback.textContent = 'O fim do intervalo deve ser posterior ao início.';
+    return;
+  }
+  button.disabled = true;
+  try {
+    const response = await fetch('/v1/admin/audit-export', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({starts_at: isoSeconds(first), ends_at: isoSeconds(last)}),
+    });
+    if (!response.ok) throw new Error((await response.json()).error);
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'linuxbr-auditoria.gpg';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    feedback.textContent = 'Registro assinado pronto para conferência com a chave da organização.';
+  } catch (error) { feedback.textContent = error.message; }
+  finally { button.disabled = false; }
 }
 
 function saveWindow() {
@@ -240,6 +344,9 @@ async function reload() {
 }
 
 element('refresh').addEventListener('click', reload);
+element('policy-save').addEventListener('click', pausePolicy);
+element('policy-cancel').addEventListener('click', () => element('policy-pause').close());
+element('audit-export').addEventListener('click', exportAudit);
 element('revisions').addEventListener('change', () => {
   element('window-feedback').textContent = '';
   showWindow();

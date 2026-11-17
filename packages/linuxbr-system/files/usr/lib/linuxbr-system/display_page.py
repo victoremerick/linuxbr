@@ -2,8 +2,8 @@
 import subprocess
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import (QWidget,QVBoxLayout,QFormLayout,QHBoxLayout,QLabel,QComboBox,
-    QCheckBox,QSpinBox,QDoubleSpinBox,QPushButton,QMessageBox,QGroupBox)
-from display_backend import outputs,settings,apply
+    QCheckBox,QSpinBox,QDoubleSpinBox,QPushButton,QMessageBox,QGroupBox,QInputDialog)
+from display_backend import outputs,settings,apply,apply_profile,load_profiles,save_profiles,snapshot
 
 
 class Displays(QWidget):
@@ -29,6 +29,22 @@ class Displays(QWidget):
         form.addRow('Posição',position);body.addLayout(form)
         self.enabled.toggled.connect(self.toggle_fields)
         save=QPushButton('Aplicar alterações');save.setProperty('primary',True);save.clicked.connect(self.save);body.addWidget(save)
+        profiles = QGroupBox('Perfis de monitores')
+        profiles_layout = QVBoxLayout(profiles)
+        profile_note = QLabel('Guarde a configuração completa para os monitores conectados neste local.')
+        profile_note.setWordWrap(True)
+        profiles_layout.addWidget(profile_note)
+        profile_actions = QHBoxLayout()
+        self.profiles = QComboBox()
+        self.profiles.setAccessibleName('Perfil de monitores')
+        profile_actions.addWidget(self.profiles, 1)
+        for label, callback in [('Salvar perfil…', self.store_profile), ('Aplicar perfil', self.restore_profile),
+                                ('Excluir perfil…', self.delete_profile)]:
+            action = QPushButton(label)
+            action.clicked.connect(callback)
+            profile_actions.addWidget(action)
+        profiles_layout.addLayout(profile_actions)
+        body.addWidget(profiles)
         night=QGroupBox('Luz noturna');night_form=QFormLayout(night)
         self.night_enabled=QCheckBox('Reduzir luz azul à noite');night_form.addRow('',self.night_enabled)
         self.night_temp=QSpinBox();self.night_temp.setRange(1000,6500);self.night_temp.setSingleStep(100);self.night_temp.setSuffix(' K')
@@ -36,7 +52,7 @@ class Displays(QWidget):
         night_save=QPushButton('Aplicar luz noturna');night_save.clicked.connect(self.save_night)
         night_form.addRow('',night_save);body.addWidget(night)
         self.status=QLabel();self.status.setWordWrap(True);body.addWidget(self.status);body.addStretch()
-        self.refresh();self.load_night()
+        self.refresh();self.load_night();self.refresh_profiles()
 
     def load_night(self):
         try:
@@ -98,6 +114,69 @@ class Displays(QWidget):
         try:apply(after,modes)
         except (OSError,ValueError,subprocess.SubprocessError) as error:
             self.status.setText('Falha ao aplicar: '+str(error));return
+        self.confirm_changes(lambda: apply(before, modes))
+
+    def refresh_profiles(self, selected=''):
+        try:
+            saved = load_profiles()
+        except (OSError, ValueError) as error:
+            self.status.setText(str(error))
+            return
+        self.profiles.clear()
+        self.profiles.addItems(sorted(saved, key=str.casefold))
+        if selected:
+            self.profiles.setCurrentText(selected)
+
+    def store_profile(self):
+        name, accepted = QInputDialog.getText(self, 'Salvar perfil de monitores', 'Nome do local')
+        if not accepted:
+            return
+        name = name.strip()
+        if not name or len(name) > 80 or not all(character.isprintable() for character in name):
+            self.status.setText('Informe um nome de até 80 caracteres.')
+            return
+        try:
+            saved = load_profiles()
+            if name in saved and QMessageBox.question(self, 'Salvar perfil', 'Substituir o perfil existente?') != QMessageBox.StandardButton.Yes:
+                return
+            saved[name] = snapshot(outputs())
+            save_profiles(saved)
+            self.refresh_profiles(name)
+            self.status.setText('Perfil de monitores salvo.')
+        except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError) as error:
+            self.status.setText('Falha ao salvar o perfil: ' + str(error))
+
+    def restore_profile(self):
+        name = self.profiles.currentText()
+        if not name:
+            return
+        try:
+            connected = outputs()
+            before = snapshot(connected)
+            profile = load_profiles()[name]
+            if profile == before:
+                self.status.setText('O perfil já está ativo.')
+                return
+            apply_profile(profile, connected)
+        except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError) as error:
+            self.status.setText('Falha ao aplicar o perfil: ' + str(error))
+            return
+        self.confirm_changes(lambda: apply_profile(before, outputs()))
+
+    def delete_profile(self):
+        name = self.profiles.currentText()
+        if not name or QMessageBox.question(self, 'Excluir perfil de monitores', 'Remover o perfil selecionado?') != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            saved = load_profiles()
+            saved.pop(name, None)
+            save_profiles(saved)
+            self.refresh_profiles()
+            self.status.setText('Perfil de monitores removido.')
+        except (OSError, ValueError) as error:
+            self.status.setText(str(error))
+
+    def confirm_changes(self, rollback):
         box=QMessageBox(self);box.setWindowTitle('Confirmar tela');box.setText('A imagem está legível? Mantenha as alterações em até 15 segundos.')
         keep=box.addButton('Manter',QMessageBox.ButtonRole.AcceptRole)
         box.addButton('Reverter',QMessageBox.ButtonRole.RejectRole)
@@ -105,7 +184,7 @@ class Displays(QWidget):
         box.exec();timer.stop()
         if box.clickedButton() is keep:
             self.status.setText('Configuração de tela mantida.');self.refresh();return
-        try:apply(before,modes);self.status.setText('Configuração anterior restaurada.')
+        try:rollback();self.status.setText('Configuração anterior restaurada.')
         except (OSError,ValueError,subprocess.SubprocessError) as error:
             self.status.setText('Falha na reversão automática: '+str(error))
         self.refresh()

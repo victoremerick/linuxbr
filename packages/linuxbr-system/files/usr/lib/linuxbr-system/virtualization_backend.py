@@ -12,6 +12,8 @@ import xml.etree.ElementTree as ET
 NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}')
 STATES = {0:'Desconhecida',1:'Em execução',2:'Ocupada',3:'Pausada',4:'Desligando',5:'Desligada',6:'Falha',7:'Suspensa'}
 CPU_DEFAULTS='{https://linuxbr.local/vm-defaults}cpu'
+TEMPLATE_DEFAULTS='{https://linuxbr.local/vm-template}template'
+REVISION_ID = re.compile(r'[a-zA-Z0-9][a-zA-Z0-9._+-]{0,39}')
 
 
 def checked_name(value):
@@ -43,7 +45,14 @@ def domain_xml(spec,capabilities):
     root=ET.Element('domain',type=kind);child(root,'name',name);child(root,'uuid',str(uuid.uuid4()))
     child(root,'memory',memory,unit='MiB');child(root,'currentMemory',memory,unit='MiB');child(root,'vcpu',cpus,placement='static')
     child(child(root,'cpu',mode='host-model' if kind=='kvm' else 'maximum'),'topology',sockets='1',cores=cpus,threads='1')
-    child(child(root,'metadata'),CPU_DEFAULTS,topology='single-socket')
+    metadata=child(root,'metadata')
+    child(metadata,CPU_DEFAULTS,topology='single-socket')
+    template=spec.get('managed_template')
+    if template:
+        identifier,revision=template
+        if not NAME.fullmatch(identifier) or not REVISION_ID.fullmatch(revision):
+            raise ValueError('Identificador ou revisão do modelo inválido.')
+        child(metadata,TEMPLATE_DEFAULTS,id=identifier,revision=revision)
     operating=child(root,'os');child(operating,'type','hvm',arch='x86_64',machine=machine)
     if spec.get('uefi',True):
         operating.set('firmware','efi')

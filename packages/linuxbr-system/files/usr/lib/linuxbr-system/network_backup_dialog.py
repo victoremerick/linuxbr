@@ -1,5 +1,6 @@
 """Desktop entry point for versioned backups on another computer."""
 
+from datetime import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
@@ -9,6 +10,7 @@ from PyQt6.QtWidgets import (
 )
 
 from desktop_jobs import Command
+from backup_validation import CONFIG, RESULT, load
 from network_backup import absolute_path, command, password_input, repository, restore_args
 
 
@@ -46,11 +48,22 @@ class NetworkBackupDialog(QDialog):
             ('Fazer backup de arquivos…', self.backup),
             ('Listar versões disponíveis', self.versions),
             ('Restaurar arquivo, pasta ou versão…', self.restore),
+            ('Verificar integridade agora…', self.verify),
+            ('Agendar verificação semanal…', self.schedule),
         ):
             button = QPushButton(title)
             button.setAutoDefault(False)
             button.clicked.connect(lambda _, callback=action: self.run(callback))
             body.addWidget(button, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.verification_status = QLabel()
+        self.verification_status.setTextFormat(Qt.TextFormat.PlainText)
+        self.verification_status.setWordWrap(True)
+        body.addWidget(self.verification_status)
+        cancel_schedule = QPushButton('Desativar verificação semanal')
+        cancel_schedule.clicked.connect(self.cancel_schedule)
+        body.addWidget(cancel_schedule, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.cancel_button = cancel_schedule
+        self.refresh_verification()
         close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         close.rejected.connect(self.reject)
         body.addWidget(close)
@@ -71,6 +84,58 @@ class NetworkBackupDialog(QDialog):
         job = Command(title, command(repo, *args), self, input_data=secret, **kwargs)
         job.setWindowModality(Qt.WindowModality.WindowModal)
         return job
+
+    def refresh_verification(self):
+        configuration = load(CONFIG)
+        self.cancel_button.setEnabled(bool(configuration))
+        result = load(RESULT)
+        lines = ['Verificação semanal configurada para esta conta.' if configuration else
+                 'Verificação semanal desativada.']
+        try:
+            checked = datetime.fromisoformat(result['checked_at']).astimezone().strftime('%d/%m/%Y %H:%M')
+            state = ('senha indisponível no cofre' if result.get('credential_unavailable') else
+                     'índices e amostra conferidos, arquivo recuperado' if result.get('file') else
+                     'arquivo de teste indisponível' if result.get('index_and_sample') else
+                     'falha nos índices ou na amostra')
+            lines.append(f'Última verificação em {checked} · {state}')
+            if result.get('recovered_at'):
+                recovered = datetime.fromisoformat(result['recovered_at']).astimezone().strftime('%d/%m/%Y %H:%M')
+                lines.append(f'Última recuperação de teste em {recovered}')
+        except (KeyError, TypeError, ValueError):
+            pass
+        self.verification_status.setText('\n'.join(lines))
+
+    def verification(self, secret, action, title):
+        source, accepted = QInputDialog.getText(
+            self, title, 'Caminho absoluto de um arquivo pequeno presente na cópia mais recente.'
+        )
+        if not accepted:
+            return
+        path = absolute_path(source)
+        self.password.clear()
+        job = Command(title, ['/usr/bin/python3', '/usr/lib/linuxbr-system/backup_validation.py',
+                              action, '--host', self.host.text(), '--user', self.user.text(),
+                              '--port', str(self.port.value()), '--directory', self.directory.text(),
+                              '--source', path], self, input_data=secret)
+        job.setWindowModality(Qt.WindowModality.WindowModal)
+        job.completed.connect(lambda _: self.refresh_verification())
+
+    def verify(self, repo, secret):
+        self.verification(secret, 'check', 'Verificar integridade do backup')
+
+    def schedule(self, repo, secret):
+        if QMessageBox.question(
+                self, 'Agendar verificação semanal',
+                'A senha do backup será guardada no cofre desta conta. A verificação usa a sessão desta conta '
+                'e precisa que o cofre e o acesso SSH estejam disponíveis.'
+        ) == QMessageBox.StandardButton.Yes:
+            self.verification(secret, 'enable', 'Agendar verificação semanal')
+
+    def cancel_schedule(self):
+        job = Command('Desativar verificação semanal',
+                      ['/usr/bin/python3', '/usr/lib/linuxbr-system/backup_validation.py', 'disable'], self)
+        job.setWindowModality(Qt.WindowModality.WindowModal)
+        job.completed.connect(lambda _: self.refresh_verification())
 
     def initialize(self, repo, secret):
         repeated, accepted = QInputDialog.getText(

@@ -1,0 +1,7 @@
+[Unit]
+Description=Verificar uma amostra do backup de arquivos
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/backup_validation.py run
+TimeoutStartSec=27min

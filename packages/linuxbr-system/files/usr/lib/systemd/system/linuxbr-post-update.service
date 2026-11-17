@@ -1,0 +1,13 @@
+[Unit]
+Description=Conferir a primeira inicialização após uma atualização gerenciada
+After=systemd-logind.service NetworkManager.service
+ConditionPathExists=/var/lib/linuxbr/recovery/last-managed.json
+ConditionKernelCommandLine=!boot=live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/post_update.py
+TimeoutStartSec=180
+NoNewPrivileges=yes
+ProtectHome=yes
+PrivateTmp=yes

@@ -55,6 +55,21 @@
         <th>Revisão confirmada</th><th>Perfil atribuído</th><th>Ações</th></tr></thead>
       <tbody id="devices"></tbody>
     </table></div>
+    <pre id="policy-preview" hidden tabindex="0" aria-label="Simulação da política"></pre>
+    <dialog id="policy-pause">
+      <h3>Suspender entrega da política</h3>
+      <p id="policy-device"></p>
+      <label for="policy-expires">Retomar em (horário local)
+        <input id="policy-expires" type="datetime-local" required>
+      </label>
+      <label for="policy-reason">Motivo
+        <input id="policy-reason" type="text" maxlength="160" required>
+      </label>
+      <div class="actions">
+        <button type="button" id="policy-save">Suspender entrega</button>
+        <button type="button" id="policy-cancel">Cancelar</button>
+      </div>
+    </dialog>
   </section>
   <section aria-labelledby="diagnostics-title">
     <h2 id="diagnostics-title">Diagnósticos solicitados</h2>
@@ -67,6 +82,19 @@
   </section>
   <section aria-labelledby="audit-title">
     <h2 id="audit-title">Histórico de operações</h2>
+    <fieldset id="audit-export-controls" disabled>
+      <legend>Exportar histórico assinado</legend>
+      <div class="window-fields">
+        <label for="audit-start">Início (horário local)
+          <input id="audit-start" type="datetime-local" required>
+        </label>
+        <label for="audit-end">Fim (horário local)
+          <input id="audit-end" type="datetime-local" required>
+        </label>
+      </div>
+      <button type="button" id="audit-export">Baixar registro OpenPGP</button>
+      <p id="audit-feedback" role="status" aria-live="polite"></p>
+    </fieldset>
     <div class="scroll"><table>
       <thead><tr><th>Horário</th><th>Operador ou dispositivo</th><th>Ação</th><th>Alvo</th></tr></thead>
       <tbody id="audit"></tbody>

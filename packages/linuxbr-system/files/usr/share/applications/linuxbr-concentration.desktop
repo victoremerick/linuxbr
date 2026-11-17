@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Horários de concentração
+Comment=Agende o modo Não perturbe e escolha quais avisos podem sair do silêncio
+Exec=/usr/bin/linuxbr-concentration
+Icon=notifications-disabled
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=notificações;silêncio;não perturbe;foco;agenda;

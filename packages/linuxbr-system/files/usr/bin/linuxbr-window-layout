@@ -1,0 +1,6 @@
+#!/bin/sh
+if ! /usr/bin/busctl --user --timeout=5 call org.kde.kglobalaccel /component/kwin \
+    org.kde.kglobalaccel.Component invokeShortcut s "Edit Tiles" >/dev/null 2>&1; then
+    /usr/bin/notify-send --app-name="Linux BR" "Layout de janelas" "Abra o editor de encaixes na sessão KDE com Super+T."
+    exit 1
+fi

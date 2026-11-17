@@ -339,6 +339,8 @@ if __name__=='__main__':
     if sys.argv[1:]==['--page','Gerenciador de tarefas']:
         sys.exit(0 if QProcess.startDetached('linuxbr-task-manager',[])[0] else 1)
     application.setDesktopFileName("linuxbr-system")
+    from keyboard_focus import KeyboardFocus
+    focus_indicator = KeyboardFocus(application)
     window=Central(); window.show()
     if len(sys.argv)==3 and sys.argv[1]=='--page' and sys.argv[2] in (page[0] for page in PAGES):
         window.navigate(sys.argv[2])

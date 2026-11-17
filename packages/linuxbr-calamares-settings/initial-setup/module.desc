@@ -1,0 +1,5 @@
+---
+type: job
+name: linuxbr_initial_setup
+interface: python
+script: main.py

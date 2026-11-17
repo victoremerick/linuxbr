@@ -1,0 +1,5 @@
+#!/bin/sh
+case "$1" in
+    images|issue|revoke) exec /usr/bin/python3 -I /usr/lib/linuxbr-boot/virtual_media_delegate.py "$@" ;;
+    *) printf '%s\n' 'Use images, issue ou revoke.' >&2; exit 2 ;;
+esac

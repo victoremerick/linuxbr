@@ -34,10 +34,10 @@ main() {
             echo 'Reutilizando ferramentas de compilacao.'
         fi
         "$engine" run --rm --privileged --security-opt label=disable \
-          --network host -e LINUXBR_NO_CACHE="$NO_CACHE" -v "$PWD:/src:rw" -w /src "$image" \
+          --network host -e LINUXBR_NO_CACHE="$NO_CACHE" -e LINUXBR_BUILD_EDITION="$BUILD_EDITION" -v "$PWD:/src:rw" -w /src "$image" \
           bash -c "$program"
     }
     run_logged compilacao compile_iso
-    printf 'ISO pronta: dist/linuxbr-%s-amd64.iso\n' "$version"
+    printf 'ISO pronta: dist/%s-amd64.iso\n' "$(build_iso_stem "$BUILD_EDITION" "$version")"
 }
 main "$@"; exit "$?"

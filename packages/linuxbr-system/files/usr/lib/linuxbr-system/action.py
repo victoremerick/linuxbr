@@ -1,6 +1,7 @@
 """Fixed Windows-X style actions from the Start button context menu."""
 import shutil
 import sys
+import re
 from urllib.parse import urlsplit
 from PyQt6.QtCore import QProcess
 from PyQt6.QtGui import QIcon
@@ -32,6 +33,8 @@ def action_from_url(raw):
     if parsed.scheme!='linuxbr-action' or parsed.netloc or parsed.query or parsed.fragment:
         raise ValueError('Ação desconhecida.')
     action=parsed.path.strip('/')
+    if re.fullmatch(r'app-audio/[1-9][0-9]{0,6}', action) and 1 < int(action.split('/')[1]) < 4194304:
+        return action
     if action not in COMMANDS and action!='run':raise ValueError('Ação desconhecida.')
     return action
 
@@ -91,6 +94,10 @@ def main(argv):
     except ValueError:action=None
     if action=='run':run_dialog();return 0
     if action is None:return 2
+    if action.startswith('app-audio/'):
+        from app_audio import AppAudio
+        AppAudio(int(action.split('/')[1])).exec()
+        return 0
     command=COMMANDS[action]
     if not shutil.which(command[0]):return 1
     return 0 if QProcess.startDetached(command[0],command[1:])[0] else 1

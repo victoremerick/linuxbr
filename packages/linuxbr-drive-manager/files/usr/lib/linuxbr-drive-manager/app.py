@@ -13,6 +13,7 @@ from partition_dialog import PartitionDialog, TITLES
 from core import LETTERS
 from client import ServiceStore
 from properties import Properties, usage_widget
+from health_dialog import HealthDialog
 from network_access import NetworkAccess, wallet_command
 
 
@@ -47,6 +48,7 @@ class Window(QMainWindow):
         self.buttons = {}
         actions = [('Atualizar', 'view-refresh', self.refresh), ('Abrir', 'document-open', self.open_selected),
                    ('Propriedades', 'document-properties', self.show_properties),
+                   ('Saúde dos discos…', 'utilities-system-monitor', self.show_health),
                    ('Montar', 'media-mount', lambda: self.operate('mount')),
                    ('Desmontar', 'media-eject', lambda: self.operate('unmount')),
                    ('Alterar letra', 'edit-rename', self.change_letter),
@@ -59,7 +61,7 @@ class Window(QMainWindow):
         for name, icon, callback in actions:
             action = QAction(QIcon.fromTheme(icon), name, self); action.triggered.connect(callback)
             self.buttons[name] = action
-            if name in ('Atualizar', 'Abrir', 'Propriedades'): toolbar.addAction(action)
+            if name in ('Atualizar', 'Abrir', 'Propriedades', 'Saúde dos discos…'): toolbar.addAction(action)
             elif name in ('Reconectar', 'Senhas de rede', 'Adicionar rede', 'Remover rede'): network_menu.addAction(action)
             else: unit_menu.addAction(action)
         toolbar.addSeparator()
@@ -143,7 +145,8 @@ class Window(QMainWindow):
         self.process = process
         self.operation_progress.setVisible(args[0] == 'partition')
         self.selection_changed()
-        self.statusBar().showMessage('Consultando armazenamento…' if args[0] == 'list' else 'Aguardando operação e autorização do sistema…')
+        status_text = {'list': 'Consultando armazenamento…', 'health': 'Consultando a saúde dos discos…'}
+        self.statusBar().showMessage(status_text.get(args[0], 'Aguardando operação e autorização do sistema…'))
         def done(code, status):
             self.process = None
             self.operation_progress.hide()
@@ -169,6 +172,13 @@ class Window(QMainWindow):
         process.errorOccurred.connect(failed)
         script = 'client.py' if args[0] == 'list' else 'backend.py'
         process.start(sys.executable, [str(Path(__file__).with_name(script)), *args])
+
+    def show_health(self):
+        self.worker(['health'], self.display_health)
+
+    def display_health(self, drives):
+        self.statusBar().clearMessage()
+        HealthDialog(drives, self).exec()
 
     def refresh(self):
         if self.process is not None: return

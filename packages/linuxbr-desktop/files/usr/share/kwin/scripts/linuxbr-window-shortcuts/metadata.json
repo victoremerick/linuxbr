@@ -3,7 +3,7 @@
     "KPlugin": {
         "Id": "linuxbr-window-shortcuts",
         "Name": "Linux BR — Atalhos de janelas",
-        "Description": "Maximizar, restaurar e minimizar com os atalhos familiares do teclado.",
+        "Description": "Maximizar, restaurar, minimizar e trazer janelas para a tela do ponteiro.",
         "Icon": "preferences-system-windows",
         "Version": "1.0",
         "License": "GPL-3.0-or-later",

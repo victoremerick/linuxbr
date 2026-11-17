@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import unicodedata
@@ -168,7 +169,12 @@ def action(item):
 
 
 def installed_entries(entries):
-    result=desktop_applications()
+    from windows_runner import environment_path, programs, read_environment, program_icon
+    registered = programs()
+    managed = {(str(environment_path(item['environment']) / 'prefix'), folded(item['name']).strip())
+               for item in registered}
+    result = [item for item in desktop_applications()
+              if (item.get('wine_prefix'), folded(item['name']).strip()) not in managed]
     snap_entries = {item['optional_target']['target']: item for item in entries
                     if item.get('optional_target') and item['optional_target']['manager'] == 'snap'
                     and item['optional_target']['installed']}
@@ -200,8 +206,7 @@ def installed_entries(entries):
             kind='web',category='Internet e comunicação',description='Perfil web salvo neste computador.',
             url=item['url'],source=item['url'],profile_id=item['id'],local=True,
             note='Os dados e o login pertencem a este perfil. Remover do menu preserva os dados.'))
-    from windows_runner import programs, read_environment, program_icon
-    for item in programs():
+    for item in registered:
         result.append(dict(id='program:'+item['id'],name=item['name'],kind='windows',
             category='Programas Windows',description='Ambiente: '+read_environment(item['environment'])['name'],
             source='https://www.winehq.org/',program_id=item['id'],local=True,icon=program_icon(item['id']),
@@ -224,6 +229,19 @@ def desktop_applications():
         if not filename or not Path(filename).is_file():continue
         seen.add(identifier)
         executable=app.get_executable() or ''
+        path = Path(filename)
+        if any(parent.name == 'wine' and parent.parent.name == 'applications' for parent in path.parents):
+            try:
+                args = shlex.split(app.get_commandline() or '')
+            except ValueError:
+                args = []
+            prefix = next((arg.removeprefix('WINEPREFIX=') for arg in args if arg.startswith('WINEPREFIX=')), '')
+            result.append(dict(id='desktop:' + identifier, desktop_id=identifier,
+                               name=app.get_display_name(), kind='windows', category='Programas Windows',
+                               description='Programa Windows registrado pelo Wine.', source='Atalhos locais do Wine',
+                               local=True, desktop_file=filename, icon=app.get_string('Icon'),
+                               wine_prefix=prefix, note='Gerencie o programa no ambiente em que foi instalado.'))
+            continue
         result.append(dict(id='desktop:'+identifier,desktop_id=identifier,name=app.get_display_name(),
             kind='linux',category='Aplicativos instalados',description=app.get_description() or 'Aplicativo deste computador.',
             source='Registro de aplicativos deste computador',local=True,
