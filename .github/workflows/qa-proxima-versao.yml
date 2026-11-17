@@ -1,0 +1,119 @@
+name: ISO de validação do Linux BR
+
+on:
+  push:
+    branches: [qa/proxima-versao]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linuxbr-proxima-versao
+  cancel-in-progress: false
+
+jobs:
+  desktop:
+    if: github.repository == 'victoremerick/linuxbr' && github.ref == 'refs/heads/qa/proxima-versao'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      CONTAINER_ENGINE: docker
+    steps:
+      - name: Obter as fontes do candidato
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - name: Preparar espaço e ferramentas no executor
+        shell: bash
+        run: |
+          set -euo pipefail
+          for folder in /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL; do
+            if [[ -d $folder && ! -L $folder ]]; then
+              sudo rm -rf -- "$folder"
+            fi
+          done
+          docker builder prune --all --force
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends acl gnupg ovmf \
+            python3 python3-cryptography python3-dbus python3-gi python3-pyqt6 \
+            qemu-system-x86 qemu-utils restic tesseract-ocr tesseract-ocr-eng xorriso
+          sudo apt-get clean
+          if ! sudo losetup --find; then
+            sudo modprobe loop
+            sudo losetup --find
+          fi
+          if [[ -c /dev/kvm && ( ! -r /dev/kvm || ! -w /dev/kvm ) ]]; then
+            sudo setfacl -m "u:$(id -u):rw" /dev/kvm
+          fi
+          python3 scripts/build_preflight.py "$GITHUB_WORKSPACE"
+
+      - name: Validar as funções e o servidor de administração
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+          LINUXBR_QA_RESTIC: /usr/bin/restic
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/linuxbr-qa"
+          for suite in \
+            tests/test-next-store-vm-security.py \
+            tests/test-organization-machine-policy.py \
+            tests/test-update-waves.py \
+            server/update-waves/test_wave_server.py; do
+            python3 "$suite" -v
+          done 2>&1 | tee "$RUNNER_TEMP/linuxbr-qa/testes.log"
+          node --check server/update-waves/panel.js
+
+      - name: Compilar a ISO Desktop no executor
+        run: bash build.sh --verbose
+
+      - name: Identificar a imagem e conferir o checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(<VERSION)
+          cd dist
+          iso="linuxbr-$version-amd64.iso"
+          sha256sum --check --strict "$iso.sha256"
+          sha256sum -- "$iso" > "$RUNNER_TEMP/linuxbr-qa/ISO.sha256"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/linuxbr-qa/fontes.txt"
+          printf '%s\n' "$version" > "$RUNNER_TEMP/linuxbr-qa/versao.txt"
+
+      - name: Guardar a ISO para homologação
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: linuxbr-desktop-iso-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/linuxbr-*-amd64.iso
+            dist/linuxbr-*-amd64.iso.sha256
+            dist/linuxbr-*-upstream.sha256
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Inicializar a mídia em UEFI e depois em BIOS
+        env:
+          QA_EVIDENCE_BASE: ${{ runner.temp }}/linuxbr-qa
+        run: bash tests/qa-release-iso.sh headless
+
+      - name: Guardar evidências da compilação e dos boots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: linuxbr-desktop-evidencias-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/linuxbr-qa/**/*.log
+            ${{ runner.temp }}/linuxbr-qa/**/*.json
+            ${{ runner.temp }}/linuxbr-qa/**/*.txt
+            ${{ runner.temp }}/linuxbr-qa/**/*.sha256
+            ${{ runner.temp }}/linuxbr-qa/**/*.ppm
+            ${{ runner.temp }}/linuxbr-qa/**/*.png
+            ${{ github.workspace }}/.cache/logs/*.log
+          compression-level: 1
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: warn
