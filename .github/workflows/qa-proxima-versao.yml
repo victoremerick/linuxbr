@@ -64,7 +64,7 @@ jobs:
             tests/test-organization-machine-policy.py \
             tests/test-update-waves.py \
             server/update-waves/test_wave_server.py; do
-            python3 "$suite" -v
+            sudo env QT_QPA_PLATFORM=offscreen /usr/bin/python3 -B "$suite" -v
           done 2>&1 | tee "$RUNNER_TEMP/linuxbr-qa/testes.log"
           node --check server/update-waves/panel.js
 
