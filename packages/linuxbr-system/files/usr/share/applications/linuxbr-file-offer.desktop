@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Aceite de transferência
+Exec=linuxbr-file-offer %f
+MimeType=application/x-linuxbr-transfer;
+Icon=network-workgroup
+Terminal=false
+NoDisplay=true

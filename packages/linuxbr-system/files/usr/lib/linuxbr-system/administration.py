@@ -1,12 +1,13 @@
 """Services, event logs, environment variables and scheduled tasks."""
 import json
+import logging
 from pathlib import Path
 import re
 import shlex
 import subprocess
 from PyQt6.QtCore import Qt,QTimer
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QComboBox,QPushButton,QTableWidget,QTableWidgetItem,QHeaderView,QTabWidget,QPlainTextEdit,QLineEdit,QMessageBox,QDialog,QFormLayout,QDialogButtonBox,QFileDialog,QCheckBox
+from PyQt6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QComboBox,QPushButton,QTableWidget,QTableWidgetItem,QHeaderView,QTabWidget,QPlainTextEdit,QLineEdit,QMessageBox,QDialog,QFormLayout,QDialogButtonBox,QFileDialog,QCheckBox,QMenu
 from desktop_jobs import Query,Command
 import administration_backend as backend
 
@@ -20,29 +21,55 @@ def table(headers,editable=False):
 class Administration(QWidget):
     def __init__(self,parent=None):
         super().__init__(parent);self.jobs=set();self.commands=[];self.environment_record=None;self.generation=0;layout=QVBoxLayout(self);title=QLabel('Ferramentas administrativas');title.setStyleSheet('font-size:26px;font-weight:600');layout.addWidget(title)
-        self.scope=QComboBox();self.scope.addItem('Minha conta','user');self.scope.addItem('Todo o computador','system');layout.addWidget(self.scope)
+        self.scope=QComboBox();self.scope.addItem('Minha conta','user');self.scope.addItem('Todo o computador','system')
+        scope_form = QFormLayout()
+        scope_form.addRow('&Escopo', self.scope)
+        layout.addLayout(scope_form)
         self.tabs=QTabWidget();layout.addWidget(self.tabs,1)
         services=QWidget();body=QVBoxLayout(services);self.filter=QLineEdit();self.filter.setPlaceholderText('Filtrar serviços pelo nome ou descrição…');self.filter.textChanged.connect(self.filter_services);body.addWidget(self.filter);self.services=table(['Unidade','Estado','Inicialização','Descrição','Proteção']);body.addWidget(self.services)
         self.hide_essential=QCheckBox('Ocultar componentes protegidos');self.hide_essential.toggled.connect(self.filter_services);body.addWidget(self.hide_essential)
-        lifecycle=QPushButton(QIcon.fromTheme('user-identity'),'Execução dos serviços da minha conta sem login…');lifecycle.clicked.connect(self.linger);body.addWidget(lifecycle)
-        row=QHBoxLayout()
-        create_service=QPushButton(QIcon.fromTheme('list-add'),'Criar serviço…');create_service.clicked.connect(self.create_service);body.addWidget(create_service)
-        details=QPushButton(QIcon.fromTheme('document-properties'),'Propriedades do serviço');details.clicked.connect(self.service_details);body.addWidget(details)
-        editrow=QHBoxLayout()
-        for label,icon,restore in [('Editar configuração do serviço…','document-edit',False),('Restaurar configuração anterior…','edit-undo',True)]:
-            button=QPushButton(QIcon.fromTheme(icon),label);button.clicked.connect(lambda _,r=restore:self.edit_service(r));editrow.addWidget(button)
-        body.addLayout(editrow)
-        transfers=QHBoxLayout()
-        for caption,icon,operation in [('Importar…','document-import','import'),('Exportar…','document-export','export'),('Duplicar…','edit-copy','duplicate'),('Remover serviço criado…','edit-delete','remove')]:
-            button=QPushButton(QIcon.fromTheme(icon),caption);button.clicked.connect(lambda _,op=operation:self.transfer_service(op));transfers.addWidget(button)
-        body.addLayout(transfers)
-        for caption,action,icon in [('Iniciar','start','media-playback-start'),('Parar','stop','media-playback-stop'),('Reiniciar','restart','system-reboot'),('Habilitar no início','enable','dialog-ok-apply'),('Desabilitar no início','disable','dialog-cancel')]:
-            button=QPushButton(QIcon.fromTheme(icon),caption);button.clicked.connect(lambda _=False,a=action:self.service_action(a));row.addWidget(button)
+        self.filter.setAccessibleName('Filtrar serviços')
+        self.services.setAccessibleName('Serviços disponíveis')
+        self.services.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        row = QHBoxLayout()
+        create_service = QPushButton(QIcon.fromTheme('list-add'), 'Criar serviço…')
+        create_service.clicked.connect(self.create_service)
+        row.addWidget(create_service)
+        self.details_button = QPushButton(QIcon.fromTheme('document-properties'), 'Propriedades')
+        self.details_button.clicked.connect(self.service_details)
+        row.addWidget(self.details_button)
+        actions = QPushButton(QIcon.fromTheme('open-menu-symbolic'), 'Ações do serviço')
+        menu = QMenu(actions)
+        actions.setMenu(menu)
+        self.service_mutations = []
+        for caption, action in [('Iniciar', 'start'), ('Parar', 'stop'), ('Reiniciar', 'restart'),
+                                ('Habilitar no início', 'enable'), ('Desabilitar no início', 'disable')]:
+            item = menu.addAction(caption, lambda _=False, a=action: self.service_action(a))
+            self.service_mutations.append(item)
+        menu.addAction('Consultar eventos', self.service_logs)
+        advanced = menu.addMenu('Configuração avançada')
+        for caption, action in [('Recarregar configuração', 'reload'), ('Bloquear futuras ativações', 'mask'),
+                                ('Desbloquear', 'unmask')]:
+            self.service_mutations.append(advanced.addAction(caption, lambda _=False, a=action: self.service_action(a)))
+        advanced.addSeparator()
+        self.service_mutations.append(advanced.addAction('Editar configuração…', lambda: self.edit_service()))
+        self.service_mutations.append(advanced.addAction('Restaurar configuração anterior…', lambda: self.edit_service(True)))
+        transfer = menu.addMenu('Definições de serviço')
+        self.custom_actions = []
+        for caption, operation in [('Exportar…', 'export'), ('Duplicar…', 'duplicate'), ('Remover serviço criado…', 'remove')]:
+            self.custom_actions.append(transfer.addAction(caption, lambda _=False, op=operation: self.transfer_service(op)))
+        row.addWidget(actions)
+        self.service_menu_button = actions
+        row.addStretch()
+        other = QPushButton('Mais opções')
+        other_menu = QMenu(other)
+        other_menu.addAction('Importar definição…', lambda: self.transfer_service('import'))
+        self.linger_action = other_menu.addAction('Serviços pessoais sem login…', self.linger)
+        other.setMenu(other_menu)
+        row.addWidget(other)
         body.addLayout(row)
-        advanced=QHBoxLayout()
-        for caption,action,icon in [('Recarregar configuração','reload','view-refresh'),('Bloquear futuras ativações','mask','object-locked'),('Desbloquear','unmask','object-unlocked')]:
-            button=QPushButton(QIcon.fromTheme(icon),caption);button.clicked.connect(lambda _,a=action:self.service_action(a));advanced.addWidget(button)
-        body.addLayout(advanced);logs=QPushButton(QIcon.fromTheme('view-list-text'),'Consultar eventos do serviço selecionado');logs.clicked.connect(self.service_logs);body.addWidget(logs);self.tabs.addTab(services,'Serviços')
+        self.services.itemSelectionChanged.connect(self.update_service_actions)
+        self.tabs.addTab(services,'Serviços')
         events=QWidget();event_layout=QVBoxLayout(events);self.log_unit=None;self.log_text=''
         self.log_filter=QLineEdit();self.log_filter.setPlaceholderText('Buscar no texto dos eventos…');self.log_filter.textChanged.connect(self.filter_logs);event_layout.addWidget(self.log_filter)
         self.logs=QPlainTextEdit();self.logs.setReadOnly(True);event_layout.addWidget(self.logs,1)
@@ -65,15 +92,31 @@ class Administration(QWidget):
         for index,icon in enumerate(('preferences-system-services','view-list-text','utilities-terminal','view-calendar-timeline')):self.tabs.setTabIcon(index,QIcon.fromTheme(icon))
         for button in environment.findChildren(QPushButton):button.setIcon(QIcon.fromTheme({'Adicionar variável':'list-add','Remover variável':'list-remove','Aplicar variáveis':'dialog-ok-apply'}.get(button.text(),'configure')))
         for button in scheduler.findChildren(QPushButton):button.setIcon(QIcon.fromTheme({'Criar tarefa':'list-add','Executar agora':'media-playback-start','Habilitar':'dialog-ok-apply','Desabilitar':'dialog-cancel','Remover':'edit-delete'}.get(button.text(),'view-calendar-timeline')))
-        self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status);refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Recarregar');refresh.clicked.connect(self.refresh);layout.addWidget(refresh)
+        self.status=QLabel();self.status.setTextFormat(Qt.TextFormat.PlainText);self.status.setWordWrap(True);layout.addWidget(self.status);refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Recarregar');refresh.clicked.connect(self.refresh);layout.addWidget(refresh)
         self.scope.currentIndexChanged.connect(self.refresh);self.tabs.currentChanged.connect(self.refresh);self.refresh()
 
+    def update_service_actions(self):
+        selection = self.selected(self.services)
+        self.details_button.setEnabled(selection is not None)
+        self.service_menu_button.setEnabled(selection is not None)
+        for action in self.service_mutations:
+            action.setEnabled(bool(selection and not selection.get('protected')))
+        for action in self.custom_actions:
+            action.setEnabled(bool(selection and selection['unit'].startswith('linuxbr-custom-')))
+        self.linger_action.setEnabled(self.scope.currentData() == 'user')
+
     def query(self,callback,done):
-        generation=self.generation;task=Query(callback,self);self.jobs.add(task);task.result.connect(lambda value:done(value) if generation==self.generation else None);task.failed.connect(lambda value:self.status.setText(value) if generation==self.generation else None);task.finished.connect(lambda:self.jobs.discard(task));task.finished.connect(task.deleteLater);task.start()
+        generation=self.generation;task=Query(callback,self);self.jobs.add(task);task.result.connect(lambda value:done(value) if generation==self.generation else None);task.failed.connect(lambda value:self.query_failed(value) if generation==self.generation else None);task.finished.connect(lambda:self.jobs.discard(task));task.finished.connect(task.deleteLater);task.start()
+
+    def query_failed(self, reason):
+        logging.warning('Falha na consulta administrativa: %s', reason)
+        self.status.setText('Não foi possível concluir a consulta. Confira o escopo e tente recarregar.')
 
     def refresh(self):
         self.generation+=1;self.environment_record=None
         scope=self.scope.currentData();page=self.tabs.currentIndex()
+        self.update_service_actions()
+        self.status.setText('Consultando…')
         if page==0:
             self.services.setRowCount(0)
             def read():
@@ -104,6 +147,10 @@ class Administration(QWidget):
         for i in range(self.services.rowCount()):
             item=self.services.item(i,0);record=item.data(Qt.ItemDataRole.UserRole)
             self.services.setRowHidden(i,query not in ' '.join(self.services.item(i,j).text() for j in range(self.services.columnCount())).casefold() or self.hide_essential.isChecked() and record.get('protected',False))
+        if self.services.currentRow() >= 0 and self.services.isRowHidden(self.services.currentRow()):
+            self.services.clearSelection()
+            self.services.setCurrentItem(None)
+        self.update_service_actions()
 
     def linger(self):
         import getpass
@@ -116,7 +163,9 @@ class Administration(QWidget):
         self.query(lambda:services_backend.linger_state(username),review)
 
     def selected(self,table):
-        row=table.item(table.currentRow(),0);return row.data(Qt.ItemDataRole.UserRole) if row else None
+        selected = table.selectionModel().selectedRows()
+        row = table.item(selected[0].row(), 0) if selected else None
+        return row.data(Qt.ItemDataRole.UserRole) if row else None
 
     def confirm(self,text):return QMessageBox.question(self,'Confirmar alteração',text,QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.Cancel,QMessageBox.StandardButton.Cancel)==QMessageBox.StandardButton.Yes
 

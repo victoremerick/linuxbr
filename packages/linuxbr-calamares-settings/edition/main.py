@@ -8,8 +8,12 @@ def pretty_name():return 'Configurar a edição do Linux BR'
 
 
 def run():
-    selected=libcalamares.globalstorage.value('packagechooser_packagechooser')
-    if selected not in ('desktop','server'):return ('Selecione uma edição válida.','Volte à página Edição e escolha Desktop ou Servidor.')
+    try:
+        selected=Path('/etc/calamares/modules/linuxbr_edition/media-edition').read_text().strip()
+    except OSError:
+        selected=''
+    if selected not in ('desktop','virtualization'):
+        return ('Edição da mídia inválida.','Inicie pela mídia oficial da edição que deseja instalar.')
     root=Path(libcalamares.globalstorage.value('rootMountPoint')).resolve()
     if root==Path('/') or not os.path.ismount(root) or not (root/'etc/debian_version').is_file():
         return ('Destino de instalação inválido.','A edição só pode ser configurada no sistema de destino montado pelo instalador.')

@@ -12,12 +12,13 @@ DESKTOP_PACKAGES={'linuxbr-desktop-edition','linuxbr-desktop','linuxbr-system','
  'plasma-workspace-wayland','kwin-wayland','kwin-x11','systemsettings','plasma-discover',
  'plasma-discover-backend-flatpak','plasma-discover-backend-fwupd','plasma-nm','plasma-pa',
  'plasma-integration','plasma-browser-integration','plasma-dataengines-addons','plasma-widgets-addons',
- 'kdeconnect','powerdevil','bluedevil','print-manager','skanpage','kcalc','kate','kolourpaint',
+ 'kdeconnect','powerdevil','bluedevil','print-manager','skanpage','sane-utils','kcalc','kate','kolourpaint',
  'gwenview','okular','ark','vlc','firefox-esr','firefox-esr-l10n-pt-br','chromium','chromium-sandbox',
  'chromium-l10n','libreoffice-writer','libreoffice-calc','libreoffice-impress','libreoffice-draw',
  'libreoffice-qt6','libreoffice-help-pt-br','kup-backup','filelight','kde-spectacle','dolphin'}
 PROTECTED={'linuxbr-release','linuxbr-server','linuxbr-boot-tools','linuxbr-boot-theme','linuxbr-branding',
  'apt','dpkg','sudo','polkitd','sddm','network-manager','firewalld','bash','coreutils','initramfs-tools','systemd','libc6'}
+VM_PACKAGES={'qemu-system-x86','libvirt-daemon-system','libvirt-clients','virtinst','ovmf','qemu-utils'}
 
 
 def run(argv):
@@ -27,16 +28,20 @@ def run(argv):
 
 
 def configure(selected):
-    if selected not in ('desktop','server'):raise ValueError('Edição desconhecida.')
+    if selected not in ('desktop','server','virtualization'):raise ValueError('Edição desconhecida.')
     if os.geteuid()!=0:raise PermissionError('A configuração da edição exige autenticação administrativa.')
-    if not Path('/var/lib/linuxbr/installer-edition-authorized').is_file():raise ValueError('Esta ação só pode ser executada pelo instalador no sistema de destino.')
+    marker=Path('/var/lib/linuxbr/installer-edition-authorized')
+    if not marker.is_file() or marker.read_text().strip()!=selected:raise ValueError('Esta ação só pode ser executada pelo instalador no sistema de destino.')
     installed={}
     for line in run(['dpkg-query','-W','-f=${binary:Package}\t${db:Status-Status}\t${Essential}\n']).splitlines():
         parts=line.split('\t')
         if len(parts)==3 and parts[1]=='installed':installed[parts[0].split(':')[0]]=parts[2]=='yes'
-    if selected=='server' and 'linuxbr-server' not in installed:raise ValueError('O pacote da edição Servidor não está disponível na mídia.')
-    remove=sorted(DESKTOP_PACKAGES.intersection(installed) if selected=='server' else {'linuxbr-server'}.intersection(installed))
-    protected=PROTECTED if selected=='server' else PROTECTED-{'linuxbr-server'}
+    server=selected!='desktop'
+    if server and 'linuxbr-server' not in installed:raise ValueError('O pacote da edição Servidor não está disponível na mídia.')
+    if selected=='virtualization' and VM_PACKAGES-installed.keys():raise ValueError('A mídia não contém todos os pacotes de virtualização.')
+    remove=sorted(DESKTOP_PACKAGES.intersection(installed) if server else {'linuxbr-server'}.intersection(installed))
+    protected=PROTECTED.copy() if server else PROTECTED-{'linuxbr-server'}
+    if selected=='virtualization':protected.update(VM_PACKAGES)
     protected|={name for name,essential in installed.items() if essential}
     plan=run(['apt-get','-s','remove','--',*remove]) if remove else ''
     removed=set(re.findall(r'^Remv ([a-z0-9][a-z0-9+.:\-]*)',plan,re.M))
@@ -45,6 +50,9 @@ def configure(selected):
     report=Path('/var/lib/linuxbr/installation');report.mkdir(parents=True,exist_ok=True)
     (report/'edition-plan.txt').write_text(plan)
     if remove:run(['apt-get','-y','remove','--',*remove])
+    if selected=='virtualization':
+        run(['apt-mark','manual',*sorted(VM_PACKAGES)])
+        run(['systemctl','enable','libvirtd.service','libvirt-guests.service'])
     edition=Path('/etc/linuxbr/edition');edition.parent.mkdir(parents=True,exist_ok=True);edition.write_text(selected+'\n')
     for config in [Path('/etc/default/grub'),*Path('/etc/default/grub.d').glob('*.cfg')]:
         if config.is_file():
@@ -52,7 +60,7 @@ def configure(selected):
             if clean!=raw:config.write_text(clean)
     run(['update-grub'])
     (report/'edition.json').write_text(json.dumps(dict(edition=selected,removed=sorted(removed)),ensure_ascii=False,indent=2)+'\n')
-    Path('/var/lib/linuxbr/installer-edition-authorized').unlink()
+    marker.unlink()
     return dict(edition=selected,removed=sorted(removed))
 
 

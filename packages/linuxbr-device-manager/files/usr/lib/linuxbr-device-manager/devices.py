@@ -25,15 +25,20 @@ class Devices(QWidget):
         self.tabs=QTabWidget();layout.addWidget(self.tabs)
         hardware=QWidget();body=QVBoxLayout(hardware);filters=QHBoxLayout()
         self.search=QLineEdit();self.search.setPlaceholderText('Buscar modelo, fabricante, driver ou ID')
+        self.search.setAccessibleName('Buscar dispositivos');self.search.setClearButtonEnabled(True)
         self.category=QComboBox();self.category.addItem('Todas as categorias')
+        self.category.setAccessibleName('Categoria de dispositivos')
         filters.addWidget(self.search,1);filters.addWidget(self.category);body.addLayout(filters)
         self.table=self.make_table(['Dispositivo','Categoria','Barramento','Driver','Estado'])
+        self.table.setAccessibleName('Dispositivos encontrados')
         self.details=QPlainTextEdit();self.details.setReadOnly(True)
+        self.details.setAccessibleName('Detalhes do dispositivo')
         splitter=QSplitter();splitter.addWidget(self.table);splitter.addWidget(self.details)
         splitter.setStretchFactor(0,3);splitter.setStretchFactor(1,2);body.addWidget(splitter)
         self.table.itemSelectionChanged.connect(self.select_device)
         self.search.textChanged.connect(self.filter_devices);self.category.currentTextChanged.connect(self.filter_devices)
         self.device_options_button=self.tool_button('Drivers e firmware do dispositivo','preferences-devices')
+        self.device_options_button.setEnabled(False)
         self.device_options_button.clicked.connect(self.show_device_options);body.addWidget(self.device_options_button,0,Qt.AlignmentFlag.AlignLeft)
         self.tabs.addTab(hardware,'Hardware e drivers')
         firmware=QWidget();body=QVBoxLayout(firmware)
@@ -44,7 +49,8 @@ class Devices(QWidget):
         self.check_updates_button.clicked.connect(self.check_updates);options.addWidget(self.check_updates_button)
         self.show_all=QCheckBox('Mostrar também firmwares de outras famílias')
         self.show_all.toggled.connect(self.render_software)
-        self.all_devices_button=self.tool_button('Todos os dispositivos','computer')
+        self.all_devices_button=self.tool_button('Limpar filtro de dispositivo','edit-clear')
+        self.all_devices_button.setEnabled(False)
         self.all_devices_button.clicked.connect(self.clear_device_filter);options.addWidget(self.all_devices_button)
         help_button=self.tool_button('Ajuda NVIDIA','help-contents')
         help_button.clicked.connect(self.nvidia_help);options.addWidget(help_button)
@@ -57,7 +63,6 @@ class Devices(QWidget):
         body.addWidget(self.install_button,0,Qt.AlignmentFlag.AlignLeft)
         self.install_log=QPlainTextEdit();self.install_log.setReadOnly(True);self.install_log.setMaximumHeight(160);body.addWidget(self.install_log);self.install_log.hide()
         self.tabs.addTab(firmware,'Drivers e atualizações')
-        self.tabs.setCurrentIndex(1)
         self.diagnostics=QPlainTextEdit();self.diagnostics.setReadOnly(True);self.tabs.addTab(self.diagnostics,'Diagnósticos')
         self.status=QLabel('Consultando hardware…');self.status.setWordWrap(True);layout.addWidget(self.status)
         self.timer=QTimer(self);self.timer.timeout.connect(self.refresh);self.timer.start(30000)
@@ -144,11 +149,20 @@ class Devices(QWidget):
         for i,row in enumerate(self.visible):
             for j,key in enumerate(('name','category','bus','driver','status')):self.table.setItem(i,j,QTableWidgetItem(row[key] or '—'))
         selected=next((i for i,r in enumerate(self.visible) if r['id']==previous),0)
-        if self.visible:self.table.selectRow(selected);self.select_device()
+        if self.visible:self.table.selectRow(selected)
+        self.select_device()
 
     def select_device(self):
         index=self.table.currentRow()
-        if not 0<=index<len(self.visible):return
+        available = 0 <= index < len(self.visible) and bool(self.table.selectedItems())
+        self.device_options_button.setEnabled(available)
+        if not available:
+            message = 'Selecione um dispositivo para ver os detalhes.'
+            if not self.visible:
+                message = ('Nenhum dispositivo encontrado com esses filtros.'
+                           if self.data else 'Aguardando a lista de dispositivos.')
+            self.details.setPlainText(message)
+            return
         row=self.visible[index]
         lines=[row['name'],'Fabricante: '+row['vendor'],'ID: '+row['hardware_id'],'Barramento: '+row['id'],
                'Driver: '+(row['driver'] or 'Não associado'), 'Módulos: '+(', '.join(row['modules']) or 'Não identificado / integrado ao kernel'),
@@ -189,9 +203,10 @@ class Devices(QWidget):
         self.firmware_table.blockSignals(False)
         available=sum(bool(r.get('action')) for r in self.software_rows)
         scope=next((r['name'] for r in self.data.get('devices',[]) if r['id']==self.device_filter),'Todos os dispositivos')
-        message=f'{scope} · {available} opção(ões) para instalar ou atualizar.'
-        if not self.software_rows:message+=' Nenhum pacote correspondente encontrado no catálogo suportado. Isso não comprova ausência de suporte.'
-        message+=' Use “Buscar atualizações” para atualizar os índices do APT. NVIDIA é verificado pelo detector Debian; outros fornecedores proprietários ainda não estão integrados.'
+        message=f'{scope} · Opções disponíveis para instalar ou atualizar: {available}.'
+        if not self.software_rows:
+            message+=' Nenhum pacote correspondente nos repositórios configurados.'
+        self.all_devices_button.setEnabled(self.device_filter is not None)
         self.software_summary.setText(message)
         self.update_install_button()
 
@@ -258,7 +273,7 @@ class Devices(QWidget):
 
 class Window(QMainWindow):
     def __init__(self):
-        super().__init__();self.setWindowTitle('Dispositivos — Linux BR');self.setWindowIcon(QIcon.fromTheme('computer'))
+        super().__init__();self.setWindowTitle('Dispositivos — Linux BR');self.setWindowIcon(QIcon.fromTheme('preferences-devices'))
         self.resize(1180,740);self.devices=Devices();self.setCentralWidget(self.devices)
     def closeEvent(self,event):
         if not self.devices.shutdown():
@@ -266,4 +281,6 @@ class Window(QMainWindow):
         else:event.accept()
 
 if __name__=='__main__':
-    application=QApplication(sys.argv);window=Window();window.show();sys.exit(application.exec())
+    application=QApplication(sys.argv)
+    application.setDesktopFileName('linuxbr-device-manager')
+    window=Window();window.show();sys.exit(application.exec())

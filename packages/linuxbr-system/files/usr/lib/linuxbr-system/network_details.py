@@ -1,6 +1,7 @@
 """Read-only NetworkManager adapter details."""
 import os
 import re
+import shutil
 import subprocess
 import ipaddress
 
@@ -112,3 +113,61 @@ def reconnect_command(device):
     if not re.fullmatch(r'[A-Za-z0-9_.:-]{1,64}',name) or not re.fullmatch(r'[a-fA-F0-9-]{36}',uuid):raise ValueError('Selecione uma conexão gerenciada ativa.')
     if device.get('GENERAL.TYPE') not in ('ethernet','wifi'):raise ValueError('Reconexão disponível para Ethernet e Wi-Fi gerenciados.')
     return ['/usr/bin/nmcli','--wait','45','connection','up','uuid',uuid,'ifname',name]
+
+
+def connectivity_check(name):
+    device = next((item for item in inventory() if item.get('GENERAL.DEVICE') == name), {})
+    state = device.get('GENERAL.STATE', '').partition(' ')[0]
+    active = state == '100'
+    rows = [('Conexão', 'Adaptador conectado.' if active else 'Adaptador sem conexão ativa. Confira o cabo, o Wi-Fi ou a autenticação.')]
+
+    addresses = [values(device, f'IP{family}.ADDRESS') for family in (4, 6)]
+    if active:
+        rows.append(('Endereço IP', 'Endereço atribuído.' if any(addresses) else 'Nenhum endereço IP foi atribuído.'))
+
+    gateways = [values(device, f'IP{family}.GATEWAY') for family in (4, 6)]
+    ping = shutil.which('ping')
+    if active and not any(gateways):
+        rows.append(('Gateway', 'A conexão não informa um gateway. Isso é esperado em algumas redes locais.'))
+    for family, gateway in zip((4, 6), gateways):
+        if not active or not gateway:
+            continue
+        try:
+            address = ipaddress.ip_address(gateway)
+        except ValueError:
+            rows.append((f'Gateway IPv{family}', 'Endereço inválido na configuração.'))
+            continue
+        if ping:
+            try:
+                result = subprocess.run([ping, f'-{family}', '-n', '-c', '1', '-W', '2',
+                                         '-I', name, str(address)], capture_output=True, timeout=4)
+                reply = result.returncode == 0
+            except subprocess.TimeoutExpired:
+                reply = False
+            message = 'Respondeu ao teste.' if reply else 'Sem resposta ao ping. O gateway pode bloquear esse teste.'
+        else:
+            message = 'Endereço configurado. O teste de resposta está indisponível.'
+        rows.append((f'Gateway IPv{family}', message))
+
+    result = subprocess.run(['/usr/bin/nmcli', 'networking', 'connectivity', 'check'],
+                            capture_output=True, text=True, timeout=25,
+                            env=dict(os.environ, LC_ALL='C.UTF-8'))
+    connectivity = result.stdout.strip() if not result.returncode else 'unknown'
+    if active and any(addresses) and connectivity != 'portal':
+        try:
+            lookup = subprocess.run(['/usr/bin/getent', 'ahosts', 'linuxbr.homedeveloper.com.br'],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+            resolved = lookup.returncode == 0
+        except subprocess.TimeoutExpired:
+            resolved = False
+        message = ('O resolvedor do sistema encontrou o endereço do site do Linux BR.' if resolved
+                   else 'O resolvedor do sistema não encontrou o endereço do site do Linux BR.')
+        rows.append(('DNS', message))
+    rows.append(('Internet neste computador', {
+        'full': 'O NetworkManager confirmou acesso.',
+        'portal': 'A rede exige autenticação em um portal.',
+        'limited': 'Conexão local disponível sem confirmação de acesso à internet.',
+        'none': 'Sem conexão disponível.',
+        'unknown': 'A verificação de acesso não está disponível.',
+    }.get(connectivity, 'Resultado não disponível.')))
+    return rows, connectivity

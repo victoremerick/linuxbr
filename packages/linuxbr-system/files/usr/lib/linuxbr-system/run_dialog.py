@@ -12,6 +12,8 @@ from PyQt6.QtGui import QDesktopServices, QIcon
 from PyQt6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QFileDialog,
                             QHBoxLayout, QLabel, QPushButton, QVBoxLayout)
 
+from visual_style import BUTTONS
+
 
 ALIASES = {
     'virtmgmt.msc': ['linuxbr-virtual-machines'],
@@ -197,8 +199,10 @@ class RunDialog(QDialog):
         super().__init__()
         self.setWindowTitle('Executar — Linux BR')
         self.setWindowIcon(QIcon.fromTheme('system-run'))
-        self.setMinimumWidth(510)
+        self.setStyleSheet(BUTTONS)
         body = QVBoxLayout(self)
+        body.setContentsMargins(18, 16, 18, 16)
+        body.setSpacing(10)
         heading = QLabel('Digite o nome de um programa, pasta, documento ou site.')
         heading.setWordWrap(True); body.addWidget(heading)
         row = QHBoxLayout(); label = QLabel('&Abrir:'); row.addWidget(label)
@@ -212,14 +216,22 @@ class RunDialog(QDialog):
         hint = QLabel('Nomes familiares do Windows abrem as ferramentas equivalentes do Linux BR.')
         hint.setWordWrap(True); body.addWidget(hint)
         self.error = QLabel(); self.error.setTextFormat(Qt.TextFormat.PlainText)
-        self.error.setWordWrap(True); self.error.hide(); body.addWidget(self.error)
+        self.error.setWordWrap(True)
+        self.error.setAccessibleName('Erro ao abrir')
+        self.error.hide(); body.addWidget(self.error)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        buttons.button(QDialogButtonBox.StandardButton.Ok).setText('Abrir')
+        launch = buttons.button(QDialogButtonBox.StandardButton.Ok)
+        launch.setText('Abrir')
+        launch.setDefault(True)
+        launch.setEnabled(False)
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText('Cancelar')
         browse = buttons.addButton('Procurar…', QDialogButtonBox.ButtonRole.ActionRole)
         browse.clicked.connect(self.browse)
         buttons.accepted.connect(self.open); buttons.rejected.connect(self.reject); body.addWidget(buttons)
+        self.entry.editTextChanged.connect(lambda value: launch.setEnabled(bool(value.strip())))
+        self.entry.editTextChanged.connect(self.error.hide)
         self.entry.setFocus()
+        self.resize(510, self.sizeHint().height())
         # Deliberately no command history: typed URLs may contain private tokens.
 
     def browse(self):

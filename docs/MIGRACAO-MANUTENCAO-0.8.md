@@ -4,7 +4,7 @@
 
 Abra **Trazer meus arquivos do Windows** pelo menu ou por **Central do Sistema → Arquivos e atalhos**. Selecione pastas de um disco, pendrive ou cópia de segurança e uma pasta de destino existente. A ferramenta copia arquivos; não importa contas, senhas, Registro do Windows nem programas instalados.
 
-**Conferir importação** lê as origens, prevê espaço e conflitos e registra hashes estáveis. **Copiar e verificar** confere os dados escritos antes de concluir cada arquivo. Links simbólicos e arquivos especiais são relacionados como ignorados; erros de acesso produzem um resultado parcial. Feche os programas que alteram as pastas selecionadas.
+**Conferir cópia** lê as origens, prevê espaço e conflitos e registra hashes estáveis. **Copiar e verificar** confere os dados escritos antes de concluir cada arquivo. Links simbólicos e arquivos especiais são relacionados como ignorados; erros de acesso produzem um resultado parcial. Feche os programas que alteram as pastas selecionadas.
 
 Para nomes existentes, é possível manter ambos, ignorar o arquivo da origem ou substituir o destino. A substituição mantém a versão anterior em um arquivo oculto `.linuxbr-anterior-*`, com o caminho no relatório. Arquivos concluídos antes de um cancelamento permanecem no destino. A origem é preservada.
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Sincronizar atalhos selecionados de aplicativos web
+ConditionPathExists=%E/linuxbr/webapps-sync.json
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/linuxbr-system/webapps_sync.py
+TimeoutStartSec=5min
+Nice=10

@@ -13,6 +13,18 @@ from PyQt6.QtWidgets import QApplication,QMainWindow,QWidget,QHBoxLayout,QVBoxLa
 from desktop_jobs import Query,Command
 import settings_catalog as catalog
 
+HELP_GUIDES = {
+    'display': 'tela-som', 'display-advanced': 'tela-som', 'sound': 'tela-som', 'media-test': 'tela-som',
+    'connections': 'conexoes', 'ip': 'conexoes', 'network-information': 'conexoes',
+    'services': 'servicos', 'scheduler': 'agendador', 'environment': 'ambiente',
+    'startup': 'inicializacao', 'optional-features': 'inicializacao',
+    'updates': 'atualizacoes', 'update-recovery': 'backup', 'recovery': 'backup',
+    'maintenance': 'diagnostico', 'store': 'loja', 'installed': 'loja',
+    'sources': 'fontes-loja', 'webapps': 'webapps', 'windows-apps': 'windows',
+    'virtualization': 'criar-vm', 'remote-admin': 'administracao-remota',
+    'wireless-display': 'tela-remota', 'folder-sync': 'parear',
+}
+
 
 class Window(QMainWindow):
     def __init__(self,page=None):
@@ -30,10 +42,21 @@ class Window(QMainWindow):
         side.addWidget(self.navigation,1);layout.addWidget(sidebar)
         right=QWidget();body=QVBoxLayout(right);body.setContentsMargins(24,18,24,18);layout.addWidget(right,1)
         trail=QHBoxLayout();self.back=QPushButton(QIcon.fromTheme('go-previous'),'Voltar');self.back.clicked.connect(self.go_back);self.back.setEnabled(False);trail.addWidget(self.back);home=QPushButton('Início');home.clicked.connect(lambda:self.navigate('home'));trail.addWidget(home);self.breadcrumb=QLabel();self.breadcrumb.setTextFormat(Qt.TextFormat.PlainText);trail.addWidget(self.breadcrumb,1);body.addLayout(trail)
+        help_button = QPushButton(QIcon.fromTheme('help-contents'), 'Ajuda')
+        help_button.setToolTip('Abrir a ajuda desta página (F1)')
+        help_button.clicked.connect(self.open_wiki)
+        trail.addWidget(help_button)
+        QShortcut(QKeySequence('F1'), self, activated=self.open_wiki)
         self.summary=QLabel();self.summary.setWordWrap(True);self.summary.setTextFormat(Qt.TextFormat.PlainText);body.addWidget(self.summary)
         self.stack=QStackedWidget();body.addWidget(self.stack,1);self.overview=QScrollArea();self.overview.setWidgetResizable(True);self.overview.setFrameShape(self.overview.Shape.NoFrame);self.stack.addWidget(self.overview)
         self.status=QLabel('Consultando os recursos disponíveis nesta instalação…');self.status.setWordWrap(True);body.addWidget(self.status)
-        self.navigation.currentItemChanged.connect(self.category_changed);self.search.textChanged.connect(self.filter);QShortcut(QKeySequence('Alt+Left'),self,activated=self.go_back);QShortcut(QKeySequence('Ctrl+F'),self,activated=self.search.setFocus)
+        self.navigation.setAccessibleName('Categorias de configurações')
+        self.navigation.currentItemChanged.connect(self.category_changed)
+        self.navigation.itemClicked.connect(self.category_changed)
+        self.search.textChanged.connect(self.filter)
+        self.search.returnPressed.connect(self.focus_first_result)
+        QShortcut(QKeySequence('Alt+Left'),self,activated=self.go_back)
+        QShortcut(QKeySequence('Ctrl+F'),self,activated=self.search.setFocus)
         self.navigation.setCurrentRow(0);self.query(catalog.inventory,self.inventory_loaded)
 
     def query(self,operation,done):
@@ -44,17 +67,23 @@ class Window(QMainWindow):
         self.summary.setText(capabilities.get('summary',''))
         if self.pending_page:
             page=self.pending_page;self.pending_page=None;self.navigate(page)
-        else:self.render_category(self.current)
+        elif self.search.text().strip():
+            self.filter(self.search.text())
+        else:
+            self.navigate(self.current, remember=False, launch_external=False)
 
     def category_changed(self,item,*_):
-        if item:self.navigate(item.data(Qt.ItemDataRole.UserRole))
+        if item:
+            identifier = item.data(Qt.ItemDataRole.UserRole)
+            if identifier != self.current or self.search.text():
+                self.navigate(identifier)
 
     def title(self,identifier):return next((p['title'] for p in catalog.PAGES if p['id']==identifier),next((title for key,title,_ in catalog.CATEGORIES if key==identifier),identifier))
 
-    def navigate(self,identifier,remember=True):
+    def navigate(self,identifier,remember=True,launch_external=True):
         identifier=catalog.ALIASES.get(identifier,identifier)
-        if identifier==self.current and self.stack.currentWidget()!=self.overview:return
-        if remember and identifier!=self.current:self.history.append(self.current)
+        if remember and (identifier != self.current or self.search.text().strip()):
+            self.history.append((self.current, self.search.text()))
         self.current=identifier;self.back.setEnabled(bool(self.history));self.search.blockSignals(True);self.search.clear();self.search.blockSignals(False)
         category=next((p['category'] for p in catalog.PAGES if p['id']==identifier),identifier)
         self.navigation.blockSignals(True)
@@ -62,32 +91,62 @@ class Window(QMainWindow):
             if self.navigation.item(i).data(Qt.ItemDataRole.UserRole)==category:self.navigation.setCurrentRow(i);break
         self.navigation.blockSignals(False)
         page=next((p for p in catalog.PAGES if p['id']==identifier),None)
-        if page:self.open_page(page)
+        if page:self.open_page(page, launch_external)
         else:self.render_category(identifier)
 
     def go_back(self):
-        if self.history:self.navigate(self.history.pop(),False)
+        if self.history:
+            identifier, query = self.history.pop()
+            self.navigate(identifier, remember=False, launch_external=False)
+            if query.strip():
+                self.search.setText(query)
+                self.search.setFocus()
 
     def filter(self,query):
-        if not query.strip():self.render_category(next((p['category'] for p in catalog.PAGES if p['id']==self.current),self.current));return
-        self.render('Resultados da pesquisa',catalog.search(query));self.breadcrumb.setText('Pesquisa › '+query)
+        if not query.strip():
+            self.navigate(self.current, remember=False, launch_external=False)
+            return
+        self.render('Resultados da pesquisa', catalog.search(query))
+        self.breadcrumb.setText('Pesquisa')
+
+    def focus_first_result(self):
+        if self.search.text().strip():
+            for button in self.overview.widget().findChildren(QPushButton):
+                if button.isEnabled():
+                    button.setFocus()
+                    self.overview.ensureWidgetVisible(button)
+                    break
 
     def card(self,page):
-        button=QPushButton();button.setAccessibleName(page['title']);button.setAccessibleDescription(page['description']);button.setMinimumHeight(76);button.setStyleSheet('QPushButton { text-align:left;border:1px solid palette(mid);border-radius:8px;background:palette(base); } QPushButton:hover { border-color:palette(highlight); } QPushButton:focus { border:2px solid palette(highlight); }')
+        button=QPushButton();button.setAutoDefault(True);button.setAccessibleName(page['title']);button.setAccessibleDescription(page['description']);button.setMinimumHeight(76);button.setStyleSheet('QPushButton { text-align:left;border:1px solid palette(mid);border-radius:8px;background:palette(base); } QPushButton:hover { border-color:palette(highlight); } QPushButton:focus { border:2px solid palette(highlight); }')
         body=QHBoxLayout(button);body.setContentsMargins(16,10,16,10);icon=QLabel();icon.setPixmap(QIcon.fromTheme(page['icon'],QIcon.fromTheme('preferences-system')).pixmap(28,28));body.addWidget(icon)
         column=QVBoxLayout();name=QLabel(page['title']);name.setTextFormat(Qt.TextFormat.PlainText);name.setStyleSheet('font-weight:600;font-size:15px');description=QLabel(page['description']);description.setWordWrap(True);description.setTextFormat(Qt.TextFormat.PlainText);column.addWidget(name);column.addWidget(description);body.addLayout(column,1);arrow=QLabel('›');arrow.setStyleSheet('font-size:24px');body.addWidget(arrow)
         for child in button.findChildren(QWidget):child.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         if self.capabilities is not None:
             enabled,reason=catalog.available(page,self.capabilities);button.setEnabled(enabled)
-            if not enabled:description.setText(page['description']+' · '+reason);button.setToolTip(reason)
+            if not enabled:
+                description.setText(page['description']+' · '+reason)
+                button.setAccessibleDescription(description.text())
+                button.setToolTip(reason)
         button.clicked.connect(lambda:self.navigate(page['id']));return button
 
-    def render(self,title,pages):
+    def render(self,title,pages,message=None,action=None):
         widget=QWidget();body=QVBoxLayout(widget);body.setContentsMargins(4,14,4,14);body.setSpacing(10);heading=QLabel(title);heading.setStyleSheet('font-size:28px;font-weight:600');body.addWidget(heading)
         for page in pages:body.addWidget(self.card(page))
-        if not pages:
+        if message:
+            label = QLabel(message)
+            label.setTextFormat(Qt.TextFormat.PlainText)
+            label.setWordWrap(True)
+            body.addWidget(label)
+        elif not pages:
             label=QLabel('Nenhuma configuração encontrada. Tente tela, som, senha, impressora, IP, programas ou restauração.');label.setWordWrap(True);body.addWidget(label)
+        if action:
+            caption, callback = action
+            button = QPushButton(caption)
+            button.clicked.connect(callback)
+            body.addWidget(button, alignment=Qt.AlignmentFlag.AlignLeft)
         body.addStretch();old=self.overview.takeWidget();self.overview.setWidget(widget)
+        self.overview.verticalScrollBar().setValue(0)
         if old:old.deleteLater()
         self.stack.setCurrentWidget(self.overview)
 
@@ -97,20 +156,36 @@ class Window(QMainWindow):
             self.render('Bem-vindo às Configurações',[p for p in catalog.PAGES if p['id'] in promoted]);self.breadcrumb.setText('Início');return
         self.render(self.title(identifier),catalog.search(category=identifier));self.breadcrumb.setText(self.title(identifier))
 
+    def open_wiki(self):
+        guide = HELP_GUIDES.get(self.current)
+        self.launch(['linuxbr-wiki', guide] if guide else ['linuxbr-wiki'])
+
     def launch(self,argv):
         if argv and argv[0]=='linuxbr-system' and len(argv)>=3 and argv[1]=='--page':self.navigate(argv[2]);return
         if not QProcess.startDetached(argv[0],argv[1:])[0]:QMessageBox.warning(self,'Não foi possível abrir','A ferramenta não está disponível nesta instalação. Confira a Loja Linux BR.')
 
-    def open_page(self,page):
+    def open_page(self,page,launch_external=True):
         category=self.title(page['category']);self.breadcrumb.setText(category+' › '+page['title']);kind,target,*args=page['route']
         if self.capabilities is not None:
             enabled,reason=catalog.available(page,self.capabilities)
-            if not enabled:QMessageBox.information(self,'Recurso indisponível',reason);self.render_category(page['category']);return
+            if not enabled:
+                self.render(page['title'], [], reason)
+                return
         if kind in ('kcm','app'):
-            self.render(page['title'],[page]);self.launch(['/usr/bin/kcmshell6',target] if kind=='kcm' else [target,*args]);return
+            command = ['/usr/bin/kcmshell6', target] if kind == 'kcm' else [target, *args]
+            self.render(page['title'], [], 'Este recurso abre em uma janela separada.',
+                        ('Abrir janela', lambda: self.launch(command)))
+            if launch_external:
+                self.launch(command)
+            return
         if page['id'] not in self.cache:
             try:widget=self.make_page(kind,target,args)
-            except Exception as error:QMessageBox.warning(self,'Página não disponível',str(error));self.render_category(page['category']);return
+            except Exception:
+                import logging
+                logging.exception('Falha ao abrir a configuração %s', page['id'])
+                self.render(page['title'], [], 'Não foi possível abrir esta configuração.',
+                            ('Tentar novamente', lambda: self.open_page(page)))
+                return
             self.stack.addWidget(widget);self.cache[page['id']]=widget
         self.stack.setCurrentWidget(self.cache[page['id']])
 
@@ -125,6 +200,9 @@ class Window(QMainWindow):
             from network_details_page import NetworkDetails
             return NetworkDetails()
         if kind=='tool':
+            if target == 'media-test':
+                from media_test import MediaTest
+                return MediaTest()
             if target=='administration':
                 from administration import Administration
                 page=Administration(self)

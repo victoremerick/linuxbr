@@ -117,6 +117,46 @@ def sessions(url, include_hidden=False):
     canonical = normalize_offer({'url': url})['url']
     return [item for item in installed(include_hidden) if item['url'] == canonical]
 
+
+def export_shortcuts(path):
+    records = shortcut_records()
+    atomic_write(Path(path), json.dumps(dict(schema='linuxbr-webapp-shortcuts-1',
+                                             shortcuts=list(records.values())), ensure_ascii=False) + '\n')
+
+
+def shortcut_records(include_hidden=False):
+    records = {}
+    for item in (installed(include_hidden=True) if include_hidden else installed()):
+        # Use the known start page or the origin so a private page path is never exported.
+        url = item['url']
+        service = service_for(url)
+        start = clean_url(service['url']) if service else 'https://' + urlsplit(url).hostname + '/'
+        name = service['name'] if service else item['name']
+        records.setdefault(start, dict(url=start, name=clean_name(name)))
+    if len(records) > 200:
+        raise ValueError('O arquivo aceita até 200 atalhos.')
+    return records
+
+
+def load_shortcuts(path):
+    with Path(path).open('rb') as source:
+        raw = source.read(256 * 1024 + 1)
+    if len(raw) > 256 * 1024:
+        raise ValueError('O arquivo de atalhos é muito grande.')
+    document = json.loads(raw)
+    if not isinstance(document, dict) or document.get('schema') != 'linuxbr-webapp-shortcuts-1':
+        raise ValueError('Escolha um arquivo de atalhos do Linux BR.')
+    rows = document.get('shortcuts')
+    if not isinstance(rows, list) or len(rows) > 200:
+        raise ValueError('Lista de atalhos inválida.')
+    validated = {}
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {'url', 'name'}:
+            raise ValueError('Atalho inválido.')
+        item = normalize_offer(row)
+        validated.setdefault(item['url'], item)
+    return list(validated.values())
+
 def display_name(item):
     return item['name'] + ' — ' + item.get('session', 'Principal')
 

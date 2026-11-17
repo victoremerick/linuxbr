@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+wiki=/usr/share/linuxbr/wiki
+case $# in
+    0) file="$wiki/index.html" ;;
+    1)
+        case $1 in
+            ''|*[!a-z0-9-]*) printf 'Identificador de guia inválido.\n' >&2; exit 2 ;;
+        esac
+        file="$wiki/guias/$1.html"
+        ;;
+    *) printf 'Uso: linuxbr-wiki [guia]\n' >&2; exit 2 ;;
+esac
+
+if [ ! -r "$file" ]; then
+    printf 'Guia indisponível nesta instalação.\n' >&2
+    exit 1
+fi
+exec xdg-open "$file"

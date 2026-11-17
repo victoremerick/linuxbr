@@ -17,12 +17,31 @@ esac
 export XDG_CURRENT_DESKTOP=LinuxBRMinimal DESKTOP_SESSION=linuxbr-minimal QT_QPA_PLATFORM=xcb
 /usr/bin/xsetroot -solid black
 /usr/bin/xset s off -dpms
+start_authentication_agent() {
+    if [ -x /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 ]; then
+        /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 &
+    elif [ -x /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 ]; then
+        /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
+    fi
+}
+if /usr/bin/python3 -c 'import sys; sys.path.insert(0,"/usr/lib/linuxbr-boot"); from boot_policy import mode, server_edition; raise SystemExit(not (server_edition() and not mode()))'; then
+    if [ -d /run/live/medium ]; then start_authentication_agent; fi
+    /usr/bin/openbox --sm-disable --config-file /usr/share/linuxbr/server-openbox.xml &
+    manager=$!
+    shell_window=
+    configuration_window=
+    trap 'kill "$manager" ${shell_window:+"$shell_window"} ${configuration_window:+"$configuration_window"} 2>/dev/null || true' EXIT
+    trap 'exit 0' HUP INT TERM
+    /usr/bin/linuxbr-server-terminal shell &
+    shell_window=$!
+    /usr/bin/linuxbr-server-terminal configuration &
+    configuration_window=$!
+    wait "$manager" || true
+    exit 0
+fi
+
 /usr/bin/openbox --sm-disable &
 manager=$!
 trap 'kill "$manager" 2>/dev/null || true' EXIT HUP INT TERM
-if [ -x /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 ]; then
-    /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 &
-elif [ -x /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 ]; then
-    /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 &
-fi
+start_authentication_agent
 /usr/bin/python3 /usr/lib/linuxbr-boot/console.py

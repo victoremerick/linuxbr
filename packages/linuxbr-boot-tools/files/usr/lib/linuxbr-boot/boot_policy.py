@@ -36,12 +36,16 @@ def mode(commandline=None):
     return choices[-1] if choices and choices[-1] in MODES else None
 
 
-def server_edition(commandline=None,configuration=Path('/etc/linuxbr/edition')):
+def edition(commandline=None,configuration=Path('/etc/linuxbr/edition')):
     text=Path('/proc/cmdline').read_text() if commandline is None else commandline
     choices=[value.split('=',1)[1] for value in text.split() if value.startswith('linuxbr.edition=')]
-    if choices:return choices[-1]=='server'
-    try:return configuration.read_text().strip()=='server'
-    except FileNotFoundError:return False
+    if choices:return choices[-1]
+    try:return configuration.read_text().strip()
+    except FileNotFoundError:return 'desktop'
+
+
+def server_edition(commandline=None,configuration=Path('/etc/linuxbr/edition')):
+    return edition(commandline,configuration) in ('server','virtualization')
 
 
 def minimal_login(output):

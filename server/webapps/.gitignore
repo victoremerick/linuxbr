@@ -2,4 +2,5 @@ private/
 admin/node_modules/
 admin/.angular/
 public/admin/
+public/wiki/
 *.log

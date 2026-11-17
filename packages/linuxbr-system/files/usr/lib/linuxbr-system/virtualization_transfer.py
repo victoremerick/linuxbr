@@ -208,9 +208,9 @@ def import_bundle(manager,directory,pool_name,name,new_identity=True,network='')
         if secure:
             firmware=operating.find('firmware')
             if firmware is None:firmware=element(operating,'firmware')
-            for name in ('secure-boot','enrolled-keys'):
-                feature=firmware.find("feature[@name='"+name+"']")
-                if feature is None:feature=element(firmware,'feature',name=name)
+            for feature_name in ('secure-boot','enrolled-keys'):
+                feature=firmware.find("feature[@name='"+feature_name+"']")
+                if feature is None:feature=element(firmware,'feature',name=feature_name)
                 feature.set('enabled','yes')
         if loader is not None:operating.remove(loader)
         if nvram is not None:
@@ -218,7 +218,7 @@ def import_bundle(manager,directory,pool_name,name,new_identity=True,network='')
             if format not in ('raw','qcow2'):raise ValueError('Formato de firmware não suportado.')
             operating.remove(nvram);element(operating,'nvram',format=format)
     devices=root.find('devices');disks=devices.findall('disk');pool=connection.storagePoolLookupByName(pool_name)
-    allowed={'emulator','disk','controller','interface','channel','input','graphics','audio','sound','video','watchdog','memballoon','tpm','panic','rng','vsock','iommu'}
+    allowed={'emulator','disk','controller','interface','channel','input','graphics','audio','sound','video','watchdog','memballoon','tpm','panic','rng','vsock','iommu','serial','console'}
     if any(node.tag not in allowed for node in devices):raise ValueError('A cópia contém dispositivos que exigem revisão de compatibilidade antes da importação.')
     for emulator in devices.findall('emulator'):devices.remove(emulator)
     for device in devices.findall('vsock'):
@@ -257,6 +257,7 @@ def import_bundle(manager,directory,pool_name,name,new_identity=True,network='')
         for source in channel.findall('source'):channel.remove(source)
     for tag in ('serial','parallel','console','redirdev'):
         for node in devices.findall(tag):devices.remove(node)
+    element(devices, 'serial', type='pty')
     for tpm in devices.findall('tpm'):
         backend=tpm.find('backend')
         if backend is None or backend.get('type')!='emulator':raise ValueError('A cópia depende de um TPM físico não transferível.')

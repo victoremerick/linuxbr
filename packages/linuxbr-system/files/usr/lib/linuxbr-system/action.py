@@ -2,15 +2,15 @@
 import shutil
 import sys
 from urllib.parse import urlsplit
-from PyQt6.QtCore import QProcess, QUrl
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import QApplication,QDialog,QVBoxLayout,QLabel,QMessageBox,QPushButton
+from PyQt6.QtCore import QProcess
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QDialog, QGridLayout, QGroupBox, QVBoxLayout, QMessageBox, QPushButton
 
 
 COMMANDS = {
     'apps':['linuxbr-store','--installed'],
     'power-settings':['linuxbr-system','--page','Energia e bateria'],
-    'logs':['linuxbr-system','--page','Administração'],
+    'logs':['linuxbr-system','--page','events'],
     'system':['linuxbr-system','--page','Sistema'],
     'devices':['linuxbr-system','--page','Dispositivos'],
     'users':['linuxbr-system','--page','Usuários'],
@@ -42,16 +42,25 @@ def run_dialog():
 
 
 def quick_access():
-    dialog=QDialog();dialog.setWindowTitle('Acesso rápido — Linux BR');dialog.resize(390,570)
-    body=QVBoxLayout(dialog)
-    heading=QLabel('Ferramentas do sistema');heading.setStyleSheet('font-size:20px; font-weight:600')
-    body.addWidget(heading)
-    choices=[('Programas instalados','apps'),('Opções de energia','power-settings'),
-             ('Sistema','system'),('Dispositivos e drivers','devices'),
-             ('Conexões de rede','network'),('Armazenamento e unidades','disks'),
-             ('Gerenciador de tarefas','tasks'),('Terminal','terminal'),
-             ('Configurações','settings'),('Explorador de arquivos','files'),
-             ('Executar…','run'),('Sair, reiniciar ou desligar…','logout')]
+    dialog = QDialog()
+    dialog.setWindowTitle('Acesso rápido — Linux BR')
+    dialog.resize(580, 420)
+    body = QGridLayout(dialog)
+    groups = [
+        ('Acesso diário', [('Configurações', 'settings', 'preferences-system'),
+                          ('Explorador de arquivos', 'files', 'system-file-manager'),
+                          ('Aplicativos instalados', 'apps', 'applications-all'),
+                          ('Executar…', 'run', 'system-run')]),
+        ('Sistema e diagnóstico', [('Sobre o sistema', 'system', 'help-about'),
+                                  ('Dispositivos e drivers', 'devices', 'preferences-devices-tree'),
+                                  ('Conexões de rede', 'network', 'network-workgroup'),
+                                  ('Armazenamento e unidades', 'disks', 'drive-harddisk')]),
+        ('Ferramentas', [('Gerenciador de Tarefas', 'tasks', 'utilities-system-monitor'),
+                        ('Eventos do sistema', 'logs', 'view-list-text'),
+                        ('Terminal', 'terminal', 'utilities-terminal')]),
+        ('Energia e sessão', [('Opções de energia', 'power-settings', 'preferences-system-power-management'),
+                             ('Sair, reiniciar ou desligar…', 'logout', 'system-log-out')]),
+    ]
     def activate(action):
         if action=='run':
             dialog.accept();run_dialog();return
@@ -60,9 +69,16 @@ def quick_access():
         except ValueError as error:
             QMessageBox.warning(dialog,'Acesso rápido',str(error));return
         dialog.accept()
-    for caption,action in choices:
-        button=QPushButton(caption);button.setMinimumHeight(32)
-        button.clicked.connect(lambda checked=False,key=action:activate(key));body.addWidget(button)
+    for index, (title, choices) in enumerate(groups):
+        group = QGroupBox(title)
+        layout = QVBoxLayout(group)
+        for caption, action, icon in choices:
+            button = QPushButton(QIcon.fromTheme(icon), caption)
+            button.setMinimumHeight(32)
+            button.clicked.connect(lambda checked=False, key=action: activate(key))
+            layout.addWidget(button)
+        layout.addStretch()
+        body.addWidget(group, index // 2, index % 2)
     dialog.exec()
 
 

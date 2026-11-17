@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Wiki do Linux BR
+GenericName=Ajuda do sistema
+Comment=Consulte guias de uso e solução de problemas
+Exec=linuxbr-wiki
+Icon=help-contents
+Terminal=false
+Categories=Utility;Documentation;
+Keywords=Ajuda;Manual;Guia;Wiki;Tutoriais;Suporte;

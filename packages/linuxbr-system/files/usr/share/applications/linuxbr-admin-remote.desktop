@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Central de Administração Remota
+Comment=Abra a administração de um servidor Linux BR pelo navegador
+Exec=/usr/bin/linuxbr-admin-remote
+TryExec=/usr/bin/linuxbr-admin-remote
+Icon=network-server
+Categories=System;
+Terminal=false

@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Dispositivos conectados
+Comment=Gerencie dispositivos pareados e compartilhe arquivos, links e texto
+Exec=/usr/bin/kdeconnect-app
+TryExec=/usr/bin/kdeconnect-app
+Icon=network-workgroup
+Categories=Network;
+Terminal=false
+Actions=sendContent;
+
+[Desktop Action sendContent]
+Name=Enviar link ou texto…
+Icon=edit-paste
+Exec=/usr/bin/linuxbr-send-content

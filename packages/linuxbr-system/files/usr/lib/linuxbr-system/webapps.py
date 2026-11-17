@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, QTimer, QSize
 from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (QApplication,QDialog,QDialogButtonBox,QVBoxLayout,QLabel,
     QLineEdit,QMainWindow,QWidget,QFrame,QListWidget,QListWidgetItem,QHBoxLayout,QPushButton,QMessageBox,QInputDialog,
-    QCheckBox,QComboBox,QFormLayout,QScrollArea,QGridLayout)
+    QCheckBox,QComboBox,QFormLayout,QScrollArea,QGridLayout,QFileDialog)
 import webapps_backend as backend
 from visual_style import BUTTONS
 
@@ -139,8 +139,94 @@ class Window(QMainWindow):
         more=QGridLayout();layout.addLayout(more)
         for index,(label,icon,action) in enumerate([('Remover do menu','list-remove',self.remove),('Restaurar perfil','edit-undo',self.restore),('Usar como padrão','emblem-favorite',self.prefer),('Retirar padrão','edit-clear',self.unprefer),('Apagar dados…','edit-delete',self.delete)]):
             button=QPushButton(QIcon.fromTheme(icon),label);button.clicked.connect(action);more.addWidget(button,index//3,index%3)
+        for column, (label, icon, handler) in enumerate([
+            ('Exportar atalhos…', 'document-export', self.export_shortcuts),
+            ('Importar atalhos…', 'document-import', self.import_shortcuts),
+            ('Sincronizar atalhos…', 'folder-sync', self.sync_shortcuts),
+        ]):
+            button = QPushButton(QIcon.fromTheme(icon), label)
+            button.clicked.connect(handler)
+            more.addWidget(button, 2, column)
         note=QLabel('Pessoal, Trabalho ou outras contas: cada sessão mantém cookies e login separados e pode abrir junto das demais. O nome é escolhido por você; o Linux BR não lê a conta do site. Remover do menu preserva os dados para restauração.');note.setWordWrap(True);layout.addWidget(note)
         self.refresh()
+
+    def sync_shortcuts(self):
+        import subprocess
+
+        from webapps_sync import config, configure, read_json
+        from desktop_jobs import Command
+
+        title = 'Sincronizar atalhos'
+        choices = ['Escolher pasta e ativar', 'Sincronizar agora', 'Desativar']
+        choice, accepted = QInputDialog.getItem(self, title, 'O que deseja fazer?', choices, editable=False)
+        if not accepted:
+            return
+        try:
+            if choice == choices[0]:
+                directory = QFileDialog.getExistingDirectory(self, 'Escolher uma pasta privada sincronizada')
+                if not directory:
+                    return
+                message = ('Use a mesma pasta privada nos computadores de confiança. '
+                           'Atalhos para sites públicos serão adicionados automaticamente. '
+                           'Contas e sessões ficam neste computador. Atalhos removidos do menu continuam ocultos aqui.')
+                if QMessageBox.question(self, title, message) != QMessageBox.StandardButton.Yes:
+                    return
+                configure(directory)
+                timer = 'linuxbr-webapp-shortcuts-sync.timer'
+                subprocess.run(['/usr/bin/systemctl', '--user', 'daemon-reload'],
+                               check=True, timeout=10, capture_output=True)
+                subprocess.run(['/usr/bin/systemctl', '--user', 'start', timer],
+                               check=True, timeout=10, capture_output=True)
+            elif choice == choices[2]:
+                configure(None)
+                QMessageBox.information(self, title, 'Sincronização desativada neste computador.')
+                return
+            if not config().is_file() or not read_json(config()).get('directory'):
+                QMessageBox.information(self, title, 'Escolha uma pasta sincronizada primeiro.')
+                return
+            job = Command(title, ['/usr/bin/python3', '/usr/lib/linuxbr-system/webapps_sync.py'], self)
+            job.completed.connect(lambda _: self.refresh())
+        except subprocess.SubprocessError:
+            QMessageBox.warning(self, title, 'A pasta foi salva. O agendamento deve iniciar na próxima sessão.')
+        except (KeyError, OSError, TypeError, ValueError):
+            QMessageBox.warning(self, title, 'Não foi possível atualizar a configuração da pasta.')
+
+    def export_shortcuts(self):
+        path, _ = QFileDialog.getSaveFileName(self, 'Exportar atalhos', 'linuxbr-webapps.json', 'JSON (*.json)')
+        if path:
+            try:
+                backend.export_shortcuts(path)
+            except (OSError, ValueError) as error:
+                QMessageBox.warning(self, 'Exportar atalhos', str(error))
+
+    def import_shortcuts(self):
+        path, _ = QFileDialog.getOpenFileName(self, 'Importar atalhos', '', 'JSON (*.json)')
+        if not path:
+            return
+        try:
+            known = {item['url'] for item in backend.installed(include_hidden=True)}
+            rows = [item for item in backend.load_shortcuts(path) if item['url'] not in known]
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Importar atalhos', str(error))
+            return
+        if not rows:
+            QMessageBox.information(self, 'Importar atalhos', 'Nenhum atalho novo neste arquivo.')
+            return
+        preview = '\n'.join(item['name'] + '   ' + item['url'] for item in rows)
+        dialog = QMessageBox(QMessageBox.Icon.Question, 'Importar atalhos',
+                             f'Adicionar {len(rows)} atalhos ao menu Iniciar?',
+                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel, self)
+        dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        dialog.setDetailedText(preview)
+        if dialog.exec() != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            for item in rows:
+                backend.install(item)
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, 'Importar atalhos', str(error))
+        finally:
+            self.refresh()
 
     def preferences(self):
         index=self.list.currentRow()
@@ -279,8 +365,8 @@ class ProfilePicker(QDialog):
         outer.addWidget(self.card,0,Qt.AlignmentFlag.AlignCenter)
         layout=QVBoxLayout(self.card);layout.setContentsMargins(20,20,20,20)
         title=QLabel(choices[0]['name']);title.setTextFormat(Qt.TextFormat.PlainText);title.setStyleSheet('font-size:24px;font-weight:600');layout.addWidget(title)
-        layout.addWidget(QLabel('Selecione um ou mais perfis para abrir:'))
-        note=QLabel('O perfil padrão fica marcado. Cada perfil mantém suas próprias contas e dados.');note.setWordWrap(True);layout.addWidget(note)
+        note=QLabel('Marque os perfis que deseja abrir. Cada perfil mantém suas próprias contas e dados.')
+        note.setWordWrap(True);layout.addWidget(note)
         self.list=QListWidget();layout.addWidget(self.list)
         self.list.setAccessibleName('Perfis disponíveis; use Espaço para marcar um ou mais')
         for entry in choices:
@@ -294,12 +380,12 @@ class ProfilePicker(QDialog):
         preferences=QPushButton(QIcon.fromTheme('configure'),'Preferências');preferences.clicked.connect(self.preferences);manage.addWidget(preferences,1,0,1,2)
         self.error=QLabel();self.error.setWordWrap(True);layout.addWidget(self.error)
         row=QHBoxLayout();layout.addLayout(row)
-        self.new_button=QPushButton('+ Novo perfil');self.new_button.clicked.connect(self.new_profile);row.addWidget(self.new_button)
+        self.new_button=QPushButton(QIcon.fromTheme('list-add'),'Novo perfil')
+        self.new_button.clicked.connect(self.new_profile);row.addWidget(self.new_button)
         cancel=QPushButton('Cancelar');cancel.clicked.connect(self.reject);row.addWidget(cancel)
-        self.open_button=QPushButton('Abrir selecionados');self.open_button.setProperty('primary',True)
+        self.open_button=QPushButton('Abrir perfis');self.open_button.setProperty('primary',True)
         self.open_button.setDefault(True)
         self.open_button.clicked.connect(self.open_selected);row.addWidget(self.open_button)
-        self.list.itemActivated.connect(lambda _item:self.open_selected() if self.open_button.isEnabled() else None)
         self.list.itemChanged.connect(self.update_selection);self.update_selection()
         self.list.currentRowChanged.connect(self.refresh_status)
         self.list.setCurrentRow(0)
@@ -347,9 +433,16 @@ class ProfilePicker(QDialog):
         except (OSError,ValueError) as exc:self.error.setText(str(exc))
 
     def update_selection(self):
-        self.open_button.setEnabled(any(self.list.item(i).checkState()==Qt.CheckState.Checked for i in range(self.list.count())))
+        count = sum(self.list.item(i).checkState() == Qt.CheckState.Checked for i in range(self.list.count()))
+        label = 'Abrir perfis'
+        if count:
+            label = f'Abrir {count} ' + ('perfil' if count == 1 else 'perfis')
+        self.open_button.setText(label)
+        self.open_button.setEnabled(count > 0)
 
     def open_selected(self):
+        if not self.open_button.isEnabled():
+            return
         try:
             for i in range(self.list.count()):
                 item=self.list.item(i)

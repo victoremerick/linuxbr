@@ -38,21 +38,27 @@ class Worker(QThread):
 
 
 class MigrationWindow(QMainWindow):
+    INITIAL_STATUS = 'Adicione as pastas e confira a cópia antes de começar.'
+
     def __init__(self,restore=False):
         super().__init__(); self.setWindowTitle('Recuperar meus arquivos — Linux BR' if restore else 'Trazer meus arquivos — Linux BR')
         self.setWindowIcon(QIcon.fromTheme('folder-import')); self.resize(900, 650)
         self.setStyleSheet(BUTTONS); self.worker = None; self.plan = None
         root = QWidget(); self.setCentralWidget(root); body = QVBoxLayout(root)
+        body.setContentsMargins(20, 16, 20, 16)
         title = QLabel('Recuperar arquivos de uma cópia de segurança' if restore else 'Trazer meus arquivos do Windows'); title.setStyleSheet('font-size:24px;font-weight:600')
         body.addWidget(title)
         note = QLabel('Escolha pastas em um disco ou cópia de segurança. Os arquivos serão copiados e conferidos por SHA-256. '
                       'A origem é preservada; links e arquivos especiais são ignorados.')
         note.setWordWrap(True); body.addWidget(note)
+        sources_label = QLabel('Pastas de &origem')
+        body.addWidget(sources_label)
         self.sources = QListWidget(); self.sources.setAccessibleName('Pastas de origem'); body.addWidget(self.sources)
+        sources_label.setBuddy(self.sources)
         buttons = QHBoxLayout(); body.addLayout(buttons)
         self.add = SettingsButton('Adicionar pasta…'); self.add.setIcon(QIcon.fromTheme('folder-new'))
         self.add.clicked.connect(self.add_source); buttons.addWidget(self.add)
-        self.remove = SettingsButton('Remover da seleção'); self.remove.setIcon(QIcon.fromTheme('list-remove'))
+        self.remove = SettingsButton('Remover pasta'); self.remove.setIcon(QIcon.fromTheme('list-remove'))
         self.remove.clicked.connect(self.remove_source); buttons.addWidget(self.remove); buttons.addStretch()
         row = QHBoxLayout(); body.addLayout(row)
         row.addWidget(QLabel('Destino:')); self.destination = QLineEdit(str(Path.home())); row.addWidget(self.destination, 1)
@@ -66,17 +72,24 @@ class MigrationWindow(QMainWindow):
         self.policy.addItem('Ignorar o arquivo da origem', 'skip'); self.policy.addItem('Substituir o arquivo do destino', 'replace')
         self.policy.currentIndexChanged.connect(self.invalidate)
         row.addWidget(self.policy, 1)
+        preview_label = QLabel('&Prévia da cópia')
+        body.addWidget(preview_label)
         self.preview = QTableWidget(0, 3); self.preview.setHorizontalHeaderLabels(['Pasta no destino', 'Arquivos', 'Tamanho'])
+        preview_label.setBuddy(self.preview)
+        self.preview.setAccessibleName('Prévia da cópia')
+        self.preview.verticalHeader().hide()
         self.preview.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.preview.horizontalHeader().setSectionResizeMode(0,QHeaderView.ResizeMode.Stretch)
         self.preview.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeMode.ResizeToContents)
         self.preview.horizontalHeader().setSectionResizeMode(2,QHeaderView.ResizeMode.ResizeToContents)
         body.addWidget(self.preview)
-        self.status = QLabel('Adicione as pastas e confira a importação antes de começar.')
+        self.status = QLabel(self.INITIAL_STATUS)
         self.status.setTextFormat(Qt.TextFormat.PlainText); self.status.setWordWrap(True); body.addWidget(self.status)
         self.progress = QProgressBar(); self.progress.setRange(0, 1000); body.addWidget(self.progress)
+        self.progress.setAccessibleName('Progresso da cópia')
+        self.progress.hide()
         row = QHBoxLayout(); body.addLayout(row)
-        self.scan = SettingsButton('Conferir importação'); self.scan.setIcon(QIcon.fromTheme('document-preview'))
+        self.scan = SettingsButton('Conferir cópia'); self.scan.setIcon(QIcon.fromTheme('document-preview'))
         self.scan.clicked.connect(self.scan_sources); row.addWidget(self.scan)
         self.start = SettingsButton('Copiar e verificar'); self.start.setIcon(QIcon.fromTheme('edit-copy'))
         self.start.setEnabled(False); self.start.clicked.connect(self.start_copy); row.addWidget(self.start)
@@ -100,17 +113,33 @@ class MigrationWindow(QMainWindow):
         for control in (self.add, self.remove, self.pick, self.scan, self.start, self.stop,
                         self.bookmarks, self.alternatives):
             control.setAutoDefault(False)
+        self.sources.currentRowChanged.connect(self.update_actions)
+        self.update_actions()
 
     def invalidate(self, *_):
-        self.plan = None; self.start.setEnabled(False)
+        self.plan = None
+        self.preview.setRowCount(0)
+        self.status.setText('Confira a origem e o destino antes de copiar.' if self.sources.count()
+                            else self.INITIAL_STATUS)
+        self.update_actions()
+
+    def update_actions(self):
+        idle = self.worker is None
+        self.remove.setEnabled(idle and self.sources.currentRow() >= 0)
+        self.scan.setEnabled(idle and self.sources.count() > 0 and bool(self.destination.text().strip()))
+        self.start.setEnabled(idle and bool(self.plan and self.plan['enough_space']))
 
     def add_source(self):
         folder = QFileDialog.getExistingDirectory(self, 'Escolher pasta de origem', str(Path.home()))
         if folder and not self.sources.findItems(folder, Qt.MatchFlag.MatchExactly):
-            self.sources.addItem(folder); self.invalidate()
+            self.sources.addItem(folder)
+            self.sources.setCurrentRow(self.sources.count() - 1)
+            self.invalidate()
 
     def remove_source(self):
-        self.sources.takeItem(self.sources.currentRow()); self.invalidate()
+        if self.sources.currentRow() >= 0:
+            self.sources.takeItem(self.sources.currentRow())
+            self.invalidate()
 
     def choose_destination(self):
         folder = QFileDialog.getExistingDirectory(self, 'Escolher destino da cópia', self.destination.text())
@@ -163,13 +192,16 @@ class MigrationWindow(QMainWindow):
                                         'Abra a Loja e pesquise por ' + suggestions[selected] + '.')
 
     def busy(self, active):
-        for item in (self.add, self.remove, self.pick, self.destination, self.sources,
-                     self.policy, self.scan, self.bookmarks, self.alternatives):
+        for item in (self.add, self.pick, self.destination, self.sources,
+                     self.policy, self.bookmarks, self.alternatives):
             item.setEnabled(not active)
-        self.stop.setEnabled(active); self.start.setEnabled(not active and bool(self.plan and self.plan['enough_space']))
+        self.stop.setEnabled(active)
+        self.progress.setVisible(active)
+        self.update_actions()
 
     def run_job(self, function, completed):
-        self.busy(True); self.worker = Worker(function)
+        self.worker = Worker(function)
+        self.busy(True)
         self.worker.progress.connect(self.show_progress); self.worker.result.connect(completed)
         self.worker.failure.connect(self.show_error); self.worker.finished.connect(self.finished)
         self.worker.start()

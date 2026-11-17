@@ -107,6 +107,23 @@ class NetworkAbout(unittest.TestCase):
         start.assert_not_called()
         self.assertIn('smb://server/Equipe', store.update()['shares'])
 
+    def test_reconnecting_saved_mapping_does_not_save_again(self):
+        store = Store(self.root / 'drive-manager.json')
+        with patch.object(file_tools, 'network_api', return_value=(lambda: store, network_access.smb_url)), \
+             patch.object(store, 'add_share', wraps=store.add_share) as save, \
+             patch.object(network_access.NetworkAccess, 'start') as start:
+            dialog = file_tools.MapNetworkDialog()
+            self.assertFalse(dialog.map_button.isEnabled())
+            dialog.location.setText(r'\\server\Equipe')
+            dialog.map_share()
+            dialog.network_finished('smb://server/Equipe', False, 'Sem acesso.')
+            self.assertEqual(dialog.map_button.text(), 'Reconectar')
+            dialog.map_share()
+            self.assertEqual(start.call_count, 2)
+            self.assertEqual(save.call_count, 1)
+            dialog.location.setText(r'\\server\Outra')
+            self.assertEqual(dialog.map_button.text(), 'Adicionar unidade')
+
     def test_release_reads_installed_metadata_and_corruption_falls_back(self):
         path = self.root / 'release.json'
         path.write_text(json.dumps({'display_version': '0.7.0 Beta 1', 'channel': 'beta'}))

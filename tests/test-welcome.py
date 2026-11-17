@@ -93,6 +93,7 @@ class WelcomeTests(unittest.TestCase):
                 window.nav.setCurrentRow(row); APP.processEvents()
                 self.assertTrue(window.page.browser.toPlainText().strip())
                 self.assertEqual(window.nav.currentItem().text(), title)
+                self.assertEqual(window.page.report.isVisible(), title == 'Recuperação e ajuda')
             window.nav.setCurrentRow(0); APP.processEvents()
             preview = os.environ.get('WELCOME_PREVIEW', '/tmp/linuxbr-welcome.png')
             self.assertTrue(window.grab().save(preview))

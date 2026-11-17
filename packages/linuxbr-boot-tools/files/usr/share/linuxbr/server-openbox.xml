@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+  </focus>
+  <theme>
+    <name>Clearlooks</name>
+    <titleLayout>LIMC</titleLayout>
+    <keepBorder>yes</keepBorder>
+  </theme>
+  <desktops><number>1</number></desktops>
+  <keyboard>
+    <keybind key="A-Tab"><action name="NextWindow"/></keybind>
+    <keybind key="A-S-Tab"><action name="PreviousWindow"/></keybind>
+    <keybind key="A-F4"><action name="Close"/></keybind>
+    <keybind key="C-A-t"><action name="Execute"><command>/usr/bin/linuxbr-server-terminal window</command></action></keybind>
+    <keybind key="C-A-c"><action name="Execute"><command>/usr/bin/linuxbr-server-terminal configuration</command></action></keybind>
+  </keyboard>
+  <mouse>
+    <context name="Client">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+    </context>
+    <context name="Titlebar">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="Left" action="DoubleClick"><action name="ToggleMaximize"/></mousebind>
+    </context>
+    <context name="Iconify">
+      <mousebind button="Left" action="Click"><action name="Iconify"/></mousebind>
+    </context>
+    <context name="Maximize">
+      <mousebind button="Left" action="Click"><action name="ToggleMaximize"/></mousebind>
+    </context>
+    <context name="Close">
+      <mousebind button="Left" action="Click"><action name="Close"/></mousebind>
+    </context>
+    <context name="Left Right Top Bottom TLCorner TRCorner BLCorner BRCorner">
+      <mousebind button="Left" action="Drag"><action name="Resize"/></mousebind>
+    </context>
+  </mouse>
+  <applications>
+    <application name="linuxbr-server-shell">
+      <position force="yes"><x>7%</x><y>9%</y></position>
+      <size><width>68%</width><height>47%</height></size>
+      <layer>below</layer>
+      <focus>no</focus>
+    </application>
+    <application name="linuxbr-server-configuration">
+      <position force="yes"><x>17%</x><y>24%</y></position>
+      <size><width>68%</width><height>53%</height></size>
+      <focus>yes</focus>
+    </application>
+    <application name="linuxbr-server-window">
+      <focus>yes</focus>
+    </application>
+  </applications>
+</openbox_config>

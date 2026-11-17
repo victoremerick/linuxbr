@@ -1,8 +1,8 @@
-# Linux BR 1.1 Alpha 1
+# Linux BR 1.1.1 Alpha 1
 
 Distribuição experimental baseada em Debian 13, KDE Plasma 6 e Calamares, com interface em português e uso familiar para quem vem do Windows.
 
-A 1.1 Alpha 1 é a revisão de desenvolvimento para manutenção em organizações, diagnóstico, recuperação e melhorias da Loja. A última imagem publicada é a [1.0 RC 3](https://github.com/victoremerick/linuxbr/releases/tag/v1.0.0-rc3).
+Consulte as imagens e notas em [GitHub Releases](https://github.com/victoremerick/linuxbr/releases).
 
 A Loja Linux BR, o gerenciador gráfico de máquinas virtuais, as propriedades de arquivos e as ferramentas de migração continuam integrados ao sistema. O histórico abaixo reúne as alterações de cada versão.
 
@@ -19,6 +19,21 @@ Consulte o [escopo da 0.9](docs/VERSAO-0.9.md), o [guia de Servidor e recuperaç
 - [Lista de aplicativos e formatos testados](docs/VERSAO-1.1.md#exportar-e-reinstalar-aplicativos): exportação e reinstalação pela Loja, com evidências de compatibilidade por formato.
 
 ## Histórico de versões — notas de lançamento
+
+### 1.1.1 Alpha 1
+
+- **Wiki do Linux BR** no menu Iniciar, com busca offline e uma página ilustrada por guia em português.
+- Mídias de instalação distintas para Linux BR Desktop e Linux BR VM Server. O instalador usa a edição da ISO.
+- Após a instalação, o sistema inicia com o menu do GRUB oculto. Pressione **F4** ou **Esc** logo após a tela do firmware para abrir as opções de inicialização.
+- Em **Explorador de arquivos → Opções de Pasta**, ajuste a exibição de itens ocultos e de sistema separadamente. A configuração é pessoal e vale para novas navegações. **Ctrl+H** alterna os itens ocultos da pasta atual.
+- O Explorador reúne os comandos nas abas **Início** e **Visualização**. A aba **Pesquisar** aparece nos resultados e permite alternar entre nome e conteúdo, escolher o local da busca ou encerrá-la.
+- A barra de endereços fica abaixo das abas de comandos, ao lado do campo de pesquisa.
+- No VM Server, o comando `terminal` e o atalho **Ctrl+Alt+T** abrem janelas Bash independentes.
+
+- Integração entre computadores por pareamento, sincronização de pastas, atalhos de aplicativos web, documentos, links, diagnósticos e backup com versões.
+- Administração de VMs com cópia de discos entre hospedeiros, réplicas offline programadas e delegação de ações de energia por VM.
+- Console do servidor com agendamento de tarefas, teste temporário de regras do firewall, configuração DNS e DHCPv4 da LAN e instalação de certificados do Cockpit.
+- [Escopo e estado da homologação da 1.1.1](docs/VERSAO-1.1.1.md)
 
 As entradas abaixo distinguem imagens ISO, revisões de código e atualizações por pacote. As revisões incrementais não alteram retroativamente uma ISO já construída. Este histórico reúne os registros disponíveis; a ausência de uma validação não equivale à aprovação daquele recurso.
 
@@ -266,7 +281,9 @@ A ISO 0.2 existente permanece como referência. `apply-stage2.sh` é histórico 
 
 ## Atalhos na raiz do projeto
 
-Execute `./init-build.sh` para compilar e validar a ISO da versão atual. O cabeçalho exibe a marca geométrica em texto, o nome Linux BR e a versão. Em terminal interativo, o modo padrão mostra uma barra de seis etapas com animação; as etapas não representam percentual de tempo nem previsão de término. Sem terminal interativo, informa mudanças de etapa sem sequências de controle. `NO_COLOR=1` desativa as cores da marca. O padrão mostra apenas resumo e salva a saída completa em `.cache/logs/`; use `./init-build.sh -v` ou `--verbose` para acompanhar os detalhes. `build.sh` aceita as mesmas opções. Falhas mostram as últimas 40 linhas e preservam o código de saída. No Fedora, o script instala automaticamente via `dnf install -y` apenas as dependências ausentes de build e validação (incluindo Podman e xorriso), verifica novamente os comandos e então compila. Solicita sudo quando necessário para instalar pacotes e compilar; interrompe se qualquer etapa falhar. As dependências das VMs são instaladas pelos quatro atalhos de inicialização. A validação cobre checksum e entradas de boot; a instalação gráfica ainda deve ser testada na VM.
+Execute `./init-build.sh` para a ISO principal `linuxbr-<versão>-amd64.iso`. Execute `./init-build.sh --edition=vm-server` para a mídia dedicada `linuxbr-vm-server-<versão>-amd64.iso`. Cada imagem tem seu checksum e um instalador que aplica a edição da mídia.
+
+O build grava a saída completa em `.cache/logs/`. Use `--verbose` para acompanhar os detalhes ou `NO_COLOR=1` para desativar as cores. `build.sh` aceita as mesmas opções. No Fedora, o script instala as dependências de build ausentes e solicita sudo quando necessário. A verificação da imagem cobre checksum e entradas de boot. A instalação gráfica também precisa ser ensaiada em VM.
 
 | Comando | Inicialização |
 | --- | --- |

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+MimeType=all/all;
+X-KDE-Protocols=file
+X-KDE-MinNumberOfUrls=2
+Actions=BatchRename;
+
+[Desktop Action BatchRename]
+Name=Renomear em lote com prévia…
+Icon=edit-rename
+Exec=linuxbr-file-tools --rename-batch %F

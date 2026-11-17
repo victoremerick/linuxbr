@@ -2,9 +2,11 @@
 
 Servidor PHP/MySQL com painel Angular. Os perfis, cookies e contas permanecem no computador do usuário. O servidor publica metadados de aplicativos; não distribui nem atualiza o código hospedado pelos fornecedores.
 
-A página inicial apresenta o sistema; a loja pública fica em `/loja/` e a
-administração em `/admin/`. Copie o painel compilado para ambos os diretórios,
+A página inicial apresenta o sistema. A loja pública fica em `/loja/`, a
+wiki em `/wiki/` e a administração em `/admin/`. Copie o painel compilado para a loja e a administração,
 publicando também `public/index.html`, `public/assets` e `public/applications.json`.
+Rode `node bin/build-public-wiki.mjs` e publique `public/wiki/` para servir
+as mesmas páginas e capturas incluídas no pacote do Desktop.
 Preserve o ponto de entrada privado de `api.php` já configurado na hospedagem.
 O acesso `/` deve servir o HTML de apresentação, sem redirecionar para `/admin/`.
 Consulte [Publicação no GitHub e links da Loja](../../docs/PUBLICACAO-GITHUB.md).

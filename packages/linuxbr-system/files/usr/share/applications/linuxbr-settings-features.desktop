@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Ativar ou desativar recursos do Linux BR
-Comment=Recursos opcionais, serviços e pacotes
+Name=Recursos opcionais
+Comment=Ativar ou desativar recursos do Linux BR
 Exec=linuxbr-system --page optional-features
 Icon=preferences-plugin
 Categories=Settings;System;

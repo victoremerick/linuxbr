@@ -9,8 +9,33 @@ from PyQt6.QtWidgets import QApplication
 from installer import inspect_package,Installer
 from proxy import validate_url
 from appearance import Appearance
+from settings_hub import Window
+import settings_catalog
 APP=QApplication([])
 class Settings(unittest.TestCase):
+ def test_update_category_lists_all_pages_without_launching_the_store(self):
+  with patch.object(Window, 'query'), patch.object(Window, 'launch') as launch:
+   window=Window()
+   window.navigate('update-center')
+   from PyQt6.QtWidgets import QPushButton
+   self.assertEqual(len(window.overview.widget().findChildren(QPushButton)),4)
+   launch.assert_not_called()
+   window.navigate('updates')
+   launch.assert_called_once_with(['linuxbr-store','--updates'])
+   window.close()
+
+ def test_back_restores_search_after_opening_a_result(self):
+  with patch.object(Window, 'query'), patch.object(Window, 'launch') as launch:
+   window=Window()
+   window.search.setText('hyper-v')
+   window.navigate('virtualization')
+   self.assertEqual(window.search.text(),'')
+   window.go_back()
+   self.assertEqual(window.search.text(),'hyper-v')
+   self.assertTrue(any(page['id']=='virtualization' for page in settings_catalog.search(window.search.text())))
+   launch.assert_called_once()
+   window.close()
+
  def test_invalid_proxy(self):
   for text in ('file:///tmp/x','http://user:password@proxy:8080','http://proxy:99999','http://host\nother'):
    with self.assertRaises(ValueError):validate_url(text,('http','https'))

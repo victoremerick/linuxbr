@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -76,12 +77,13 @@ def build(output, work, calamares_deb, breeze_deb):
             shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         reject_seeded_credentials(root)
     # Executable launchers must retain their mode even when edited on Windows.
-    for command in ('linuxbr-welcome','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows','linuxbr-credentials'):
+    for command in ('linuxbr-welcome','linuxbr-wiki','linuxbr-task-manager','linuxbr-windows','linuxbr-webapps','linuxbr-webapps-host','linuxbr-store','linuxbr-run','linuxbr-quick-access','linuxbr-file-tools','linuxbr-action','linuxbr-session-actions','linuxbr-recovery','linuxbr-setup','linuxbr-migration','linuxbr-maintenance','linuxbr-desktop-flows','linuxbr-credentials'):
         (roots['linuxbr-system'] / 'usr/bin' / command).chmod(0o755)
     extensions = roots['linuxbr-system'] / 'usr/share/chromium/extensions'
     timers = roots['linuxbr-system'] / 'usr/lib/systemd/user/timers.target.wants'
     timers.mkdir(parents=True,exist_ok=True)
     (timers/'linuxbr-webapp-catalog.timer').symlink_to('../linuxbr-webapp-catalog.timer')
+    (timers/'linuxbr-webapp-shortcuts-sync.timer').symlink_to('../linuxbr-webapp-shortcuts-sync.timer')
     (roots['linuxbr-system'] / 'usr/bin/linuxbr-virtual-machines').chmod(0o755)
     extensions.mkdir(parents=True, exist_ok=True)
     (extensions / 'linuxbr-webapps').symlink_to('/usr/share/linuxbr/webapps', target_is_directory=True)
@@ -116,7 +118,7 @@ LOGO=linuxbr
     shared=('administration.py','administration_backend.py','services_backend.py','services_dialogs.py',
             'store_sources.py','features_backend.py','features_page.py','network_details.py','network_details_page.py',
             'firewall.py','firewall_backend.py','virtualization.py','virtualization_backend.py','virtualization_preferences.py',
-            'virtualization_state.py','virtualization_transfer.py','vm_firmware.py',
+            'virtualization_state.py','virtualization_transfer.py','virtualization_replica_job.py','vm_firmware.py',
             'migration.py','migration_backend.py','migration_bookmarks.py','visual_style.py','keyboard_controls.py')
     for filename in shared:
         destination=server/'usr/lib/linuxbr-server'/filename;destination.parent.mkdir(parents=True,exist_ok=True)
@@ -182,7 +184,7 @@ esac
 ''', True)
     control(roots['linuxbr-system'], 'linuxbr-system', 'chromium, chromium-sandbox, python3, python3-cryptography, libnotify-bin, python3-pyqt6, python3-gi, libglib2.0-bin, linuxbr-drive-manager, linuxbr-device-manager, systemsettings, kinfocenter, partitionmanager, plasma-discover, print-manager, plasma-nm, bluedevil, konsole, accountsservice, python3-dbus, realmd, adcli, sssd-ad, sssd-tools, libnss-sss, libpam-sss, libpam-modules, libpam-runtime, samba-common-bin, packagekit, polkit-kde-agent-1, krdc, krfb, krdp, flatpak, powerdevil, kde-config-screenlocker, kscreen, libkscreen-bin, plasma-pa, kdeconnect, network-manager-openvpn, network-manager-vpnc, network-manager-openconnect, plasma-discover-backend-flatpak, dpkg, libkf6config-bin, firewalld, iproute2, network-manager, pulseaudio-utils, passwd, kcalc, kate, kolourpaint, kup-backup, bup, rsync, timeshift, icoutils, gnome-keyring, libpam-gnome-keyring, gir1.2-secret-1, seahorse')
     system_control = roots['linuxbr-system'] / 'DEBIAN/control'
-    system_control.write_text(system_control.read_text().replace('Depends: ',f'Depends: linuxbr-boot-tools (= {VERSION}), ',1))
+    system_control.write_text(system_control.read_text().replace('Depends: ',f'Depends: linuxbr-boot-tools (= {VERSION}), openssh-client, bubblewrap, psmisc, python3-pyqt6.qtmultimedia, ',1))
     boot=roots['linuxbr-boot-tools']
     firmware=boot/'usr/share/linuxbr/firmware';firmware.parent.mkdir(parents=True,exist_ok=True)
     shutil.move(roots['linuxbr-system']/'usr/share/linuxbr/firmware',firmware)
@@ -323,7 +325,7 @@ esac
     shutil.copy2(native / 'kf6/kio/libkio_linuxbr.so', plugin)
     write(native, 'debian/control', 'Source: linuxbr-drives\nSection: utils\nPriority: optional\nMaintainer: Linux BR\n\nPackage: linuxbr-drive-manager\nArchitecture: any\nDescription: Linux BR drives\n')
     libraries = subprocess.check_output(['dpkg-shlibdeps', '-O', '-e'+str(binary.resolve()), '-e'+str(plugin.resolve())], cwd=native, text=True).strip().split('=', 1)[1]
-    control(drive, 'linuxbr-drive-manager', f'linuxbr-boot-tools (= {VERSION}), bash, konsole, kio-fuse, python3, python3-pyqt6, python3-dbus, python3-gi, gir1.2-glib-2.0, udisks2, e2fsprogs, dosfstools, ntfs-3g, exfatprogs, polkit-kde-agent-1, dolphin (>= 4:25.04.3-1+deb13u1+linuxbr2), qt6-svg-plugins, kio-extras, kde-cli-tools, kwalletmanager, linuxbr-branding, ' + libraries,
+    control(drive, 'linuxbr-drive-manager', f'linuxbr-boot-tools (= {VERSION}), bash, konsole, kio-fuse, python3, python3-pyqt6, python3-dbus, python3-gi, gir1.2-glib-2.0, udisks2, e2fsprogs, dosfstools, ntfs-3g, exfatprogs, polkit-kde-agent-1, dolphin (>= 4:25.04.3-1+deb13u1+linuxbr3), qt6-svg-plugins, kio-extras, kde-cli-tools, kwalletmanager, linuxbr-branding, ' + libraries,
             architecture=run('dpkg', '--print-architecture'))
     control(roots['linuxbr-branding'], 'linuxbr-branding')
     # desktop-base owns this file and pins both the Debian logo and version.
@@ -418,25 +420,24 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
             p.write_text(p.read_text().replace('calamares-settings-debian', 'linuxbr-calamares-settings'))
     settings = cala / 'etc/calamares/settings.conf'
     data = load(settings); data['branding'] = 'linuxbr'
+    media = os.environ.get('LINUXBR_BUILD_EDITION', 'desktop')
+    selected = {'desktop': 'desktop', 'vm-server': 'virtualization'}[media]
+    product = 'Linux BR VM Server' if media == 'vm-server' else 'Linux BR'
     data['modules-search']=['/etc/calamares/modules',*[path for path in data['modules-search'] if path!='/etc/calamares/modules']]
     for stage in data['sequence']:
-        if 'show' in stage and 'welcome' in stage['show']:
-            stage['show'].insert(stage['show'].index('welcome')+1,'packagechooser')
         if 'exec' in stage and 'packages' in stage['exec']:
             stage['exec'].insert(stage['exec'].index('packages')+1,'linuxbr_edition')
     dump(settings, data)
     shutil.copytree(ROOT/'packages/linuxbr-calamares-settings/edition',cala/'etc/calamares/modules/linuxbr_edition')
-    write(cala,'etc/calamares/modules/packagechooser.conf',yaml.safe_dump(dict(mode='required',method='legacy',default='desktop',
-        labels={'step':'Edição','step[pt_BR]':'Edição'},items=[
-        dict(id='desktop',name='Linux BR Desktop',description='Área de trabalho completa para uso pessoal: menu Iniciar, Loja, aplicativos e compatibilidade Windows.',screenshot='/etc/calamares/branding/linuxbr/edition-desktop.svg'),
-        dict(id='server',name='Linux BR Servidor',description='Console de configuração com terminal, rede, contas, serviços e máquinas virtuais. Não inicia o desktop completo; exige login. O SSH permanece desabilitado até ser habilitado explicitamente.',screenshot='/etc/calamares/branding/linuxbr/edition-server.svg')]),allow_unicode=True,sort_keys=False))
+    write(cala,'etc/calamares/modules/linuxbr_edition/media-edition',selected+'\n')
     branding = cala / 'etc/calamares/branding'
     shutil.rmtree(branding / 'debian')
     shutil.copytree(ROOT / 'packages/linuxbr-calamares-settings/branding', branding / 'linuxbr')
     desc = branding / 'linuxbr/branding.desc'
     data = load(desc)
-    data['strings'].update(version=DISPLAY_VERSION, shortVersion=RELEASE['base_version'],
-                           versionedName=f'Linux BR {DISPLAY_VERSION}', shortVersionedName=f'Linux BR {DISPLAY_VERSION}')
+    data['strings'].update(productName=product, shortProductName=product, version=DISPLAY_VERSION,
+                           shortVersion=RELEASE['base_version'], bootloaderEntryName=product, versionedName=f'{product} {DISPLAY_VERSION}',
+                           shortVersionedName=f'{product} {DISPLAY_VERSION}')
     dump(desc, data)
     shutil.copyfile(roots['linuxbr-branding'] / 'usr/share/linuxbr/identity/symbol-color.svg', branding / 'linuxbr/logo.svg')
     run('python3',str(ROOT/'scripts/prepare-installer-translations.py'),
@@ -459,6 +460,16 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
         if 'remove' in op:
             op['remove'] = list(dict.fromkeys('linuxbr-calamares-settings' if p == 'calamares-settings-debian' else p for p in op['remove']))
     dump(packages, data)
+    if media == 'vm-server':
+        displaymanager = cala / 'etc/calamares/modules/displaymanager.conf'
+        data = load(displaymanager)
+        data['defaultDesktopEnvironment'] = dict(executable='/usr/bin/linuxbr-minimal-session',
+                                                 desktopFile='linuxbr-safe')
+        dump(displaymanager, data)
+        users = cala / 'etc/calamares/modules/users.conf'
+        data = load(users)
+        data['defaultGroups'] = ['cdrom', 'sudo', 'audio', 'video', 'plugdev', 'netdev']
+        dump(users, data)
     # Keep Debian's wrapper and helpers: partitioning/boot/source setup is unchanged.
     autostart = cala / 'etc/xdg/autostart/calamares-desktop-icon.desktop'
     autostart.write_text(autostart.read_text() + '\nTryExec=/usr/bin/add-calamares-desktop-icon\n')
@@ -469,7 +480,9 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
     shutil.copyfile(ROOT / 'packages/linuxbr-calamares-settings/installer.desktop',
                     cala / 'usr/share/applications/calamares-install-linuxbr.desktop')
     launcher = cala / 'usr/share/applications/calamares-install-linuxbr.desktop'
-    launcher.write_text('\n'.join(f'Comment=Instalar Linux BR {DISPLAY_VERSION} no computador' if line.startswith('Comment=') else line for line in launcher.read_text().splitlines()) + '\n')
+    launcher.write_text('\n'.join(f'Comment=Instalar {product} {DISPLAY_VERSION} no computador' if line.startswith('Comment=') else
+                                 line.replace('Instalar Linux BR', f'Instalar {product}') if line.startswith('Name') else line
+                                 for line in launcher.read_text().splitlines()) + '\n')
     write(cala, 'usr/bin/add-calamares-desktop-icon', '''#!/bin/sh
 set -eu
 # Only expose the installer in a live session, never for installed users.

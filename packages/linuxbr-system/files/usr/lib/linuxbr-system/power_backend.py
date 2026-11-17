@@ -1,4 +1,6 @@
 """PowerDevil profile settings used by the embedded energy page."""
+from hashlib import sha256
+from pathlib import Path
 import subprocess
 
 PROFILES = ('AC', 'Battery', 'LowBattery')
@@ -6,6 +8,45 @@ DEFAULTS = {
     'AC': (600, 900), 'Battery': (300, 600), 'LowBattery': (120, 300),
 }
 ACTION_VALUES = (0, 1, 2, 8, 16, 32, 64, 128)
+
+
+def battery_report(root=Path('/sys/class/power_supply')):
+    def read_text(device, field):
+        try:
+            return (device / field).read_text().strip()
+        except OSError:
+            return ''
+
+    def number(device, field):
+        try:
+            value = int(read_text(device, field))
+            return value if value >= 0 else None
+        except ValueError:
+            return None
+
+    reports = []
+    for device in sorted(root.glob('*')):
+        if read_text(device, 'type') != 'Battery' or read_text(device, 'present') == '0':
+            continue
+        if read_text(device, 'scope') == 'Device':
+            continue
+        capacity = [(number(device, f'{field}_full_design'), number(device, f'{field}_full'), unit)
+                    for field, unit in (('energy', 'Wh'), ('charge', 'Ah'))]
+        design, full, unit = max(capacity, key=lambda entry: sum(value is not None for value in entry[:2]))
+        model = read_text(device, 'model_name')
+        manufacturer = read_text(device, 'manufacturer')
+        serial = read_text(device, 'serial_number')
+        identity = sha256(f'{manufacturer}\0{model}\0{serial}'.encode()).hexdigest() if serial and serial not in ('0', '0000') else ''
+        reports.append({
+            'name': ' '.join(filter(None, (manufacturer, model))) or device.name,
+            'design': design / 1_000_000 if design is not None else None,
+            'full': full / 1_000_000 if full is not None else None,
+            'unit': unit,
+            'health': full * 100 / design if design and full is not None else None,
+            'cycles': number(device, 'cycle_count'),
+            'identity': identity,
+        })
+    return reports
 
 
 def command(*args):

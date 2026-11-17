@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import unicodedata
 
-CATEGORIES=[('home','Início','go-home'),('system','Sistema','computer'),('devices','Bluetooth e dispositivos','preferences-devices-tree'),('network','Rede e Internet','network-workgroup'),('appearance','Personalização','preferences-desktop-theme'),('apps','Aplicativos','applications-all'),('accounts','Contas','system-users'),('language','Hora e idioma','preferences-desktop-locale'),('gaming','Jogos','applications-games'),('accessibility','Acessibilidade','preferences-desktop-accessibility'),('privacy','Privacidade e segurança','security-high'),('updates','Atualizações','system-software-update')]
+CATEGORIES=[('home','Início','go-home'),('system','Sistema','computer'),('devices','Bluetooth e dispositivos','preferences-devices-tree'),('network','Rede e Internet','network-workgroup'),('appearance','Personalização','preferences-desktop-theme'),('apps','Aplicativos','applications-all'),('accounts','Contas','system-users'),('language','Hora e idioma','preferences-desktop-locale'),('gaming','Jogos','applications-games'),('accessibility','Acessibilidade','preferences-desktop-accessibility'),('privacy','Privacidade e segurança','security-high'),('update-center','Atualizações','system-software-update')]
 PAGES=[]
 
 
@@ -36,12 +36,15 @@ native('system',[
  ('energy-history','Uso de energia','Estatísticas e informações de consumo disponíveis.','battery','kcm_energyinfo')])
 add('system','clipboard','Área de transferência','Histórico, tamanho, comportamento e dados da área de transferência.','edit-paste','tool','clipboard')
 add('system','virtualization','Máquinas virtuais','Crie, configure e gerencie máquinas, discos e redes virtuais.','computer','app','linuxbr-virtual-machines',keywords='hyper-v hyperv vm máquina virtual kvm qemu virtualbox')
+add('system','remote-admin','Central de Administração Remota','Administre serviços, armazenamento, rede e máquinas virtuais de um servidor autorizado.','network-server','app','linuxbr-admin-remote',keywords='cockpit servidor administração remota')
+add('network','folder-sync','Sincronizar pastas','Escolha as pastas que serão sincronizadas com outros computadores.','folder-sync','app','linuxbr-sync-folders',keywords='syncthing pastas arquivos')
+add('network','wireless-display','Segunda tela pela rede','Estenda a área de trabalho para outro computador conectado por SSH.','video-display','app','linuxbr-wireless-display',keywords='monitor virtual extensão tela')
 add('system','administration','Ferramentas administrativas','Serviços, eventos, variáveis e tarefas agendadas.','preferences-system','tool','administration',keywords='services.msc eventvwr.msc taskschd.msc variáveis ambiente agendamento')
 add('system','services','Serviços','Estado, início e configurações dos serviços da sua conta e do computador.','system-run','tool','administration','0')
 add('system','events','Visualizador de eventos','Eventos e registros de diagnóstico dos serviços.','view-list-text','tool','administration','1')
 add('system','environment','Variáveis de ambiente','Preferências de ambiente da sua conta e do computador.','preferences-system','tool','administration','2')
 add('system','scheduler','Agendador de Tarefas','Programas, argumentos, horários e execução das tarefas agendadas.','appointment-new','tool','administration','3')
-add('system','system-configuration','Configuração do Sistema','Inicialização normal, diagnóstica, serviços, programas automáticos e ferramentas.','preferences-system','app','linuxbr-msconfig',keywords='msconfig configuração seletiva boot')
+add('system','system-configuration','Inicialização e serviços','Inicialização normal, diagnóstica, serviços, programas automáticos e ferramentas.','preferences-system','app','linuxbr-msconfig',keywords='msconfig configuração do sistema seletiva boot')
 add('system','boot-options','Configurações de inicialização','Modo de segurança, terminal, vídeo básico, diagnóstico e manutenção no próximo boot.','system-reboot','app','linuxbr-boot-options',keywords='F8 segurança recuperação shift reiniciar')
 add('accounts','credentials-unlock','Desbloquear credenciais e senhas','Preparar o cofre seguro antes de entrar nos aplicativos.','wallet-open','app','linuxbr-credentials','--unlock',keywords='Office Microsoft Bottles autenticação login cofre')
 add('accounts','credentials-store','Gerenciar senhas e cofres','Consultar o cofre seguro e alterar sua senha no gerenciador nativo.','dialog-password','app','seahorse',keywords='keyring credenciais segredos login')
@@ -58,10 +61,12 @@ native('devices',[
  ('automount','Montagem automática','Quando montar unidades removíveis e outros volumes.','drive-removable-media','kcm_device_automounter'),
  ('usb','Dispositivos USB','Informações sobre os dispositivos USB conectados.','preferences-devices-tree','kcm_usb'),
  ('thunderbolt','Thunderbolt','Autorização e gerenciamento de dispositivos compatíveis.','thunderbolt','kcm_bolt'),
- ('phone','Celular e dispositivos próximos','Envie arquivos e integre dispositivos com KDE Connect.','smartphone','kcm_kdeconnect')])
+ ('phone','Computadores, celulares e dispositivos próximos','Pareie dispositivos na rede local e configure o compartilhamento.','network-workgroup','kcm_kdeconnect')])
 add('devices','device-manager','Gerenciador de Dispositivos','Hardware, drivers, identificação e diagnóstico.','preferences-devices-tree','embedded','Dispositivos')
 add('devices','scan','Digitalizar documento','Scanners locais e de rede disponíveis.','scanner','app','skanpage')
+add('devices','scan-share','Digitalizar e enviar','Digitalize uma página em PDF e envie a um dispositivo pareado.','document-send','app','linuxbr-scan-share',keywords='scanner digitalização KDE Connect')
 add('devices','camera','Câmera e permissões','Permissões de câmera por aplicativo e limites dos formatos.','camera-web','tool','permissions')
+add('devices','media-test','Testar câmera e microfone','Veja a prévia da câmera e o nível da entrada de áudio selecionada.','camera-web','tool','media-test',keywords='webcam vídeo teleconferencia conferencia microfone')
 native('network',[
  ('connections','Conexões e adaptadores','Wi-Fi, Ethernet, VPN, IP, DNS, rotas, métricas, ponte e VLAN.','network-wired','kcm_networkmanagement'),
  ('wifi','Wi-Fi e redes salvas','Conectar, editar e esquecer redes sem fio.','network-wireless','kcm_networkmanagement'),
@@ -111,6 +116,7 @@ native('language',[
 add('gaming','games','Programas Windows e jogos','Steam, Proton, ambientes e diagnóstico de compatibilidade.','applications-games','app','linuxbr-windows','--page','games')
 native('gaming',[('controllers','Controles de jogos','Testar botões, eixos e configurar controles compatíveis.','input-gaming','kcm_gamecontroller')])
 add('gaming','capture','Capturas de tela','Capture tela, janela ou região com as opções disponíveis.','spectacle','app','spectacle')
+add('accessibility','accessibility-transfer','Transferir preferências de acessibilidade','Exporte ou importe ajustes de interação por teclado.','document-export','app','linuxbr-accessibility-transfer')
 native('accessibility',[
  ('access','Visão, audição e interação','Leitor de tela, teclado, avisos e recursos de acessibilidade.','preferences-desktop-accessibility','kcm_access'),
  ('text-size','Tamanho do texto','Fontes e tamanho do texto da interface.','preferences-desktop-font','kcm_fonts'),
@@ -127,10 +133,10 @@ native('privacy',[
  ('screenlock','Bloqueio da sessão','Quando bloquear e como proteger a sessão.','system-lock-screen','kcm_screenlocker')])
 add('privacy','protection','Proteção e integridade','Estado de proteção, atualizações, backup e diagnósticos locais.','security-high','embedded','Cuidados com o computador')
 add('privacy','web-permissions','Permissões dos sites','Preferências e permissões por perfil de aplicativo web.','internet-web-browser','app','linuxbr-webapps')
-add('updates','updates','Atualizações do sistema e aplicativos','Consultar, revisar, instalar e acompanhar atualizações.','system-software-update','app','linuxbr-store','--updates')
-add('updates','firmware','Atualizações de firmware','Dispositivos, versões oferecidas e instalação pelo fwupd.','preferences-devices-cpu','app','linuxbr-store','--firmware')
-add('updates','update-recovery','Proteção antes de atualizar','Condições, pontos de sistema, recuperação e versão instalada.','document-revert','embedded','Atualizações')
-add('updates','update-sources','Fontes e canais','Repositórios configurados, confiança e disponibilidade de atualizações.','network-server','app','linuxbr-store','--sources')
+add('update-center','updates','Atualizações do sistema e aplicativos','Consultar, revisar, instalar e acompanhar atualizações.','system-software-update','app','linuxbr-store','--updates')
+add('update-center','firmware','Atualizações de firmware','Dispositivos, versões oferecidas e instalação pelo fwupd.','preferences-devices-cpu','app','linuxbr-store','--firmware')
+add('update-center','update-recovery','Proteção antes de atualizar','Condições, pontos de sistema, recuperação e versão instalada.','document-revert','embedded','Atualizações')
+add('update-center','update-sources','Fontes e canais','Repositórios configurados, confiança e disponibilidade de atualizações.','network-server','app','linuxbr-store','--sources')
 
 ALIASES={'Sistema':'about','Telas':'display','Áudio':'sound','Energia e bateria':'power','Armazenamento':'storage','Acesso remoto':'remote','Backup e recuperação':'recovery','Atualizações':'update-recovery','Cuidados com o computador':'maintenance','Dispositivos':'device-manager','Rede':'connections','Endereços IP e DNS':'ip','Proxy':'proxy','Firewall':'firewall','Arquivos e atalhos':'network-drives','Personalização':'desktop-layout','Usuários':'users','Organização':'organization','Programas':'installed','Aplicativos web':'webapps','Programas Windows e jogos':'windows-apps','Hora e idioma':'region','Entrada e atalhos':'keyboard','Pesquisa e padrões':'defaultapps','Privacidade e sessão':'screenlock','Administração':'administration','Notificações':'notifications','Acessibilidade':'access'}
 

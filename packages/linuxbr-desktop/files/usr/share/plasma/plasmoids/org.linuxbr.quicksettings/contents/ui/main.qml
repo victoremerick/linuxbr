@@ -19,10 +19,21 @@ PlasmoidItem {
         anchors.fill: parent
         implicitWidth: 32
         implicitHeight: 32
+        activeFocusOnTab: true
         onClicked: root.expanded = !root.expanded
+        Keys.onReturnPressed: root.expanded = !root.expanded
+        Keys.onSpacePressed: root.expanded = !root.expanded
         Accessible.name: "Configurações rápidas"
         Accessible.role: Accessible.Button
         Accessible.onPressAction: root.expanded = !root.expanded
+        Rectangle {
+            anchors.fill: parent
+            visible: parent.activeFocus
+            color: "transparent"
+            border.color: Kirigami.Theme.highlightColor
+            border.width: 2
+            radius: 4
+        }
         Kirigami.Icon { anchors.centerIn: parent; width: 24; height: 24; source: "configure" }
     }
     property string selection: ""

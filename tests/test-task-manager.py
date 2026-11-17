@@ -10,6 +10,7 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'packages/linuxbr-system/files/usr/lib/linuxbr-system'))
 from PyQt6.QtWidgets import QApplication,QMessageBox
+from PyQt6.QtCore import Qt
 import tasks
 
 APP=QApplication([])
@@ -34,6 +35,21 @@ class TaskManager(unittest.TestCase):
         self.window.search.setText('EDITOR')
         self.assertFalse(self.window.table.isRowHidden(self.row(424242)))
         self.assertTrue(self.window.table.isRowHidden(self.row(1)))
+
+    def test_memory_sorting_and_refresh_preserve_visible_selection(self):
+        self.rows[0]['rss'] = 2 * 1048576
+        self.rows[1]['rss'] = 10 * 1048576
+        self.window.table.selectRow(self.row(424242))
+        self.window.table.sortItems(4, Qt.SortOrder.AscendingOrder)
+        self.window.refresh()
+        self.assertLess(self.row(424242), self.row(1))
+        self.assertEqual(self.window.selected_process().text(), '424242')
+        self.window.search.setText('root')
+        self.assertIsNone(self.window.selected_process())
+        self.assertFalse(self.window.end_button.isEnabled())
+        self.assertFalse(self.window.table.isRowHidden(self.row(1)))
+        self.window.table.sortItems(1, Qt.SortOrder.AscendingOrder)
+        self.assertFalse(self.window.table.isRowHidden(self.row(1)))
 
     def test_protected_processes_and_confirmation(self):
         with patch.object(tasks.os,'getuid',return_value=self.uid),patch.object(tasks.os,'kill') as kill:

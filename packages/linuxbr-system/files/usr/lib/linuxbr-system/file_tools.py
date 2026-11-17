@@ -132,8 +132,9 @@ class ShortcutDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle('Criar atalho — Linux BR')
         self.setWindowIcon(QIcon.fromTheme('emblem-symbolic-link'))
-        self.resize(640, 340)
+        self.setStyleSheet(BUTTONS)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 16, 20, 16)
         heading = plain_label('Onde está o item?')
         heading.setStyleSheet('font-size:24px;font-weight:600')
         layout.addWidget(heading)
@@ -144,8 +145,10 @@ class ShortcutDialog(QDialog):
         self.target.setMaxLength(8192)
         form.addRow('Local do item:', self.target)
         browse = QHBoxLayout()
-        for title, action in [('Escolher arquivo…', self.select_file), ('Escolher pasta…', self.select_folder)]:
-            button = QPushButton(title)
+        for title, icon, action in [('Escolher arquivo…', 'document-open', self.select_file),
+                                    ('Escolher pasta…', 'folder-open', self.select_folder)]:
+            button = QPushButton(QIcon.fromTheme(icon), title)
+            button.setAutoDefault(False)
             button.clicked.connect(action)
             browse.addWidget(button)
         form.addRow('', browse)
@@ -156,6 +159,7 @@ class ShortcutDialog(QDialog):
         self.folder = QLineEdit(str(desktop_folder()))
         row.addWidget(self.folder)
         choose = QPushButton('Alterar…')
+        choose.setAutoDefault(False)
         choose.clicked.connect(self.select_destination)
         row.addWidget(choose)
         form.addRow('Salvar em:', row)
@@ -171,6 +175,15 @@ class ShortcutDialog(QDialog):
         layout.addWidget(self.buttons)
         self.target.editingFinished.connect(self.suggest_name)
         self.suggest_name()
+        for entry in (self.target, self.name, self.folder):
+            entry.textChanged.connect(self.error.clear)
+        def update_create_button():
+            create.setEnabled(bool(self.target.text().strip() and self.folder.text().strip()))
+        self.target.textChanged.connect(update_create_button)
+        self.folder.textChanged.connect(update_create_button)
+        update_create_button()
+        self.target.setFocus()
+        self.resize(640, self.sizeHint().height())
 
     def suggest_name(self):
         if self.name.text().strip():
@@ -199,6 +212,7 @@ class ShortcutDialog(QDialog):
             self.folder.setText(path)
 
     def create(self):
+        self.suggest_name()
         try:
             destination = Path(self.folder.text()).expanduser()
             # Create only the standard personal Desktop, if not already initialized by XDG.
@@ -284,14 +298,16 @@ class MapNetworkDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle('Mapear unidade de rede — Linux BR')
         self.setWindowIcon(QIcon.fromTheme('folder-network'))
-        self.resize(640, 350)
+        self.setStyleSheet(BUTTONS)
+        self.saved_url = None
         self.connection = network_connector(self)
         self.connection.finished.connect(self.network_finished)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 16, 20, 16)
         heading = plain_label('Adicionar uma pasta compartilhada')
         heading.setStyleSheet('font-size:23px;font-weight:600')
         layout.addWidget(heading)
-        layout.addWidget(plain_label('A pasta aparecerá em Este computador e no Explorador de arquivos com uma letra de unidade. O endereço ficará salvo para os próximos acessos.'))
+        layout.addWidget(plain_label('A pasta aparecerá no Explorador de arquivos, em Este computador, com uma letra de unidade.'))
         form = QFormLayout()
         self.location = QLineEdit()
         self.location.setMaxLength(2048)
@@ -302,7 +318,7 @@ class MapNetworkDialog(QDialog):
         self.name.setPlaceholderText('Ex.: Documentos do escritório')
         form.addRow('Nome para exibição:', self.name)
         layout.addLayout(form)
-        layout.addWidget(plain_label('Também aceita smb://servidor/compartilhamento. O sistema solicita a conta ao conectar. Para lembrar a senha, use a opção de salvar no Cofre de senhas do KDE quando oferecida. A senha não faz parte do endereço nem do cadastro da unidade. A letra pode ser alterada em Gerenciamento de discos.'))
+        layout.addWidget(plain_label('Também aceita smb://servidor/compartilhamento. Se a pasta pedir uma conta, digite a senha na janela de acesso à rede.'))
         self.open_now = QCheckBox('Abrir a pasta após adicionar')
         self.open_now.setChecked(True)
         layout.addWidget(self.open_now)
@@ -315,9 +331,42 @@ class MapNetworkDialog(QDialog):
         buttons.accepted.connect(self.map_share)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+        self.location.textChanged.connect(self.mapping_edited)
+        self.name.textChanged.connect(self.mapping_edited)
+        self.open_now.toggled.connect(self.update_map_button)
+        self.update_map_button()
+        self.location.setFocus()
+        self.resize(640, self.sizeHint().height())
+
+    def mapping_edited(self):
+        self.saved_url = None
+        self.error.clear()
+        self.update_map_button()
+
+    def update_map_button(self):
+        self.map_button.setText('Reconectar' if self.saved_url and self.open_now.isChecked() else 'Adicionar unidade')
+        self.map_button.setEnabled(not self.connection.busy and bool(self.location.text().strip()))
+
+    def connect_share(self, url):
+        try:
+            self.connection.start(url)
+        except ValueError as error:
+            self.error.setText('A unidade foi salva. ' + str(error))
+            self.update_map_button()
+            return
+        self.error.setText('Unidade salva. Conectando…')
+        for control in (self.location, self.name, self.open_now):
+            control.setEnabled(False)
+        self.update_map_button()
 
     def map_share(self):
         if self.connection.busy:
+            return
+        if self.saved_url:
+            if self.open_now.isChecked():
+                self.connect_share(self.saved_url)
+            else:
+                self.accept()
             return
         try:
             store_type, smb_url = network_api()
@@ -325,21 +374,14 @@ class MapNetworkDialog(QDialog):
             name = self.name.text().strip() or unquote(urlsplit(url).path.rstrip('/').rsplit('/', 1)[-1])
             if any(ord(char) < 32 for char in name):
                 raise ValueError('Use um nome sem quebras de linha ou caracteres de controle.')
-            self.map_button.setEnabled(False)
             data = store_type().add_share(url, name)
             letter = data.get('letters', {}).get('smb:' + url)
         except (ValueError, OSError, ImportError) as error:
-            self.map_button.setEnabled(True)
             self.error.setText('Não foi possível adicionar a unidade. ' + str(error))
             return
         if self.open_now.isChecked():
-            try:
-                self.connection.start(url)
-            except ValueError as error:
-                self.map_button.setEnabled(True)
-                self.error.setText('A unidade foi salva. ' + str(error))
-                return
-            self.error.setText('Unidade salva. Conectando… Informe a conta na janela do sistema, se solicitado.')
+            self.saved_url = url
+            self.connect_share(url)
             return
         else:
             label = name + (f' ({letter}:)' if letter else '')
@@ -347,14 +389,15 @@ class MapNetworkDialog(QDialog):
         self.accept()
 
     def network_finished(self, url, success, text):
-        self.map_button.setEnabled(True)
+        for control in (self.location, self.name, self.open_now):
+            control.setEnabled(True)
+        self.update_map_button()
         if success:
             if not QDesktopServices.openUrl(QUrl(url)):
                 message(self, 'Unidade adicionada', 'O acesso foi confirmado. Abra Este computador para acessar a unidade.')
             self.accept()
         else:
             self.error.setText('A unidade já está salva. ' + text)
-            self.map_button.setText('Reconectar')
 
     def reject(self):
         self.connection.cancel()
@@ -385,7 +428,7 @@ class Window(QMainWindow):
             layout.addWidget(button)
             layout.addWidget(plain_label(detail))
         layout.addSpacing(12)
-        layout.addWidget(plain_label('No Explorador: clique com o botão direito para Criar atalho ou Copiar caminho. Em uma pasta, use Criar novo para começar um documento de texto ou uma lista.'))
+        layout.addWidget(plain_label('No Explorador, clique com o botão direito para criar um atalho ou revisar e copiar caminhos. Em uma pasta, use Criar novo para começar um documento de texto ou uma lista.'))
         layout.addWidget(plain_label('Atalhos úteis: F2 renomeia • Ctrl+C copia • Ctrl+X recorta • Ctrl+V cola • Ctrl+Z desfaz • Ctrl+L mostra o endereço • Alt+↑ abre a pasta anterior na hierarquia.'))
         layout.addStretch()
 
@@ -408,6 +451,8 @@ def main():
     options.add_argument('--shortcut', metavar='ITEM', nargs='?', const='')
     options.add_argument('--copy-path', metavar='ITEM', nargs='+')
     options.add_argument('--map-network', action='store_true')
+    options.add_argument('--in-use', metavar='ITEM')
+    options.add_argument('--rename-batch', metavar='ITEM', nargs='+')
     args = parser.parse_args()
     app = QApplication(sys.argv)
     app.setApplicationName('Arquivos e atalhos')
@@ -425,6 +470,16 @@ def main():
             return 0
         if args.map_network:
             MapNetworkDialog().exec()
+            return 0
+        if args.in_use is not None:
+            from desktop_jobs import Command
+            dialog = Command('Processos usando o item',
+                             [sys.executable, str(Path(__file__).with_name('file_usage.py')), '--', args.in_use])
+            dialog.exec()
+            return 0
+        if args.rename_batch:
+            from batch_rename import BatchRename
+            BatchRename(args.rename_batch).exec()
             return 0
         window = Window()
         window.show()

@@ -52,6 +52,7 @@ class RecoveryPage(QWidget):
     def button(self, body, title, argv=None, callback=None):
         button = QPushButton(title)
         icons = {'Configurar cópias de segurança…':'preferences-system-backup',
+                 'Backup em outro computador…':'folder-remote',
                  'Conferir último backup, destino e espaço':'security-high',
                  'Conferir condições antes de atualizar':'system-software-update',
                  'Explorar e restaurar uma cópia com versões…':'document-revert',
@@ -70,6 +71,7 @@ class RecoveryPage(QWidget):
                  'Recuperar atualização…':'edit-undo',
                  'Revisar resultado da atualização gerenciada…':'document-preview',
                  'Gerar diagnóstico…':'document-export',
+                 'Histórico de compartilhamento…':'document-open-recent',
                  'Consultar pedido de diagnóstico da TI…':'network-server',
                  'Atualizar informações':'view-refresh',
                  'Pontos de restauração do sistema':'preferences-system-backup',
@@ -89,6 +91,7 @@ class RecoveryPage(QWidget):
                             'A sincronização simples acompanha as exclusões da origem e não guarda versões antigas.'))
         self.button(body,'Explorar e restaurar uma cópia com versões…',callback=self.restore_versions)
         self.button(body,'Abrir arquivos de uma cópia simples…',callback=self.browse_copy)
+        self.button(body,'Backup em outro computador…',callback=self.network_backup)
         body.addWidget(plain('Ao restaurar, escolha primeiro outra pasta para conferir os arquivos. '
                             'Cópias dos dados pessoais podem incluir contas salvas, perfis web e programas Wine. '
                             'Feche esses aplicativos antes de copiar seus perfis e guarde o disco em local protegido.'))
@@ -96,6 +99,17 @@ class RecoveryPage(QWidget):
         self.button(body,'Conferir último backup, destino e espaço',['linuxbr-maintenance','--section','protection'])
         self.button(body,'Ver discos e espaço disponível',['linuxbr-system','--page','Armazenamento'])
         body.addStretch()
+
+    def network_backup(self):
+        if not Path('/usr/bin/restic').is_file():
+            if QMessageBox.question(
+                self, 'Backup em outro computador',
+                'Ative Backup em outro computador em Recursos Opcionais. Abrir Recursos Opcionais?'
+            ) == QMessageBox.StandardButton.Yes:
+                launch(self, ['linuxbr-system', '--page', 'optional-features'])
+            return
+        from network_backup_dialog import NetworkBackupDialog
+        NetworkBackupDialog(self).exec()
 
     def updates_page(self):
         body = self.page('Atualizações')
@@ -251,6 +265,7 @@ class RecoveryPage(QWidget):
         self.button(body,'Consultar discos e partições',['partitionmanager'])
         self.button(body,'Abrir guia de recuperação',['linuxbr-welcome','--topic','Recuperação e ajuda'])
         self.diagnostic_button = self.button(body,'Gerar diagnóstico…',callback=self.export_report)
+        self.button(body,'Histórico de compartilhamento…',callback=self.diagnostic_share_history)
         self.remote_diagnostic_button = self.button(body, 'Consultar pedido de diagnóstico da TI…',
                                                     callback=self.check_remote_diagnostic)
         body.addWidget(plain('Revise as informações do sistema, da rede, das atualizações e da sessão '
@@ -348,6 +363,10 @@ class RecoveryPage(QWidget):
         layout.addWidget(technical)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save |
                                    QDialogButtonBox.StandardButton.Cancel)
+        share = None
+        if not request_id and Path('/usr/bin/kdeconnect-cli').is_file():
+            share = buttons.addButton('Salvar e compartilhar…', QDialogButtonBox.ButtonRole.ActionRole)
+            share.clicked.connect(lambda: dialog.done(3))
         if request_id:
             send = buttons.button(QDialogButtonBox.StandardButton.Save)
             send.setText('Enviar à organização')
@@ -372,6 +391,8 @@ class RecoveryPage(QWidget):
             display = render if technical.isChecked() else summary
             preview.setPlainText(display(sections, categories))
             buttons.button(QDialogButtonBox.StandardButton.Save).setEnabled(bool(categories))
+            if share is not None:
+                share.setEnabled(bool(categories))
 
         for box in choices.values():
             box.toggled.connect(refresh)
@@ -383,7 +404,7 @@ class RecoveryPage(QWidget):
                 self, 'Diagnóstico da organização', 'Pedido recusado. As categorias do diagnóstico ficaram neste computador.'),
                 {'request_id': request_id})
             return
-        if outcome != QDialog.DialogCode.Accepted:
+        if outcome not in (QDialog.DialogCode.Accepted, 3):
             return
         report = render(sections, selected())
         if request_id:
@@ -398,10 +419,60 @@ class RecoveryPage(QWidget):
         if not filename:
             return
         try:
-            Path(filename).write_text(report, encoding='utf-8')
+            from store_sources import atomic_write
+            atomic_write(Path(filename), report.encode('utf-8'), 0o600)
+            if outcome == 3:
+                self.share_diagnostic(filename, [CATEGORIES[key] for key in selected()])
         except OSError as error:
             box=QMessageBox(self);box.setTextFormat(Qt.TextFormat.PlainText)
             box.setWindowTitle('Não foi possível salvar');box.setText(str(error));box.exec()
+
+    def share_diagnostic(self, filename, categories):
+        import sqlite3
+        from subprocess import SubprocessError
+        from send_content import choose_device, share_file
+        from support_share import record_share
+
+        title = 'Compartilhar diagnóstico'
+        try:
+            target = choose_device(self)
+            if target is None:
+                return
+            device_id, name = target
+            share_file(device_id, filename)
+        except (OSError, SubprocessError):
+            QMessageBox.warning(self, title, 'O diagnóstico foi salvo. Confira o pareamento e a conexão antes de tentar enviar novamente.')
+            return
+        try:
+            record_share(name, categories)
+        except (OSError, sqlite3.Error):
+            QMessageBox.warning(self, title, 'A solicitação foi entregue ao KDE Connect, mas falhou ao gravar o histórico local.')
+            return
+        QMessageBox.information(self, title, 'Solicitação de envio entregue ao KDE Connect e registrada no histórico local.')
+
+    def diagnostic_share_history(self):
+        import sqlite3
+        from support_share import recent_shares
+
+        title = 'Histórico de compartilhamento'
+        try:
+            rows = recent_shares()
+        except (OSError, ValueError, sqlite3.Error):
+            QMessageBox.warning(self, title, 'Não foi possível ler o histórico local.')
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.resize(620, 420)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(plain('Solicitações entregues ao KDE Connect. A confirmação de recebimento é feita pelo outro dispositivo.'))
+        history = QPlainTextEdit(readOnly=True)
+        history.setPlainText('\n\n'.join(f'{stamp}  ·  {name}\n{", ".join(categories)}'
+                                         for stamp, name, categories in rows) or 'Nenhuma solicitação registrada.')
+        layout.addWidget(history)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        dialog.exec()
 
     def showEvent(self,event):
         super().showEvent(event)

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Service
+MimeType=text/plain;text/markdown;image/png;image/jpeg;application/pdf;application/vnd.oasis.opendocument.text;application/vnd.oasis.opendocument.spreadsheet;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;
+Actions=sendSyncedDocument;
+X-KDE-RequiredNumberOfUrls=1
+
+[Desktop Action sendSyncedDocument]
+Name=Continuar em outro computador…
+Icon=document-open-recent
+Exec=linuxbr-document-handoff --send %f

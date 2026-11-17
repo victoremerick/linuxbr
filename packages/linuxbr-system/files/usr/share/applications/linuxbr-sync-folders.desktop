@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Sincronizar pastas
+Comment=Escolha pastas para sincronizar com outros computadores
+Exec=/usr/bin/linuxbr-sync-folders
+TryExec=/usr/bin/linuxbr-sync-folders
+Icon=folder-sync
+Categories=Network;
+Terminal=false

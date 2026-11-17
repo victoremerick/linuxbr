@@ -37,12 +37,12 @@ inicialmente como **Principal**, preservando seus dados.
 
 A loja oferece **Nova sessão / outra conta** nos webapps já instalados. Ao abrir
 pelo menu ou pela loja, um único perfil abre diretamente; havendo vários,
-uma caixa central lista os nomes com caixas de seleção. Marque um ou mais e
-clique em **Abrir selecionados**; cancelar não abre nenhum perfil.
+uma caixa central lista os nomes com caixas de seleção. Marque os perfis e clique no botão
+**Abrir**, que indica a quantidade marcada. **Cancelar** fecha o seletor.
 
-Dentro de cada webapp aparece o nome do perfil e **+ Novo perfil**. O mesmo
-botão existe no seletor. Informe o nome e confirme **Criar e abrir perfil**:
-uma nova janela abre o endereço inicial salvo, com armazenamento separado e
+Dentro de cada webapp aparece o nome do perfil e **+ Novo perfil**. No seletor, use
+**Novo perfil**. Informe o nome e confirme em **Criar e abrir perfil**.
+Uma nova janela abre o endereço inicial salvo, com armazenamento separado e
 sem copiar o login atual. Os demais perfis permanecem abertos. O controle
 pode ser arrastado pelo nome, para não cobrir partes importantes do site.
 Ele aparece apenas nos perfis dedicados do Linux BR, não na navegação comum.

@@ -27,6 +27,8 @@ FIRMWARE_PACKAGES = {
 }
 
 def command(args, timeout=5):
+    if args[0] in ('modinfo', 'modprobe'):
+        args = ['/usr/sbin/' + args[0], *args[1:]]
     try:
         p=subprocess.run(args,capture_output=True,text=True,timeout=timeout,env={**os.environ,'LC_ALL':'C'})
         return p.returncode,p.stdout,p.stderr

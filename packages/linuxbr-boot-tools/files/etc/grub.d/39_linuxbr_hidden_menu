@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+[ "${GRUB_TIMEOUT_STYLE:-}" = hidden ] || exit 0
+case "${GRUB_TIMEOUT:-}" in
+    ''|*[!0-9]*) exit 0 ;;
+esac
+
+# Restore hidden mode after Debian's EFI recordfail fallback and os-prober.
+cat <<EOF
+if [ "x\${feature_timeout_style}" = xy ]; then
+  set timeout_style=hidden
+  set timeout=$GRUB_TIMEOUT
+fi
+EOF

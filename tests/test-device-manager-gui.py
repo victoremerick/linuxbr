@@ -25,6 +25,10 @@ fixture=dict(kernel='6.12-test',architecture='x86_64',warnings=[],diagnostics=['
                 devices=[],action='upgrade',status='Atualização disponível')])
 window.populate(fixture)
 assert window.table.rowCount()==2
+assert window.tabs.currentIndex()==0
+window.search.setText('dispositivo inexistente')
+assert not window.device_options_button.isEnabled()
+assert 'Nenhum dispositivo' in window.details.toPlainText()
 window.search.setText('Intel');assert window.table.rowCount()==1
 assert 'Não encontrado: example.ucode' in window.details.toPlainText()
 assert len(window.software_rows)==2 # unrelated firmware hidden by default

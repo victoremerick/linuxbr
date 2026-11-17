@@ -95,6 +95,6 @@ SESSION_ICONS = {
     'lock': 'system-lock-screen',
     'switch': 'system-switch-user',
     'logout': 'system-log-out',
-    'password': 'dialog-password',
-    'tasks': 'utilities-system-monitor',
+    'password': 'password-generate',
+    'tasks': 'view-process-all',
 }

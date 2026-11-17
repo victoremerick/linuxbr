@@ -34,17 +34,24 @@ def table(headers):
     value.verticalHeader().hide();return value
 
 
-def populate(widget,rows,keys):
-    previous=widget.currentRow();old=selected(widget);identity=(old.get('id') or old.get('name')) if old else None;widget.setRowCount(len(rows))
+def populate(widget,rows,keys,select_first=True):
+    previous=widget.currentRow();old=selected(widget);identity=(old.get('id') or old.get('name')) if old else None
+    widget.clearSelection();widget.setCurrentItem(None);widget.setRowCount(len(rows))
     for i,row in enumerate(rows):
+        widget.setRowHidden(i,False)
         for j,key in enumerate(keys):
             item=QTableWidgetItem(str(row.get(key,'')));item.setData(Qt.ItemDataRole.UserRole,row);widget.setItem(i,j,item)
-    if rows:widget.selectRow(next((i for i,row in enumerate(rows) if identity is not None and (row.get('id') or row.get('name'))==identity),min(max(previous,0),len(rows)-1)))
+    fallback = min(max(previous,0),len(rows)-1) if select_first else -1
+    index = next((i for i,row in enumerate(rows) if identity is not None
+                  and (row.get('id') or row.get('name'))==identity), fallback)
+    if index >= 0:widget.selectRow(index)
 
 
 def selected(widget):
-    item=widget.item(widget.currentRow(),0)
-    return item.data(Qt.ItemDataRole.UserRole) if item else None
+    row = widget.currentRow()
+    if row >= 0 and not widget.isRowHidden(row) and widget.selectedItems():
+        return widget.item(row,0).data(Qt.ItemDataRole.UserRole)
+    return None
 
 
 class Task(QThread):
@@ -216,15 +223,48 @@ class Window(QMainWindow):
         self.host_profile.activated.connect(profile_changed)
         self.status=QLabel('Conectando ao serviço de virtualização…');self.status.setWordWrap(True);body.addWidget(self.status)
         self.pages=QTabWidget();body.addWidget(self.pages,1)
+        self.pages.setEnabled(False)
         machines=QWidget();layout=QVBoxLayout(machines);self.vm_search=QLineEdit();self.vm_search.setPlaceholderText('Pesquisar máquinas virtuais pelo nome ou estado…');self.vm_search.setAccessibleName('Pesquisar máquinas virtuais');self.vm_search.textChanged.connect(self.filter_vms);layout.addWidget(self.vm_search);self.vms=table(['Nome','Estado','Memória (MiB)','Processadores','Uso de CPU']);layout.addWidget(self.vms,1)
+        self.vm_search.setClearButtonEnabled(True)
+        self.vms.setAccessibleName('Máquinas virtuais no hospedeiro')
+        self.vm_results = QLabel();layout.addWidget(self.vm_results)
         row=QHBoxLayout()
         create=QPushButton(QIcon.fromTheme('list-add'),'Criar VM');menu=QMenu(create);menu.addAction(QIcon.fromTheme('tools-wizard'),'Assistente completo…',lambda:self.complete_tool());menu.addAction(QIcon.fromTheme('list-add'),'Criação rápida…',self.create);create.setMenu(menu);row.addWidget(create)
-        for caption,icon,callback in [('Configurações','configure',self.edit),('Abrir console','video-display',self.console),('Importar definição','document-import',self.import_definition),('Clonar','edit-copy',self.clone),('Migrar','network-server',self.migrate)]:row.addWidget(button(caption,icon,callback))
-        layout.addLayout(row);row=QHBoxLayout()
-        for caption,icon,action in [('Iniciar','media-playback-start','start'),('Desligar','system-shutdown','shutdown'),('Reiniciar','system-reboot','reboot'),('Pausar','media-playback-pause','pause'),('Continuar','media-playback-start','resume'),('Salvar estado','document-save','save'),('Desligar forçado','process-stop','poweroff')]:row.addWidget(button(caption,icon,lambda _=False,a=action:self.action(a)))
-        layout.addLayout(row);row=QHBoxLayout();row.addWidget(button('Exportar VM completa','document-export',self.export_bundle));row.addWidget(button('Importar VM completa','document-import',self.import_bundle));row.addWidget(button('Exportar definição XML','text-xml',self.export_definition));row.addWidget(button('Remover definição','edit-delete',self.remove));row.addStretch();layout.addLayout(row);self.pages.addTab(machines,QIcon.fromTheme('computer'),'Máquinas')
+        self.vm_controls = {
+            'settings': button('Configurações','configure',self.edit),
+            'console': button('Abrir console','video-display',self.console),
+            'start': button('Iniciar','media-playback-start',lambda:self.action('start')),
+        }
+        for control in self.vm_controls.values():
+            row.addWidget(control)
+        power_button = QPushButton(QIcon.fromTheme('system-shutdown'),'Energia')
+        power = QMenu(power_button);power_button.setMenu(power);row.addWidget(power_button)
+        for caption,icon,key in [('Desligar','system-shutdown','shutdown'),('Reiniciar','system-reboot','reboot'),
+                 ('Pausar','media-playback-pause','pause'),('Continuar','media-playback-start','resume'),
+                 ('Salvar estado','document-save','save'),('Desligar à força…','process-stop','poweroff')]:
+            self.vm_controls[key] = power.addAction(QIcon.fromTheme(icon),caption,
+                                                   lambda _checked=False,a=key:self.action(a))
+        transfer_button = QPushButton(QIcon.fromTheme('document-import'),'Importar e exportar')
+        transfer = QMenu(transfer_button);transfer_button.setMenu(transfer);row.addWidget(transfer_button)
+        for caption,icon,callback in [('Importar VM completa…','document-import',self.import_bundle),
+                                     ('Importar definição XML…','text-xml',self.import_definition)]:
+            transfer.addAction(QIcon.fromTheme(icon),caption,callback)
+        transfer.addSeparator()
+        self.vm_controls['export_vm'] = transfer.addAction(QIcon.fromTheme('document-export'),'Exportar VM completa…',self.export_bundle)
+        self.vm_controls['export_xml'] = transfer.addAction(QIcon.fromTheme('text-xml'),'Exportar definição XML…',self.export_definition)
+        more_button = QPushButton(QIcon.fromTheme('view-more'),'Mais ações')
+        more = QMenu(more_button);more_button.setMenu(more);row.addWidget(more_button)
+        for caption,icon,key,callback in [('Clonar…','edit-copy','clone',self.clone),
+                 ('Migrar…','network-server','migrate',self.migrate),
+                 ('Réplica offline…','document-save-as','replica',self.replicate_offline),
+                 ('Remover definição…','edit-delete','remove',self.remove)]:
+            self.vm_controls[key] = more.addAction(QIcon.fromTheme(icon),caption,callback)
+        row.addStretch();layout.addLayout(row);self.pages.addTab(machines,QIcon.fromTheme('computer'),'Máquinas')
+        self.vms.itemSelectionChanged.connect(self.update_vm_actions)
+        self.update_vm_actions()
         networks=QWidget();layout=QVBoxLayout(networks);self.networks=table(['Nome','Tipo','Ativa','Início automático']);layout.addWidget(self.networks)
         row=QHBoxLayout();row.addWidget(button('Criar rede','list-add',self.create_network));row.addWidget(button('Editar rede','configure',self.edit_network))
+        row.addWidget(button('DNS e DHCP','network-server',self.network_hosts))
         for caption,action,icon in [('Ativar','start','network-connect'),('Desativar','stop','network-disconnect'),('Início automático','autostart','system-run'),('Remover','remove','edit-delete')]:row.addWidget(button(caption,icon,lambda _=False,a=action:self.network_action(a)))
         layout.addLayout(row);self.pages.addTab(networks,QIcon.fromTheme('network-wired'),'Redes e comutadores')
         storage=QWidget();layout=QVBoxLayout(storage);self.pools=table(['Local','Tipo','Ativo','Livre (GiB)','Diretório no hospedeiro']);layout.addWidget(self.pools)
@@ -289,7 +329,7 @@ class Window(QMainWindow):
             if previous and row['active'] and now>previous[0] and row['cpu_ns']>=previous[1]:row['cpu_usage']=str(round(min(100,(row['cpu_ns']-previous[1])/(now-previous[0])/max(1,row['cpus'])/1e7),1))+' %'
             metrics[row['id']]=(now,row['cpu_ns'])
         self.last_metrics=metrics
-        self.data=data;populate(self.vms,data['domains'],['name','state','memory','cpus','cpu_usage']);self.filter_vms();populate(self.networks,[dict(n,active_label='Sim' if n['active'] else 'Não',auto_label='Sim' if n['autostart'] else 'Não') for n in data['networks']],['name','mode','active_label','auto_label']);populate(self.pools,[dict(p,active_label='Sim' if p['active'] else 'Não',free=round(p['available']/1024**3,1)) for p in data['pools']],['name','kind','active_label','free','path'])
+        self.data=data;populate(self.vms,data['domains'],['name','state','memory','cpus','cpu_usage'],select_first=False);self.filter_vms();populate(self.networks,[dict(n,active_label='Sim' if n['active'] else 'Não',auto_label='Sim' if n['autostart'] else 'Não') for n in data['networks']],['name','mode','active_label','auto_label']);populate(self.pools,[dict(p,active_label='Sim' if p['active'] else 'Não',free=round(p['available']/1024**3,1)) for p in data['pools']],['name','kind','active_label','free','path'])
         self.status.setText(self.uri+' · '+str(len(data['domains']))+' máquinas · '+('Aceleração KVM' if data['capabilities']['kind']=='kvm' else 'Emulação por software; desempenho reduzido'))
         if self.uri!='test:///default' and self.preferences.get('last_uri')!=self.uri:
             self.preferences['last_uri']=self.uri;hosts=self.preferences.get('hosts',[]);hosts=hosts if isinstance(hosts,list) else []
@@ -313,8 +353,28 @@ class Window(QMainWindow):
         for index in range(self.vms.rowCount()):
             match=query in ' '.join(self.vms.item(index,column).text() for column in (0,1)).casefold();self.vms.setRowHidden(index,not match)
             if match:visible.append(index)
-        if not visible:self.vms.setCurrentCell(-1,-1);self.vms.clearSelection()
-        elif self.vms.currentRow() not in visible:self.vms.selectRow(visible[0])
+        if self.vms.currentRow() not in visible:
+            self.vms.clearSelection();self.vms.setCurrentItem(None)
+        self.vm_results.setText(f'Máquinas exibidas: {len(visible)}' if visible else
+                                'Nenhuma máquina corresponde à busca.' if query else
+                                'Nenhuma máquina virtual neste hospedeiro.')
+        self.update_vm_actions()
+
+    def update_vm_actions(self):
+        vm = selected(self.vms)
+        enabled = set()
+        if vm:
+            enabled.update(('settings','export_xml','migrate'))
+            if vm['active']:
+                enabled.update(('console','shutdown','reboot','save','poweroff'))
+                if vm['state'] == backend.STATES[3]:
+                    enabled.add('resume')
+                elif vm['state'] in (backend.STATES[1], backend.STATES[2]):
+                    enabled.add('pause')
+            else:
+                enabled.update(('start','clone','replica','remove','export_vm'))
+        for key,control in self.vm_controls.items():
+            control.setEnabled(key in enabled)
 
     def action(self,action):
         row=selected(self.vms)
@@ -405,6 +465,28 @@ class Window(QMainWindow):
         label=QLabel('Desative a rede antes de editar. Alterar tipo ou sub-rede muda a conectividade. Reservas DHCP existentes são preservadas quando compatíveis.');label.setWordWrap(True);dialog.body.addWidget(label);dialog.finish()
         if dialog.exec()==QDialog.DialogCode.Accepted:self.work(lambda m:m.edit_network(row['id'],dict(mode=mode.currentData(),subnet=subnet.text().strip(),bridge=bridge.text().strip())),lambda _:QTimer.singleShot(200,self.refresh))
 
+    def network_hosts(self):
+        row = selected(self.networks)
+        if not row:
+            return
+        dialog = Form('DNS e DHCP — ' + row['name'], self)
+        root = ET.fromstring(row['xml'])
+        records = [f"{entry.text}  {host.get('ip', '')}" for host in root.findall('dns/host') for entry in host.findall('hostname')]
+        records.extend(f"{host.get('mac', '')}  {host.get('ip', '')}" for host in root.findall('ip/dhcp/host'))
+        listing = QPlainTextEdit('\n'.join(records))
+        listing.setReadOnly(True)
+        dialog.body.addWidget(listing)
+        name, address, mac = QLineEdit(), QLineEdit(), QLineEdit()
+        for label, field in [('Nome do computador', name), ('Endereço IPv4', address), ('MAC para reserva DHCP (opcional)', mac)]:
+            dialog.form.addRow(label, field)
+        note = QLabel('Desative a rede para adicionar um nome e, se informar o MAC, reservar um endereço IP.')
+        note.setWordWrap(True)
+        dialog.body.addWidget(note)
+        dialog.finish()
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.work(lambda manager: manager.add_network_host(row['id'], name.text().strip(), address.text().strip(), mac.text().strip()),
+                      lambda _: QTimer.singleShot(200, self.refresh))
+
     def network_action(self,action):
         row=selected(self.networks)
         if row and (action not in ('stop','remove') or self.confirm('Alterar a rede '+row['name']+'? Desativar uma rede interrompe a conectividade das VMs conectadas.')):self.work(lambda m:m.network_action(row['id'],action),lambda _:QTimer.singleShot(200,self.refresh))
@@ -494,8 +576,119 @@ class Window(QMainWindow):
     def migrate(self):
         row=selected(self.vms)
         if not row:return
-        destination,ok=QInputDialog.getText(self,'Migrar VM','URI libvirt do destino. Esta operação exige armazenamento compartilhado e compatibilidade de CPU/rede:')
-        if ok and self.confirm('Migrar '+row['name']+' para '+destination+'? '+('A VM continuará em execução durante a migração.' if row['active'] else 'A VM está desligada.')):self.work(lambda m:m.migrate(row['id'],destination,row['active']),lambda _:QTimer.singleShot(200,self.refresh))
+        copy_disks = False
+        if not row['active']:
+            options = ['Copiar os discos para o destino', 'Usar armazenamento compartilhado']
+            operation, accepted = QInputDialog.getItem(self, 'Migrar VM desligada', 'Tipo de armazenamento',
+                                                      options, editable=False)
+            if not accepted:
+                return
+            if operation == options[0]:
+                self.offline_transfer(row, replica=False)
+                return
+        else:
+            modes = ['Armazenamento compartilhado', 'Copiar discos ao vivo com TLS']
+            selected_mode, accepted = QInputDialog.getItem(self, 'Migrar VM em execução', 'Tipo de armazenamento',
+                                                          modes, editable=False)
+            if not accepted:
+                return
+            copy_disks = selected_mode == modes[1]
+        context = ('Prepare TLS de migração nos dois hospedeiros e os caminhos de disco no destino. '
+                   'Confira também a compatibilidade de CPU e rede.' if copy_disks else
+                   'Confira o armazenamento compartilhado e a compatibilidade de CPU e rede.')
+        destination,ok=QInputDialog.getText(self,'Migrar VM',context + '\nURI libvirt do destino')
+        if ok and self.confirm('Migrar '+row['name']+' para '+destination+'? '+('A VM continuará em execução durante a migração.' if row['active'] else 'A VM está desligada.')):
+            self.work(lambda m:m.migrate(row['id'],destination,row['active'],copy_disks),
+                      lambda _:QTimer.singleShot(200,self.refresh))
+
+    def replicate_offline(self):
+        row = selected(self.vms)
+        if not row:
+            return
+        if row['active']:
+            QMessageBox.information(self, 'Réplica offline', 'Desligue a VM de origem para copiar seus discos.')
+            return
+        self.offline_transfer(row, replica=True)
+
+    def offline_transfer(self, row, replica):
+        title = 'Réplica offline' if replica else 'Migrar VM com discos'
+        hosts = [self.host_profile.itemData(index) for index in range(self.host_profile.count())]
+        hosts = [host for host in hosts if host and host.startswith('qemu+ssh://') and host != self.uri]
+        if not hosts:
+            QMessageBox.information(self, title, 'Conecte-se ao hospedeiro de destino por SSH para cadastrá-lo.')
+            return
+        dialog = Form(title + ' — ' + row['name'], self)
+        destination = QComboBox()
+        destination.addItems(hosts)
+        pool = QLineEdit()
+        name = QLineEdit(row['name'] + ('-replica' if replica else ''))
+        network = QLineEdit()
+        for label, widget in [('Hospedeiro', destination), ('Local dos discos no destino', pool),
+                              ('Nome no destino', name),
+                              ('Rede isolada ativa no destino' if replica else 'Rede ativa no destino (VM com adaptadores)', network)]:
+            dialog.form.addRow(label, widget)
+        description = 'A transferência usa espaço temporário neste computador. A VM fica desligada no destino.'
+        schedule = QCheckBox('Criar novas gerações em horários programados') if replica else None
+        calendar = QLineEdit('daily') if replica else None
+        if replica:
+            dialog.form.addRow(schedule)
+            dialog.form.addRow('Agenda systemd', calendar)
+            calendar.setEnabled(False)
+            schedule.toggled.connect(calendar.setEnabled)
+            description += (' O agendamento usa as permissões da sua conta, exige SSH por chave sem '
+                            'interação e só copia a VM se ela estiver desligada. '
+                            'Cada execução bem-sucedida guarda uma geração separada e ocupa espaço adicional.')
+        if not replica:
+            description += (' A definição da origem é removida após a cópia. Os discos originais ficam '
+                            'guardados. Mídias ISO precisam ser reconectadas no destino.')
+        note = QLabel(description)
+        note.setWordWrap(True)
+        dialog.body.addWidget(note)
+        dialog.finish()
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        values = (destination.currentText(), pool.text().strip(), name.text().strip(), network.text().strip())
+        if replica:
+            if schedule.isChecked():
+                from virtualization_replica_job import schedule as schedule_replica
+
+                expression = calendar.text().strip()
+                self.work(lambda manager: schedule_replica(manager.uri, row['id'], *values, expression),
+                          lambda _: QMessageBox.information(self, title,
+                              'Agendamento ativado. Consulte a tarefa em Agendador de Tarefas → Minha conta.'))
+                return
+            self.work(lambda manager: manager.replicate_offline(row['id'], *values),
+                      lambda result: self.replica_created(values[0], result), transfer=True)
+            return
+        if not self.confirm('Mover a VM para o hospedeiro selecionado? Mantenha a VM de origem desligada durante a transferência.'):
+            return
+
+        def completed(result):
+            if result['source_removed']:
+                QMessageBox.information(self, title, 'VM transferida e desligada no destino. Os discos originais foram preservados.')
+            else:
+                self.events.appendPlainText(result['source_error'])
+                QMessageBox.warning(self, title, 'A cópia está desligada no destino. A remoção da definição de origem não foi confirmada. Confira a origem antes de ligar a cópia.')
+            QTimer.singleShot(200, self.refresh)
+
+        self.work(lambda manager: manager.move_offline(row['id'], *values), completed, transfer=True)
+
+    def replica_created(self, destination, result):
+        if not self.confirm('Réplica criada e desligada no destino. Deseja iniciar um teste de ativação na rede isolada agora?'):
+            return
+
+        def activate(_):
+            target = backend.Manager(destination)
+            try:
+                target.start_isolated_replica(result['id'])
+            finally:
+                target.close()
+
+        def started(_):
+            QMessageBox.information(self, 'Teste de ativação',
+                'Réplica iniciada no destino. Conecte-se ao hospedeiro para abrir o console, testar o convidado e desligá-lo.')
+
+        self.work(activate, started)
 
     def closeEvent(self,event):
         if self.tasks:

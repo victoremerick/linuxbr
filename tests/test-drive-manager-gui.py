@@ -11,7 +11,7 @@ from app import Window
 from core import Store
 from properties import Properties
 from show_properties import lookup
-from PyQt6.QtWidgets import QProgressBar
+from PyQt6.QtWidgets import QProgressBar, QToolButton
 
 application = QApplication([])
 class Preview(Window):
@@ -27,6 +27,10 @@ with tempfile.TemporaryDirectory() as tmp:
                dict(key='uuid:usb', name='Pendrive', kind='Removível', size=32 * 1024**3, fs='vfat', mounts=[], path='/usb', device='/dev/vdc1', mountable=True)]
     fixture[0]['usage']=dict(total=128*1024**3,used=80*1024**3,free=44*1024**3,reserved=4*1024**3)
     window.populate(fixture)
+    menus = [button for button in window.findChildren(QToolButton)
+             if button.text() in ('Gerenciar unidade', 'Rede', 'Partições')]
+    assert len(menus) == 3
+    assert all(button.popupMode() == QToolButton.ToolButtonPopupMode.InstantPopup for button in menus)
     assert isinstance(window.table.cellWidget(0,6), QProgressBar)
     assert window.table.cellWidget(0,6).value()==625
     assert 'Monte' in window.table.cellWidget(2,6).text()
@@ -57,5 +61,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert window.grab().save(target)
     window.buttons['Remover rede'].trigger()
     assert not window.store.update()['shares']
+    window.populate(fixture)
+    assert window.selected() is None
+    assert not window.buttons['Abrir'].isEnabled()
     window.close()
 print('PASS: UI, estados de ações, roteamento de montagem, rede e captura')

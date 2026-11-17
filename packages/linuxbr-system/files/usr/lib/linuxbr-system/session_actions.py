@@ -7,7 +7,7 @@ from function_icons import SESSION_ICONS
 
 import dbus
 from PyQt6.QtCore import QLockFile, QProcess, QStandardPaths, QSize, Qt
-from PyQt6.QtGui import QCursor, QIcon, QKeySequence, QShortcut
+from PyQt6.QtGui import QCursor, QIcon, QKeySequence, QPainter, QShortcut
 from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QPushButton,
                             QVBoxLayout, QWidget)
 
@@ -16,6 +16,17 @@ def session_call(service, path, interface, method, system=False):
     bus = dbus.SystemBus() if system else dbus.SessionBus()
     proxy = bus.get_object(service, path, introspect=False)
     return getattr(dbus.Interface(proxy, interface), method)(timeout=5)
+
+
+def session_icon(name):
+    icon = QIcon.fromTheme(name)
+    image = icon.pixmap(24, 24)
+    if image.isNull():
+        return icon
+    with QPainter(image) as painter:
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(image.rect(), Qt.GlobalColor.white)
+    return QIcon(image)
 
 
 class SessionActions(QWidget):
@@ -40,7 +51,7 @@ class SessionActions(QWidget):
         self.buttons = []
         for title, action in actions:
             button = QPushButton(title); button.setMinimumWidth(320)
-            button.setIcon(QIcon.fromTheme(SESSION_ICONS[action])); button.setIconSize(QSize(24, 24))
+            button.setIcon(session_icon(SESSION_ICONS[action])); button.setIconSize(QSize(24, 24))
             button.clicked.connect(lambda checked=False, key=action: self.activate(key))
             column.addWidget(button); self.buttons.append(button)
         self.error = QLabel(); self.error.setWordWrap(True)
@@ -48,7 +59,7 @@ class SessionActions(QWidget):
         self.error.hide(); column.addWidget(self.error)
         column.addSpacing(32)
         cancel = QPushButton('Cancelar'); cancel.setObjectName('cancel')
-        cancel.setIcon(QIcon.fromTheme('dialog-cancel'))
+        cancel.setIcon(session_icon('dialog-cancel'))
         cancel.clicked.connect(self.close); column.addWidget(cancel)
         row.addLayout(column); row.addStretch(); outer.addLayout(row); outer.addStretch()
         self.cancel_shortcut = QShortcut(QKeySequence('Escape'), self, activated=self.close)
@@ -57,6 +68,7 @@ class SessionActions(QWidget):
             self.setGeometry(screen.geometry())
 
     def activate(self, action):
+        focus = self.focusWidget()
         for button in self.buttons: button.setEnabled(False)
         try:
             if action in ('lock', 'switch'):
@@ -76,8 +88,12 @@ class SessionActions(QWidget):
                 if not shutil.which(command[0]) or not QProcess.startDetached(command[0], command[1:])[0]:
                     raise ValueError('Não foi possível abrir a ferramenta solicitada.')
         except (dbus.DBusException, OSError, ValueError) as error:
-            self.error.setText('Não foi possível concluir a ação. ' + str(error)); self.error.show()
+            message = str(error) if isinstance(error, ValueError) else 'Tente novamente ou use o menu Iniciar.'
+            self.error.setText('Não foi possível concluir a ação. ' + message)
+            self.error.show()
             for button in self.buttons: button.setEnabled(True)
+            if focus is not None:
+                focus.setFocus()
             return
         self.close()
 

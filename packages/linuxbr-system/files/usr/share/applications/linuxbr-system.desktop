@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Central do Sistema Linux BR
+Name=Configurações
 Comment=Dispositivos, armazenamento, rede e administração
-Keywords=Configurações;Painel de controle;Windows;Rede;Som;Tela;Atualizações;Ajuda;
+Keywords=Central do Sistema;Painel de controle;Windows;Rede;Som;Tela;Atualizações;Ajuda;
 Exec=linuxbr-system
 Icon=preferences-system
 Categories=System;Settings;

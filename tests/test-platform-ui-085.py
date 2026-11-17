@@ -22,6 +22,32 @@ def wait(callback,seconds=35):
 
 
 class PlatformWindows(unittest.TestCase):
+    def test_vm_controls_reflect_selection_filter_and_power_state(self):
+        with patch.object(virtualization.Window,'refresh'):
+            window = virtualization.Window('test:///default')
+        self.addCleanup(window.close)
+        window.timer.stop()
+        self.assertFalse(window.pages.isEnabled())
+        offline = dict(id='one', name='Arquivos', state='Desligada', active=False, memory=2048, cpus=2, cpu_ns=0)
+        paused = dict(id='two', name='Teste', state='Pausada', active=True, memory=2048, cpus=2, cpu_ns=0)
+        fixture = dict(domains=[offline,paused],networks=[],pools=[],capabilities={'kind':'kvm'})
+        window.loaded(fixture)
+        self.assertFalse(window.vm_controls['start'].isEnabled())
+        window.vms.selectRow(0)
+        self.assertTrue(window.vm_controls['start'].isEnabled())
+        self.assertFalse(window.vm_controls['poweroff'].isEnabled())
+        window.vm_search.setText('Teste')
+        self.assertIsNone(virtualization.selected(window.vms))
+        window.vms.selectRow(1)
+        self.assertTrue(window.vm_controls['resume'].isEnabled())
+        self.assertFalse(window.vm_controls['pause'].isEnabled())
+        with patch.object(window,'action') as action:
+            window.vm_controls['resume'].trigger()
+            action.assert_called_once_with('resume')
+        window.loaded(dict(fixture,domains=[offline]))
+        self.assertIsNone(virtualization.selected(window.vms))
+        self.assertFalse(window.vm_controls['resume'].isEnabled())
+
     def test_store_primary_action_stays_visible_while_details_scroll(self):
         with patch('webapp_icons.request_refresh'):
             window=store_frontend.Window();window.show()

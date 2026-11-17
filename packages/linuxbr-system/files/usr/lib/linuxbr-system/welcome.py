@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import QProcess, Qt, QUrl
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QFileDialog, QHBoxLayout,
                             QLabel, QListWidget, QMainWindow, QMessageBox,
                             QPushButton, QTextBrowser, QVBoxLayout, QWidget)
@@ -190,8 +190,8 @@ TOPICS = {
         como janelas próprias do Chromium e aparecem no menu.</p>
         <p>Os dados de login ficam no perfil daquele aplicativo. Com um perfil salvo,
         o aplicativo abre diretamente. Com vários, a caixa central permite marcar
-        um ou mais perfis para abrir. O botão <b>+ Novo perfil</b> cria outra sessão
-        com nome próprio e abre uma nova janela na página inicial.</p>
+        um ou mais perfis. O botão <b>Abrir</b> indica quantos perfis foram marcados.
+        Use <b>Novo perfil</b> para criar uma sessão e abrir uma janela na página inicial.</p>
         <p>Você pode separar Trabalho e Pessoal no mesmo serviço, como WhatsApp.
         O próprio site ainda pode pedir novo login, limitar sessões ou exigir assinatura.
         Fechar uma janela preserva os dados; sair da conta dentro do site encerra
@@ -297,17 +297,17 @@ class HelpPage(QWidget):
         self.browser.anchorClicked.connect(self.follow_link)
         body.addWidget(self.browser, 1)
         footer = QHBoxLayout()
-        report = QPushButton('Salvar informações para suporte')
-        report.setIcon(QIcon.fromTheme('document-save'))
-        report.clicked.connect(self.export_report)
-        footer.addWidget(report)
+        self.report = QPushButton(QIcon.fromTheme('document-save'), 'Salvar informações para suporte')
+        self.report.clicked.connect(self.export_report)
+        footer.addWidget(self.report)
         footer.addStretch()
         body.addLayout(footer)
         self.set_topic(topic)
 
     def set_topic(self, title):
-        self.browser.setHtml(TOPICS[title])
+        self.browser.setHtml(TOPICS.get(title, ''))
         self.browser.moveCursor(self.browser.textCursor().MoveOperation.Start)
+        self.report.setVisible(title == 'Recuperação e ajuda')
 
     def follow_link(self, url):
         if url.scheme() == 'action' and url.path() in ACTIONS:
@@ -336,12 +336,20 @@ class Welcome(QMainWindow):
         self.setMinimumSize(720, 480)
         root = QWidget(); self.setCentralWidget(root)
         layout = QVBoxLayout(root)
-        header = QLabel('Linux BR  ·  Seu computador, em português')
-        header.setStyleSheet('font-size:20px;font-weight:600;padding:12px')
+        layout.setContentsMargins(20, 16, 20, 16)
+        header = QLabel('Primeiros passos')
+        header.setStyleSheet('font-size:24px;font-weight:600')
         layout.addWidget(header)
-        prepare=QPushButton('Preparar meu computador…')
+        prepare=QPushButton(QIcon.fromTheme('configure'),'Preparar meu computador…')
         prepare.clicked.connect(lambda:self.launch(['linuxbr-setup']))
-        layout.addWidget(prepare,0,Qt.AlignmentFlag.AlignLeft)
+        wiki = QPushButton(QIcon.fromTheme('help-contents'), 'Abrir a Wiki do Linux BR')
+        wiki.clicked.connect(lambda: self.launch(['linuxbr-wiki']))
+        QShortcut(QKeySequence('F1'), self, activated=wiki.click)
+        shortcuts = QHBoxLayout()
+        shortcuts.addWidget(prepare)
+        shortcuts.addWidget(wiki)
+        shortcuts.addStretch()
+        layout.addLayout(shortcuts)
         self.live_install = None
         if is_live_session():
             live = QHBoxLayout()
@@ -359,6 +367,8 @@ class Welcome(QMainWindow):
         self.nav.addItems(list(TOPICS))
         self.nav.setMinimumWidth(195)
         self.nav.setMaximumWidth(250)
+        self.nav.setWordWrap(True)
+        self.nav.setStyleSheet('QListWidget::item { padding: 7px 8px; }')
         self.page = HelpPage(self.launch)
         self.nav.currentTextChanged.connect(self.page.set_topic)
         content.addWidget(self.nav); content.addWidget(self.page, 1)

@@ -7,6 +7,6 @@ X-KDE-MinNumberOfUrls=1
 X-KDE-Priority=TopLevel
 
 [Desktop Action copyPath]
-Name=Copiar caminho
+Name=Revisar e copiar caminhos…
 Icon=edit-copy
 Exec=/usr/bin/linuxbr-file-tools --copy-path %U

@@ -6,16 +6,31 @@ main() {
     cd /src
     VERSION=$(cat VERSION)
     [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(~(alpha|beta|rc)[1-9][0-9]*)?$ ]] || { echo 'Versao invalida' >&2; exit 1; }
-    ISO_VOLUME=$(printf 'LINUXBR_%s' "$VERSION" | tr '[:lower:].~' '[:upper:]__')
+    source scripts/build-output.sh
+    export LINUXBR_BUILD_EDITION=${LINUXBR_BUILD_EDITION:-desktop}
+    case "$LINUXBR_BUILD_EDITION" in
+        desktop) ISO_LABEL=LINUXBR; ISO_APPLICATION='Linux BR Live'; EDITION_ARG=; RECOMMENDS=true ;;
+        vm-server) ISO_LABEL=LINUXBR_VM_SERVER; ISO_APPLICATION='Linux BR VM Server'; EDITION_ARG=' linuxbr.edition=virtualization'; RECOMMENDS=false ;;
+        *) echo 'Edicao invalida' >&2; exit 2 ;;
+    esac
+    ISO_STEM=$(build_iso_stem "$LINUXBR_BUILD_EDITION" "$VERSION")
+    ISO_VOLUME=$(printf '%s_%s' "$ISO_LABEL" "$VERSION" | tr '[:lower:].~' '[:upper:]__')
     echo "LINUXBR_STAGE 0"
     # Unique workspaces prevent live-build stamps/cache from hiding source changes.
     mkdir -p build dist
-    WORK=$(mktemp -d "/src/build/linuxbr-${VERSION}.XXXXXX")
+    WORK=$(mktemp -d "/src/build/${ISO_STEM}.XXXXXX")
     # Freeze package inputs and validation together before the long live-build run.
     # Edits in the checkout apply only to the next build.
     mkdir -p "$WORK/upstream" "$WORK/config" "$WORK/source"
     cp -a VERSION README.md docs packages scripts tests config "$WORK/source/"
     cp -a "$WORK/source/config/." "$WORK/config/"
+    if [[ $LINUXBR_BUILD_EDITION == vm-server ]]; then
+        rm -- "$WORK/config/package-lists/linuxbr.list.chroot" \
+              "$WORK/config/hooks/live/0150-linuxbr-windows.hook.chroot"
+        cp "$WORK/source/config/editions/vm-server.list.chroot" "$WORK/config/package-lists/"
+        mkdir -p "$WORK/config/includes.chroot/etc/linuxbr"
+        printf 'virtualization\n' > "$WORK/config/includes.chroot/etc/linuxbr/edition"
+    fi
     if [[ -d "$WORK/config/hooks" ]]; then find "$WORK/config/hooks" -type f -exec chmod 0755 {} +; fi
     # Reuse only downloaded archives, never chroot trees or live-build stamps.
     PACKAGE_CACHE=/src/.cache/build-downloads/trixie-amd64
@@ -51,10 +66,20 @@ main() {
         --work "$WORK/packages" \
         --calamares-deb "$WORK"/upstream/calamares-settings-debian_*.deb \
         --breeze-deb "$WORK"/upstream/sddm-theme-breeze_*.deb
-    bash "$WORK/source/scripts/build-dolphin.sh" "$WORK/config/packages.chroot"
-    bash "$WORK/source/scripts/build-kio.sh" "$WORK/config/packages.chroot"
-    bash "$WORK/source/scripts/build-kwallet.sh" "$WORK/config/packages.chroot"
-    bash "$WORK/source/scripts/stage-kwin-fix.sh" "$WORK/config/packages.chroot"
+    local built_package
+    for built_package in "$WORK/config/packages.chroot/"linuxbr-*.deb; do
+        case "$LINUXBR_BUILD_EDITION:${built_package##*/}" in
+            desktop:linuxbr-server_*) rm -- "$built_package" ;;
+            vm-server:linuxbr-server_*|vm-server:linuxbr-release_*|vm-server:linuxbr-branding_*|vm-server:linuxbr-boot-theme_*|vm-server:linuxbr-boot-tools_*|vm-server:linuxbr-calamares-settings_*) ;;
+            vm-server:*) rm -- "$built_package" ;;
+        esac
+    done
+    if [[ $LINUXBR_BUILD_EDITION == desktop ]]; then
+        bash "$WORK/source/scripts/build-dolphin.sh" "$WORK/config/packages.chroot"
+        bash "$WORK/source/scripts/build-kio.sh" "$WORK/config/packages.chroot"
+        bash "$WORK/source/scripts/build-kwallet.sh" "$WORK/config/packages.chroot"
+        bash "$WORK/source/scripts/stage-kwin-fix.sh" "$WORK/config/packages.chroot"
+    fi
     python3 "$WORK/source/scripts/check-package-ownership.py" "$WORK/config/packages.chroot"
     python3 "$WORK/source/scripts/prepare-live-boot.py" "$WORK"
     cd "$WORK"
@@ -64,11 +89,12 @@ main() {
       --architectures amd64 \
       --binary-images iso-hybrid \
       --debian-installer none \
+      --apt-recommends "$RECOMMENDS" \
       --firmware-chroot false \
       --firmware-binary false \
       --archive-areas 'main contrib non-free non-free-firmware' \
-      --bootappend-live 'boot=live components hostname=linuxbr user-fullname=LinuxBR locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=pc105 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0' \
-      --iso-application 'Linux BR Live' \
+      --bootappend-live "boot=live components hostname=linuxbr user-fullname=LinuxBR locales=pt_BR.UTF-8 keyboard-layouts=br keyboard-model=pc105 timezone=America/Sao_Paulo quiet splash loglevel=3 systemd.show_status=false rd.systemd.show_status=false udev.log_level=3 vt.global_cursor_default=0${EDITION_ARG}" \
+      --iso-application "$ISO_APPLICATION" \
       --iso-publisher 'Projeto Linux BR' \
       --iso-volume "${ISO_VOLUME:0:32}"
     echo "LINUXBR_STAGE 3"
@@ -76,21 +102,21 @@ main() {
     iso=live-image-amd64.hybrid.iso
     [[ -s "$iso" ]] || { echo 'ERRO: ISO nao encontrada' >&2; exit 1; }
     echo "LINUXBR_STAGE 4"
-    python3 "$WORK/source/tests/check-rootfs.py" chroot --mode live
+    python3 "$WORK/source/tests/check-rootfs.py" chroot --mode live --edition "$LINUXBR_BUILD_EDITION"
     echo "LINUXBR_STAGE 5"
-    install -m 0644 "$iso" "/src/dist/linuxbr-${VERSION}-amd64.iso"
-    cp config/packages.chroot/UPSTREAM-SHA256SUMS "/src/dist/linuxbr-${VERSION}-upstream.sha256"
+    install -m 0644 "$iso" "/src/dist/${ISO_STEM}-amd64.iso"
+    cp config/packages.chroot/UPSTREAM-SHA256SUMS "/src/dist/${ISO_STEM}-upstream.sha256"
     cd /src/dist
-    sha256sum "linuxbr-${VERSION}-amd64.iso" > "linuxbr-${VERSION}-amd64.iso.sha256"
+    sha256sum "${ISO_STEM}-amd64.iso" > "${ISO_STEM}-amd64.iso.sha256"
     # Preserve historical checksums and refresh only the current entry.
     if [[ -f SHA256SUMS ]]; then
-        awk -v name="linuxbr-${VERSION}-amd64.iso" '$2 != name' SHA256SUMS > SHA256SUMS.tmp
+        awk -v name="${ISO_STEM}-amd64.iso" '$2 != name' SHA256SUMS > SHA256SUMS.tmp
     else
         : > SHA256SUMS.tmp
     fi
-    cat "linuxbr-${VERSION}-amd64.iso.sha256" >> SHA256SUMS.tmp
+    cat "${ISO_STEM}-amd64.iso.sha256" >> SHA256SUMS.tmp
     mv SHA256SUMS.tmp SHA256SUMS
     echo "LINUXBR_STAGE 6"
-    printf 'ISO pronta: dist/linuxbr-%s-amd64.iso\nWorkspace preservado: %s\n' "$VERSION" "$WORK"
+    printf 'ISO pronta: dist/%s-amd64.iso\nWorkspace preservado: %s\n' "$ISO_STEM" "$WORK"
 }
 main "$@"; exit "$?"

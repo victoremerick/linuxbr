@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 import subprocess
 import tarfile
 import xml.etree.ElementTree as ET
@@ -13,16 +14,15 @@ a = yaml.safe_load((original / 'etc/calamares/settings.conf').read_text())
 b = yaml.safe_load((modified / 'etc/calamares/settings.conf').read_text())
 expected=a['sequence']
 for stage in expected:
-    if 'show' in stage and 'welcome' in stage['show']:stage['show'].insert(stage['show'].index('welcome')+1,'packagechooser')
     if 'exec' in stage and 'packages' in stage['exec']:stage['exec'].insert(stage['exec'].index('packages')+1,'linuxbr_edition')
 assert expected == b['sequence'], 'Unexpected installation sequence change'
 assert '/etc/calamares/modules' in b['modules-search']
-chooser=yaml.safe_load((modified/'etc/calamares/modules/packagechooser.conf').read_text())
-assert chooser['mode']=='required' and chooser['method']=='legacy' and chooser['default']=='desktop'
-assert [item['id'] for item in chooser['items']]==['desktop','server']
-assert len({item['screenshot'] for item in chooser['items']})==2
-for item in chooser['items']:
-    assert (modified/item['screenshot'].lstrip('/')).is_file(),item['screenshot']
+server_media = os.environ.get('LINUXBR_BUILD_EDITION') == 'vm-server'
+assert not (modified/'etc/calamares/modules/packagechooser.conf').exists()
+assert (modified/'etc/calamares/modules/linuxbr_edition/media-edition').read_text().strip() == (
+    'virtualization' if server_media else 'desktop')
+branding = yaml.safe_load((modified/'etc/calamares/branding/linuxbr/branding.desc').read_text())
+assert branding['strings']['productName'] == ('Linux BR VM Server' if server_media else 'Linux BR')
 assert (modified/'etc/calamares/modules/linuxbr_edition/main.py').is_file()
 for path in (original / 'usr/share/calamares/helpers').iterdir():
     assert path.read_bytes() == (modified / path.relative_to(original)).read_bytes(), path
@@ -120,7 +120,7 @@ assert 'linuxbr-calamares-settings' not in release_control
 assert f'linuxbr-file-properties (= {version})' in (work/'work/linuxbr-system/DEBIAN/control').read_text()
 for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6kiofilewidgets6'):
     assert name+' (>= 6.13.0-6+linuxbr0.9.1)' in (work/'work/linuxbr-file-properties/DEBIAN/control').read_text()
-assert 'dolphin (>= 4:25.04.3-1+deb13u1+linuxbr2)' in (work/'work/linuxbr-drive-manager/DEBIAN/control').read_text()
+assert 'dolphin (>= 4:25.04.3-1+deb13u1+linuxbr3)' in (work/'work/linuxbr-drive-manager/DEBIAN/control').read_text()
 print('PASS: atualização da edição seleciona os componentes exatos e o KIO com Aplicar')
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from release_info import release_info
@@ -128,7 +128,8 @@ display_version=release_info(Path(__file__).resolve().parents[1])['display_versi
 assert branding['strings']['shortVersion'] == version.split('~')[0]
 assert f'Linux BR {display_version}' in (work / 'work/linuxbr-release/usr/share/linuxbr/release/issue').read_text()
 assert f'VERSION_ID="{version}"' in (work / 'work/linuxbr-release/etc/linuxbr-release').read_text()
-assert f'Linux BR {display_version}' in (modified / 'usr/share/applications/calamares-install-linuxbr.desktop').read_text()
+assert f'{branding["strings"]["productName"]} {display_version}' in (
+    modified / 'usr/share/applications/calamares-install-linuxbr.desktop').read_text()
 print('PASS: versão única no release, banner e instalador')
 
 assert 'nvidia-detect' in (devices / 'DEBIAN/control').read_text()
@@ -187,6 +188,8 @@ for path in ['usr/share/linuxbr/bashrc','usr/lib/linuxbr-system/snapshot_service
              'usr/share/linuxbr/firmware/certificates.json']:
     assert owners[path]=='linuxbr-boot-tools',path
 server_control=(work/'work/linuxbr-server/DEBIAN/control').read_text()
+assert (work/'work/linuxbr-server/usr/bin/terminal').stat().st_mode & 0o111
+assert not (work/'work/linuxbr-system/usr/bin/terminal').exists()
 server_depends=next(line for line in server_control.splitlines() if line.startswith('Depends:'))
 assert 'linuxbr-boot-tools' in server_depends
 assert all(name not in server_depends for name in ['linuxbr-system','linuxbr-desktop','plasma-desktop','plasma-workspace'])

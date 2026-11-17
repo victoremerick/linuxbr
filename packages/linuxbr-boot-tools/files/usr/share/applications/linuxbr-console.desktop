@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Console do servidor
+Comment=Configure o computador e as máquinas virtuais pelo terminal
+Exec=/usr/bin/linuxbr-console
+TryExec=/usr/bin/linuxbr-console
+Icon=utilities-terminal
+Categories=System;
+Terminal=true

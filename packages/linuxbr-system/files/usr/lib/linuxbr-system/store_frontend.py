@@ -5,10 +5,10 @@ import json
 import os
 from pathlib import Path
 import sys
-from PyQt6.QtCore import Qt,QSize,QTimer
-from PyQt6.QtGui import QIcon,QFont,QFontMetrics
+from PyQt6.QtCore import Qt,QSize,QTimer,QProcess
+from PyQt6.QtGui import QIcon,QFont,QFontMetrics,QKeySequence,QShortcut
 from PyQt6.QtWidgets import (QApplication,QDialog,QDialogButtonBox,QFileDialog,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QListWidget,
-    QListWidgetItem,QStackedWidget,QSplitter,QPushButton,QCheckBox,QFormLayout,QMessageBox,QStyledItemDelegate,QStyleOptionViewItem,QStyle,QSizePolicy)
+    QListWidgetItem,QStackedWidget,QSplitter,QPushButton,QCheckBox,QFormLayout,QMessageBox,QStyledItemDelegate,QStyleOptionViewItem,QStyle,QSizePolicy,QInputDialog)
 from store import Window as OperationsWindow
 import store_backend as backend
 import catalog_sources
@@ -38,6 +38,7 @@ class Window(OperationsWindow):
         self.optional_errors = []
         self.optional_epoch = 0
         self.optional_query = None
+        self.pending_installs = {}
         self.preferences_path=Path(os.environ.get('XDG_CONFIG_HOME',str(Path.home()/'.config')))/'linuxbr/store.json'
         try:self.preferences=json.loads(self.preferences_path.read_text())
         except (OSError,ValueError):self.preferences={}
@@ -68,6 +69,9 @@ class Window(OperationsWindow):
         self.results.setItemDelegate(CardDelegate(self.results))
         self.results.setStyleSheet('QListWidget { border:0;background:transparent; } QListWidget::item { border:1px solid palette(mid);border-radius:10px;background:palette(base); } QListWidget::item:selected { border:2px solid palette(highlight);background:palette(alternate-base); }')
         self.favorite=QPushButton(QIcon.fromTheme('rating'),'Adicionar aos favoritos');self.favorite.clicked.connect(self.toggle_favorite);self.detail_layout.insertWidget(0,self.favorite)
+        self.stage_install = QPushButton(QIcon.fromTheme('list-add'), 'Adicionar à fila de instalação…')
+        self.stage_install.clicked.connect(self.stage_selected_install)
+        self.detail_layout.insertWidget(1, self.stage_install)
         self.license_button=QPushButton(QIcon.fromTheme('text-x-generic'),'Ler licenças do pacote');self.license_button.clicked.connect(self.show_license);self.detail_layout.insertWidget(self.detail_layout.count()-1,self.license_button)
         detail_area=splitter.widget(1);panel=QWidget();splitter.replaceWidget(1,panel);detail=QVBoxLayout(panel);detail.setContentsMargins(8,4,0,0);detail.setSpacing(10)
         for widget in (self.heading,self.primary,self.manage_native,self.manage_windows,self.new_session,self.installer):
@@ -90,6 +94,10 @@ class Window(OperationsWindow):
         from webapp_updates import WebUpdates
         self.web_updates=WebUpdates(self);self.pages.addWidget(self.web_updates)
         footer=QHBoxLayout();footer.addWidget(self.count,1)
+        self.review_installs = QPushButton(QIcon.fromTheme('view-list-details'), 'Revisar fila (0)')
+        self.review_installs.setEnabled(False)
+        self.review_installs.clicked.connect(self.review_install_queue)
+        footer.addWidget(self.review_installs)
         self.portable_buttons = []
         for caption, importing in [('Exportar aplicativos…', False), ('Importar aplicativos…', True)]:
             button = QPushButton(QIcon.fromTheme('document-import' if importing else 'document-export'), caption)
@@ -99,6 +107,11 @@ class Window(OperationsWindow):
             footer.addWidget(button)
         self.retry_search=QPushButton(QIcon.fromTheme('view-refresh'),'Repetir consulta')
         self.retry_search.setAccessibleName('Repetir consulta nas fontes de aplicativos');self.retry_search.clicked.connect(self.repeat_repository_search);self.retry_search.hide();footer.addWidget(self.retry_search)
+        help_button = QPushButton(QIcon.fromTheme('help-contents'), 'Ajuda')
+        help_button.setToolTip('Abrir a ajuda desta página (F1)')
+        help_button.clicked.connect(self.open_wiki)
+        footer.addWidget(help_button)
+        QShortcut(QKeySequence('F1'), self, activated=self.open_wiki)
         refresh=QPushButton(QIcon.fromTheme('view-refresh'),'Atualizar catálogo');refresh.clicked.connect(self.reload_catalog);footer.addWidget(refresh);body.addLayout(footer)
         self.links={}
         for caption,icon,data in [('Início','go-home',('catalog','')),('Biblioteca','applications-all',('installed','')),('Favoritos','rating',('favorites','')),('Downloads e histórico','folder-download',('downloads','')),('Atualizações','system-software-update',('updates','')),('Revisões de webapps','internet-web-browser',('web-updates','')),('Firmware','preferences-devices-cpu',('firmware','')),('Fontes','network-server',('sources','')),('Configurações','configure',('preferences',''))]:self.nav_item(caption,icon,data)
@@ -108,6 +121,13 @@ class Window(OperationsWindow):
     def nav_item(self,caption,icon,data):
         height=self.fontMetrics().boundingRect(0,0,max(100,self.navigation_side.width()-76),2000,int(Qt.TextFlag.TextWordWrap),caption).height()+20
         item=QListWidgetItem(QIcon.fromTheme(icon),caption);item.setToolTip(caption);item.setData(Qt.ItemDataRole.UserRole,data);item.setSizeHint(QSize(150,max(42,height)));self.navigation.addItem(item);self.links[data[0]+':'+data[1]]=item
+
+    def open_wiki(self):
+        item = self.navigation.currentItem()
+        key = item.data(Qt.ItemDataRole.UserRole)[0] if item else None
+        guide = {'sources': 'fontes-loja', 'installed': 'migrar-aplicativos', 'web-updates': 'webapps'}.get(key, 'loja')
+        if not QProcess.startDetached('linuxbr-wiki', [guide])[0]:
+            QMessageBox.warning(self, 'Ajuda indisponível', 'Não foi possível abrir a Wiki do Linux BR.')
 
     def navigate(self,item,*_):
         if not item:return
@@ -167,10 +187,11 @@ class Window(OperationsWindow):
         task.finished.connect(finished)
         task.start()
 
-    def portable_list(self, importing):
+    def portable_list(self, importing, filename=None):
         import store_portable as portable
         if importing:
-            filename, _ = QFileDialog.getOpenFileName(self, 'Importar lista de aplicativos', '', 'JSON (*.json)')
+            if filename is None:
+                filename, _ = QFileDialog.getOpenFileName(self, 'Importar lista de aplicativos', '', 'JSON (*.json)')
             if not filename:
                 return
             callback = lambda: portable.review(portable.load(filename))
@@ -348,6 +369,7 @@ class Window(OperationsWindow):
         super().select(*args)
         if not getattr(self,'ready',False):return
         item=self.selected();self.favorite.setVisible(bool(item));self.favorite.setText('Remover favorito' if item and item['id'] in self.favorites else 'Favoritar')
+        self.stage_install.setVisible(bool(item and item.get('kind') == 'linux'))
         target = item.get('optional_target') if item else None
         if target and self.primary.text() == 'Instalar aplicativo…':
             if target['installed']:
@@ -361,6 +383,107 @@ class Window(OperationsWindow):
         details=self.metadata_cache.get(item['id'],{}) if item else {};self.license_button.setVisible(bool(details.get('copyright_file')))
         if details:self.show_metadata(details)
         if not item:self.description.setText('Tente outro nome, finalidade ou categoria. Para pesquisar nas fontes, digite pelo menos dois caracteres.')
+
+    def stage_selected_install(self):
+        item = self.selected()
+        if not item:
+            return
+        job = Query(lambda: backend.package_targets(item), self)
+        self.queries.add(job)
+        self.stage_install.setEnabled(False)
+        job.result.connect(lambda targets: self.choose_install_target(item, targets))
+        job.failed.connect(lambda detail: QMessageBox.warning(self, 'Consulta indisponível', detail))
+        job.finished.connect(lambda: self.stage_install.setEnabled(True))
+        job.finished.connect(lambda: self.queries.discard(job))
+        job.finished.connect(job.deleteLater)
+        job.start()
+
+    def choose_install_target(self, item, targets):
+        from store_transactions import checked_request
+        eligible = [target for target in targets if not target['installed'] and not target.get('blocked_reason')]
+        if not eligible:
+            QMessageBox.information(self, 'Fila de instalação', 'Nenhuma origem disponível para instalar este aplicativo.')
+            return
+        labels = [target['label'] for target in eligible]
+        label, ok = QInputDialog.getItem(self, 'Origem da instalação', item['name'], labels, editable=False)
+        if not ok:
+            return
+        target = eligible[labels.index(label)]
+        try:
+            request = checked_request(dict(target, action='install', name=target.get('name', item['name'])))
+        except ValueError as error:
+            QMessageBox.warning(self, 'Instalação não identificada', str(error))
+            return
+        key = tuple(request[field] for field in ('manager', 'target', 'scope', 'origin'))
+        self.pending_installs[key] = (request, label)
+        self.update_install_queue()
+
+    def update_install_queue(self):
+        count = len(self.pending_installs)
+        self.review_installs.setText(f'Revisar fila ({count})')
+        self.review_installs.setEnabled(count > 0)
+
+    def review_install_queue(self):
+        from store_operations import Operations
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Fila de instalação')
+        dialog.resize(680, 460)
+        body = QVBoxLayout(dialog)
+        note = QLabel('Revise as origens. Retire da fila os itens que não deseja instalar agora.')
+        note.setWordWrap(True)
+        body.addWidget(note)
+        listing = QListWidget()
+        listing.setAccessibleName('Aplicativos na fila')
+        listing.setWordWrap(True)
+        for key, (request, label) in self.pending_installs.items():
+            row = QListWidgetItem(f'{request["name"]}\n{label}')
+            row.setData(Qt.ItemDataRole.UserRole, key)
+            listing.addItem(row)
+        body.addWidget(listing)
+        actions = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        actions.button(QDialogButtonBox.StandardButton.Ok).setText('Confirmar instalações')
+        actions.button(QDialogButtonBox.StandardButton.Cancel).setText('Cancelar')
+        actions.button(QDialogButtonBox.StandardButton.Ok).setEnabled(listing.count() > 0)
+        for button in actions.buttons():
+            button.setAutoDefault(False)
+        actions.accepted.connect(dialog.accept)
+        actions.rejected.connect(dialog.reject)
+        remove = actions.addButton('Retirar selecionado', QDialogButtonBox.ButtonRole.ActionRole)
+        remove.setAutoDefault(False)
+        remove.setEnabled(False)
+        listing.currentRowChanged.connect(lambda row: remove.setEnabled(row >= 0))
+
+        def remove_selected():
+            row = listing.currentRow()
+            if row < 0:
+                return
+            key = tuple(listing.takeItem(row).data(Qt.ItemDataRole.UserRole))
+            self.pending_installs.pop(key, None)
+            self.update_install_queue()
+            actions.button(QDialogButtonBox.StandardButton.Ok).setEnabled(listing.count() > 0)
+
+        remove.clicked.connect(remove_selected)
+        body.addWidget(actions)
+        listing.setCurrentRow(0)
+        listing.setFocus()
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        requests = []
+        for request, label in self.pending_installs.values():
+            request = request.copy()
+            if request['manager'] == 'snap' and request.get('confinement') == 'classic':
+                if QMessageBox.question(self, 'Confirmar Snap classic',
+                        f'{label}\n\nO modo classic permite acesso ampliado aos arquivos e recursos do sistema. Continuar?',
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+                        QMessageBox.StandardButton.Cancel) != QMessageBox.StandardButton.Yes:
+                    return
+                request['classic_confirmed'] = True
+            requests.append(request)
+        if not hasattr(self, 'operations'):
+            self.operations = Operations(self)
+        self.operations.add_requests(requests)
+        self.pending_installs.clear()
+        self.update_install_queue()
 
     def metadata_for(self,item):
         identifier=item['id'];basic=dict(type=backend.KINDS[item['kind']],origin=item.get('source','Não informada'),version='Consultando metadados locais…',size='Consultando metadados locais…')
@@ -460,7 +583,9 @@ def open_store_link(window, value):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('uri',nargs='?');parser.add_argument('--installed',action='store_true');parser.add_argument('--updates',action='store_true');parser.add_argument('--sources',action='store_true');parser.add_argument('--firmware',action='store_true');parser.add_argument('--search',default='');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('uri',nargs='?');parser.add_argument('--installed',action='store_true');parser.add_argument('--updates',action='store_true');parser.add_argument('--sources',action='store_true');parser.add_argument('--firmware',action='store_true');parser.add_argument('--search',default='')
+    parser.add_argument('--importar-lista', metavar='ARQUIVO', help='Revisar uma lista portátil de aplicativos.')
+    args=parser.parse_args()
     app=QApplication(sys.argv);app.setDesktopFileName('linuxbr-store')
     if not QIcon.themeName():QIcon.setThemeName('breeze')
     window=Window();window.show()
@@ -468,4 +593,7 @@ if __name__=='__main__':
     for flag,key in [(args.installed,'installed'),(args.updates,'updates'),(args.sources,'sources'),(args.firmware,'firmware')]:
         if flag:window.navigation.setCurrentItem(window.links[key+':'])
     if args.uri:QTimer.singleShot(0,lambda:open_store_link(window,args.uri))
+    if args.importar_lista:
+        window.navigation.setCurrentItem(window.links['installed:'])
+        QTimer.singleShot(0, lambda: window.portable_list(True, args.importar_lista))
     sys.exit(app.exec())

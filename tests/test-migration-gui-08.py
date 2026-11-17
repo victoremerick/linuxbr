@@ -109,6 +109,14 @@ class MigrationGui(unittest.TestCase):
         self.assertIsNotNone(self.window.plan)
         self.assertTrue(self.window.start.isEnabled())
 
+    def test_editing_destination_clears_the_preview(self):
+        self.scan()
+        self.assertGreater(self.window.preview.rowCount(), 0)
+        self.window.destination.clear()
+        self.assertEqual(self.window.preview.rowCount(), 0)
+        self.assertFalse(self.window.start.isEnabled())
+        self.assertFalse(self.window.scan.isEnabled())
+
     def test_real_scan_copy_hash_report_and_source_preservation(self):
         (self.source / 'Pasta vazia').mkdir()
         before = digest(self.file)

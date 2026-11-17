@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Segunda tela pela rede
+Comment=Estenda a área de trabalho para outro computador usando SSH
+Exec=linuxbr-wireless-display
+Icon=video-display
+Categories=Network;RemoteAccess;
+Terminal=false
+TryExec=linuxbr-wireless-display

@@ -1,8 +1,12 @@
 """Limited appearance preferences: color and brightness, not global layout packs."""
+import json
+from pathlib import Path
+import sqlite3
 import subprocess
+import dbus
 from PyQt6.QtCore import QProcess, Qt
 from PyQt6.QtGui import QColor, QPainter, QPen
-from PyQt6.QtWidgets import QWidget,QVBoxLayout,QLabel,QComboBox,QPushButton,QFormLayout
+from PyQt6.QtWidgets import QWidget,QVBoxLayout,QLabel,QComboBox,QPushButton,QFormLayout,QFileDialog,QHBoxLayout,QMessageBox
 
 class ThemePreview(QWidget):
     """Preview only: selecting colors does not modify the session."""
@@ -39,7 +43,85 @@ class Appearance(QWidget):
         self.preview=ThemePreview();body.addWidget(self.preview)
         self.mode.currentIndexChanged.connect(self.update_preview);self.accent.currentIndexChanged.connect(self.update_preview);self.update_preview()
         self.apply=QPushButton('Aplicar');self.apply.setProperty('primary',True);self.apply.clicked.connect(self.save);body.addWidget(self.apply)
+        transfer = QHBoxLayout()
+        for label, handler in [('Exportar cores…', self.export_colors), ('Importar cores…', self.import_colors),
+                               ('Exportar favoritos…', self.export_favorites), ('Importar favoritos…', self.import_favorites)]:
+            button = QPushButton(label)
+            button.clicked.connect(handler)
+            transfer.addWidget(button)
+        body.addLayout(transfer)
         self.status=QLabel();self.status.setWordWrap(True);body.addWidget(self.status);body.addStretch()
+
+    def export_favorites(self):
+        from start_favorites import export_favorites
+
+        filename, _ = QFileDialog.getSaveFileName(self, 'Exportar favoritos do Iniciar',
+                                                 'linuxbr-favoritos.json', 'JSON (*.json)')
+        if filename:
+            try:
+                export_favorites(filename)
+                self.status.setText('Favoritos de aplicativos exportados.')
+            except (OSError, sqlite3.Error, dbus.DBusException):
+                QMessageBox.warning(self, 'Exportar favoritos', 'Não foi possível ler os favoritos do menu Iniciar.')
+
+    def import_favorites(self):
+        from start_favorites import import_favorites, installed_apps, load_favorites
+
+        title = 'Importar favoritos do Iniciar'
+        filename, _ = QFileDialog.getOpenFileName(self, title, '', 'JSON (*.json)')
+        if not filename:
+            return
+        try:
+            ids = load_favorites(filename)
+            apps = installed_apps(ids)
+            if not apps:
+                QMessageBox.information(self, title, 'Nenhum aplicativo desta lista está instalado e visível.')
+                return
+            dialog = QMessageBox(QMessageBox.Icon.Question, title,
+                                 f'Adicionar {len(apps)} aplicativos aos favoritos? '
+                                 f'Itens indisponíveis nesta conta: {len(ids) - len(apps)}.',
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel, self)
+            dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
+            dialog.setDetailedText('\n'.join(apps.values()))
+            if dialog.exec() == QMessageBox.StandardButton.Yes:
+                import_favorites(apps)
+                self.status.setText('Aplicativos adicionados aos favoritos do menu Iniciar.')
+        except (OSError, ValueError, dbus.DBusException):
+            QMessageBox.warning(self, title, 'A importação não foi concluída. Confira os favoritos e o arquivo selecionado.')
+
+    def export_colors(self):
+        filename, _ = QFileDialog.getSaveFileName(self, 'Exportar cores', 'linuxbr-cores.json', 'JSON (*.json)')
+        if not filename:
+            return
+        from store_sources import atomic_write
+        record = dict(schema='linuxbr-colors-1', mode=self.mode.currentData(), accent=self.accent.currentData())
+        try:
+            atomic_write(Path(filename), (json.dumps(record) + '\n').encode(), 0o600)
+        except OSError as error:
+            QMessageBox.warning(self, 'Exportar cores', str(error))
+
+    def import_colors(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Importar cores', '', 'JSON (*.json)')
+        if not filename:
+            return
+        try:
+            with Path(filename).open('rb') as stream:
+                raw = stream.read(4097)
+            if len(raw) > 4096:
+                raise ValueError
+            record = json.loads(raw)
+            if not isinstance(record, dict) or record.get('schema') != 'linuxbr-colors-1':
+                raise ValueError
+            mode = self.mode.findData(record.get('mode'))
+            accent = self.accent.findData(record.get('accent'))
+            if mode < 0 or accent < 0:
+                raise ValueError
+        except (OSError, ValueError):
+            QMessageBox.warning(self, 'Importar cores', 'Escolha um arquivo de cores exportado pelo Linux BR.')
+            return
+        self.mode.setCurrentIndex(mode)
+        self.accent.setCurrentIndex(accent)
+        self.status.setText('Confira a prévia e clique em Aplicar para usar as cores importadas.')
     def update_preview(self):
         self.preview.dark=self.mode.currentData()=='Dark'
         self.preview.accent={'Violet':'#6054a3','Blue':'#005fb8','Green':'#147050','Graphite':'#4f5b66'}[self.accent.currentData()]

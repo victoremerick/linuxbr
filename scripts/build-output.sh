@@ -3,14 +3,24 @@
 build_parse_args() {
     VERBOSE=0
     NO_CACHE=0
+    BUILD_EDITION=desktop
     for arg in "$@"; do
         case "$arg" in
             --no-cache) NO_CACHE=1 ;;
+            --edition=desktop|--edition=vm-server) BUILD_EDITION=${arg#*=} ;;
             -v|--verbose) VERBOSE=1 ;;
-            -h|--help) printf 'Uso: %s [-v|--verbose] [--no-cache]\n--no-cache: recria as ferramentas e ignora downloads anteriores.\nSem -v: resumo e logs completos em .cache/logs/.\n' "$0"; exit 0 ;;
+            -h|--help) printf 'Uso: %s [-v|--verbose] [--no-cache] [--edition=desktop|--edition=vm-server]\nSem --edition, compila a edicao Desktop.\n--no-cache: recria as ferramentas e ignora downloads anteriores.\nSem -v: resumo e logs completos em .cache/logs/.\n' "$0"; exit 0 ;;
             *) printf 'Parametro desconhecido: %s\n' "$arg" >&2; exit 2 ;;
         esac
     done
+}
+build_iso_stem() {
+    local edition=$1 version=$2
+    if [[ $edition == vm-server ]]; then
+        printf 'linuxbr-vm-server-%s' "$version"
+    else
+        printf 'linuxbr-%s' "$version"
+    fi
 }
 build_version_label() {
     printf '%s' "$1" | sed -E 's/~alpha([0-9]+)$/ Alpha \1/;s/~beta([0-9]+)$/ Beta \1/;s/~rc([0-9]+)$/ RC \1/'

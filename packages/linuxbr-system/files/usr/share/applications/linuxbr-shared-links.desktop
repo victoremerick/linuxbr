@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Links recebidos
+Comment=Revise ou guarde links recebidos de outros computadores
+Exec=linuxbr-shared-links %f
+Icon=bookmark-new
+MimeType=application/x-linuxbr-link;
+Categories=Network;
+Terminal=false
+TryExec=linuxbr-shared-links

@@ -11,6 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 FILES=ROOT/'packages/linuxbr-system/files'
 sys.path.insert(0,str(FILES/'usr/lib/linuxbr-system'))
 from PyQt6.QtWidgets import QApplication,QDialog,QMessageBox
+from PyQt6.QtTest import QTest
 import webapps
 import webapps_backend as backend
 APP=QApplication.instance() or QApplication([])
@@ -63,5 +64,25 @@ class Confirmation(unittest.TestCase):
         backend.remove(first)
         with patch.object(backend,'launch') as launch:
             webapps.open_site(offer['url']);launch.assert_called_once_with(second)
+
+    def test_double_click_does_not_launch_a_different_checked_profile(self):
+        offer = {'name':'Site','url':'https://example.org/app'}
+        first = backend.install(offer)
+        second = backend.install({**offer, 'new_session':True, 'session':'Trabalho'})
+        backend.set_preferred_profile(first)
+        picker = webapps.ProfilePicker(backend.sessions(offer['url']))
+        self.addCleanup(picker.close)
+        picker.show()
+        APP.processEvents()
+        work = next(picker.list.item(i) for i in range(picker.list.count())
+                    if picker.list.item(i).data(webapps.Qt.ItemDataRole.UserRole) == second)
+        with patch.object(backend,'launch') as launch:
+            point = picker.list.visualItemRect(work).center()
+            QTest.mouseClick(picker.list.viewport(), webapps.Qt.MouseButton.LeftButton, pos=point)
+            QTest.mouseDClick(picker.list.viewport(), webapps.Qt.MouseButton.LeftButton, pos=point)
+            launch.assert_not_called()
+            self.assertEqual(picker.open_button.text(), 'Abrir 1 perfil')
+            QTest.keyClick(picker.list, webapps.Qt.Key.Key_Return)
+            launch.assert_called_once_with(first)
 
 if __name__=='__main__':unittest.main()

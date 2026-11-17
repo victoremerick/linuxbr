@@ -19,7 +19,8 @@ class Build(unittest.TestCase):
             state=root/'packages/linuxbr-dolphin/sidebar-state.h'; state.write_text('fixture state')
             for name,body in [('apt-cache','echo "Version: 1.0"'),('apt-get','exit 17')]:
                 p=root/'bin'/name;p.write_text('#!/bin/sh\n'+body+'\n');p.chmod(0o755)
-            key=hashlib.sha256(b'1.0\n'+patch.read_bytes()+cards.read_bytes()+sidebar.read_bytes()+state.read_bytes()+script.read_bytes()).hexdigest()
+            inputs = sorted(cards.parent.iterdir())
+            key=hashlib.sha256(b'1.0\n'+patch.read_bytes()+b''.join(path.read_bytes() for path in inputs)+script.read_bytes()).hexdigest()
             cache=root/'.cache/dolphin-packages'/key;cache.mkdir(parents=True)
             (cache/'complete').touch();(cache/'dolphin_1.0_all.deb').write_bytes(b'test archive')
             env={**os.environ,'PATH':str(root/'bin')+':'+os.environ['PATH'],'LINUXBR_NO_CACHE':'0'}

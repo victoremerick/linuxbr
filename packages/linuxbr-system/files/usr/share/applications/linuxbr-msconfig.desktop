@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Configuração do Sistema
+Name=Inicialização e serviços
 Comment=Inicialização, serviços, programas automáticos e ferramentas
 Exec=linuxbr-msconfig
 Icon=preferences-system
 Terminal=false
 Categories=System;Settings;
-Keywords=msconfig;boot;inicialização;serviços;diagnóstico;
+Keywords=msconfig;Configuração do Sistema;boot;inicialização;serviços;diagnóstico;

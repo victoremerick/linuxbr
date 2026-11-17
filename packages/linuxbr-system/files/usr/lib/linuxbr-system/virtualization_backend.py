@@ -292,6 +292,48 @@ class Manager:
             network.undefine()
         else:raise ValueError('Ação de rede inválida.')
 
+    def add_network_host(self, identifier, hostname, address, mac=''):
+        uuid.UUID(identifier)
+        if not re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', hostname):
+            raise ValueError('Informe um nome de computador de até 63 letras, números ou hífens.')
+        address = ipaddress.IPv4Address(address)
+        network = self.connection.networkLookupByUUIDString(identifier)
+        if network.isActive():
+            raise ValueError('Desative a rede antes de editar os nomes e as reservas.')
+        if not network.isPersistent():
+            raise ValueError('Esta operação exige uma rede virtual persistente.')
+        root = ET.fromstring(network.XMLDesc(1))
+        candidates = [item for item in root.findall('ip') if item.get('family', 'ipv4') == 'ipv4' and item.get('address')]
+        if len(candidates) != 1:
+            raise ValueError('Escolha uma rede virtual gerenciada com IPv4.')
+        ipv4 = candidates[0]
+        gateway = ipaddress.IPv4Address(ipv4.get('address'))
+        subnet = ipaddress.IPv4Network((str(gateway), ipv4.get('netmask') or ipv4.get('prefix', '24')), strict=False)
+        if address not in subnet or address in (gateway, subnet.network_address, subnet.broadcast_address):
+            raise ValueError('Escolha um IP utilizável dentro da sub-rede, diferente do gateway.')
+        dns = root.find('dns')
+        if dns is None:
+            dns = child(root, 'dns')
+        if dns.get('enable') == 'no':
+            raise ValueError('Ative primeiro o DNS desta rede virtual.')
+        if any(item.text and item.text.casefold() == hostname.casefold() for item in dns.findall('host/hostname')):
+            raise ValueError('Já existe um registro DNS para esse nome.')
+        if mac:
+            if not re.fullmatch(r'(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}', mac) or int(mac[:2], 16) & 1:
+                raise ValueError('Informe o endereço MAC unicast do adaptador da VM.')
+            dhcp = ipv4.find('dhcp')
+            if dhcp is None:
+                dhcp = child(ipv4, 'dhcp')
+            if any(row.get('ip') == str(address) or row.get('mac', '').lower() == mac.lower()
+                   for row in dhcp.findall('host')):
+                raise ValueError('O endereço IP ou MAC já tem uma reserva.')
+            child(dhcp, 'host', mac=mac.lower(), name=hostname, ip=str(address))
+        host = next((item for item in dns.findall('host') if item.get('ip') == str(address)), None)
+        if host is None:
+            host = child(dns, 'host', ip=str(address))
+        child(host, 'hostname', hostname)
+        self.connection.networkDefineXML(ET.tostring(root, encoding='unicode'))
+
     def edit_network(self,identifier,spec):
         uuid.UUID(identifier);network=self.connection.networkLookupByUUIDString(identifier)
         if network.isActive():raise ValueError('Desative a rede antes de alterar sua configuração.')
@@ -490,6 +532,89 @@ class Manager:
             self.export_bundle(identifier,str(Path(folder)/'copy'))
             return self.import_bundle(str(Path(folder)/'copy'),pool,name,True,'preserve')
 
+    def _transfer_offline(self, identifier, destination, pool, name, network, replica):
+        """Transfer a stopped guest with its disks to a distinct host."""
+        import tempfile
+
+        destination = checked_uri(destination)
+        if not destination.startswith('qemu+ssh://') or destination == self.uri:
+            raise ValueError('Selecione outro hospedeiro cadastrado por SSH.')
+        self.editable(identifier)
+        if not replica:
+            domain = self.domain(identifier)
+            if not domain.isPersistent() or domain.listAllSnapshots(0):
+                raise ValueError('A migração com discos exige uma VM persistente e sem checkpoints.')
+        target = Manager(destination)
+        try:
+            origin_id = ET.fromstring(self.connection.getCapabilities()).findtext('host/uuid')
+            target_id = ET.fromstring(target.connection.getCapabilities()).findtext('host/uuid')
+            if not origin_id or not target_id or origin_id == target_id:
+                raise ValueError('A origem e o destino identificam o mesmo hospedeiro.')
+            interfaces = self.interfaces(identifier)
+            if replica and not interfaces:
+                raise ValueError('A VM precisa de um adaptador virtual para o teste de rede isolada.')
+            if interfaces or network:
+                selected = target.connection.networkLookupByName(checked_name(network))
+                xml = ET.fromstring(selected.XMLDesc(0))
+                if replica and (not selected.isActive() or xml.find('forward') is not None
+                                or xml.find('route') is not None):
+                    raise ValueError('Ative uma rede isolada no destino antes de criar a réplica.')
+                if not selected.isActive():
+                    raise ValueError('Ative a rede de destino antes de copiar a VM.')
+            checked_name(name)
+            checked_name(pool)
+            storage = target.connection.storagePoolLookupByName(pool)
+            if pool == 'linuxbr-vm-state' or not storage.isActive():
+                raise ValueError('Escolha um local ativo para os discos no hospedeiro de destino.')
+            if any(row['name'] == name or (not replica and row['id'] == identifier)
+                   for row in target.domains()):
+                raise ValueError('O destino já tem uma VM com esse nome ou identificador.')
+            with tempfile.TemporaryDirectory(prefix='linuxbr-vm-transfer-') as folder:
+                bundle = str(Path(folder) / 'vm')
+                self.export_bundle(identifier, bundle)
+                target.cancelled = getattr(self, 'cancelled', lambda: False)
+                target.progress = getattr(self, 'progress', lambda _: None)
+                self.editable(identifier)
+                return target.import_bundle(bundle, pool, name, replica, network)
+        finally:
+            target.close()
+
+    def replicate_offline(self, identifier, destination, pool, name, network):
+        """Create a powered-off copy on an isolated network on another host."""
+        return self._transfer_offline(identifier, destination, pool, name, network, replica=True)
+
+    def start_isolated_replica(self, identifier):
+        domain = self.domain(identifier)
+        if domain.isActive() or domain.hasManagedSaveImage(0) or self.pending_restore(identifier):
+            raise ValueError('Selecione uma VM desligada e sem estado salvo ou restauração pendente.')
+        xml = ET.fromstring(self.xml(identifier))
+        interfaces = xml.findall('devices/interface')
+        if (not interfaces or any(xml.findall('devices/' + kind)
+                                 for kind in ('hostdev', 'filesystem', 'redirdev', 'shmem'))):
+            raise ValueError('A VM precisa ter adaptadores isolados e nenhum dispositivo de acesso direto.')
+        networks = {row['name']: row for row in self.networks()}
+        for interface in interfaces:
+            source = interface.find('source')
+            network = networks.get(source.get('network')) if source is not None else None
+            if interface.get('type') != 'network' or not network or not network['active']:
+                raise ValueError('Todos os adaptadores devem usar redes isoladas ativas neste hospedeiro.')
+            definition = ET.fromstring(network['xml'])
+            if (definition.find('forward') is not None or definition.find('route') is not None
+                    or definition.find('portgroup') is not None):
+                raise ValueError('A rede deve ser isolada e não oferecer encaminhamento ou grupos de portas.')
+        self.action(identifier, 'start')
+
+    def move_offline(self, identifier, destination, pool, name, network):
+        result = self._transfer_offline(identifier, destination, pool, name, network, replica=False)
+        try:
+            if getattr(self, 'cancelled', lambda: False)():
+                raise ValueError('Cancelamento solicitado após a cópia.')
+            self.editable(identifier)
+            self.undefine(identifier)
+        except Exception as error:
+            return dict(result, source_removed=False, source_error=str(error))
+        return dict(result, source_removed=True)
+
     def storage(self,identifier):
         rows=[]
         for i,disk in enumerate(ET.fromstring(self.xml(identifier)).findall('devices/disk')):
@@ -609,19 +734,41 @@ class Manager:
         self.connection.defineXML(text)
         return str(backup)
 
-    def migrate(self,identifier,destination,live=False):
+    def migrate(self,identifier,destination,live=False,copy_disks=False):
         import libvirt
-        checked_uri(destination)
+        destination=checked_uri(destination)
         if destination==self.uri:raise ValueError('Escolha outro hospedeiro.')
         domain=self.domain(identifier)
         if domain.hasManagedSaveImage(0):raise ValueError('Retome e desligue a VM antes de migrar um estado salvo.')
         if domain.isActive() and not live:raise ValueError('Desligue a VM ou selecione migração ao vivo explicitamente.')
+        if copy_disks:
+            if not live or not domain.isActive() or not destination.startswith('qemu+ssh://'):
+                raise ValueError('A cópia de discos ao vivo exige uma VM ativa e um destino remoto por SSH.')
+            xml = ET.fromstring(domain.XMLDesc(0))
+            if domain.listAllSnapshots(0) or xml.find('os/nvram') is not None or xml.find('devices/tpm') is not None:
+                raise ValueError('Remova os checkpoints antes de mover os discos. Use a migração desligada quando houver NVRAM ou TPM.')
+            disks = [disk for disk in xml.findall('devices/disk') if disk.get('device') == 'disk']
+            if not disks:
+                raise ValueError('A VM precisa ter pelo menos um disco de arquivo.')
+            for disk in disks:
+                source = disk.find('source')
+                backing = disk.find('backingStore')
+                if (disk.get('type') != 'file' or source is None or not source.get('file', '').startswith('/')
+                        or (backing is not None and (len(backing) or backing.attrib))
+                        or disk.find('encryption') is not None or source.find('encryption') is not None):
+                    raise ValueError('A cópia ao vivo aceita discos de arquivo independentes e sem criptografia do hospedeiro.')
         target=libvirt.open(destination)
         if target is None:raise ValueError('Destino indisponível.')
         try:
+            source_host = ET.fromstring(self.connection.getCapabilities()).findtext('host/uuid')
+            target_host = ET.fromstring(target.getCapabilities()).findtext('host/uuid')
+            if not source_host or not target_host or source_host == target_host:
+                raise ValueError('A origem e o destino precisam ser hospedeiros distintos.')
             flags=libvirt.VIR_MIGRATE_PERSIST_DEST
             if domain.isPersistent():flags|=libvirt.VIR_MIGRATE_UNDEFINE_SOURCE
             if live:flags|=libvirt.VIR_MIGRATE_LIVE
             else:flags|=libvirt.VIR_MIGRATE_OFFLINE
+            if copy_disks:
+                flags |= libvirt.VIR_MIGRATE_NON_SHARED_DISK | libvirt.VIR_MIGRATE_TLS
             domain.migrate(target,flags,None,None,0)
         finally:target.close()

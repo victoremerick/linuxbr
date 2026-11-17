@@ -10,7 +10,7 @@ while read -r candidate; do
     fi
 done < <(apt-cache showsrc dolphin | awk '/^Version:/ {print $2}')
 [[ -n "$VERSION" ]] || { echo 'Fonte Debian do Dolphin indisponivel' >&2; exit 1; }
-KEY=$( { printf '%s\n' "$VERSION"; cat "$ROOT/scripts/patch-dolphin.py" "$ROOT/packages/linuxbr-dolphin/cards.cpp.inc" "$ROOT/packages/linuxbr-dolphin/sidebar.h" "$ROOT/packages/linuxbr-dolphin/sidebar-state.h" "$ROOT/scripts/build-dolphin.sh"; } | sha256sum)
+KEY=$( { printf '%s\n' "$VERSION"; cat "$ROOT/scripts/patch-dolphin.py" "$ROOT/packages/linuxbr-dolphin/"* "$ROOT/scripts/build-dolphin.sh"; } | sha256sum)
 KEY=${KEY%% *}
 CACHE=/src/.cache/dolphin-packages/$KEY
 mkdir -p "$OUTPUT"
@@ -26,7 +26,7 @@ SOURCE=$(find . -mindepth 1 -maxdepth 1 -type d -name 'dolphin-*' -print -quit)
 [[ -n "$SOURCE" ]]
 python3 "$ROOT/scripts/patch-dolphin.py" "$SOURCE"
 cd "$SOURCE"
-DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --newversion "${VERSION}+linuxbr2" --distribution trixie 'Drive cards for linuxbr:/; preserve normal Dolphin views.'
+DEBFULLNAME='Linux BR' DEBEMAIL='build@linuxbr.local' dch --newversion "${VERSION}+linuxbr5" --distribution trixie 'Abre a Wiki do Linux BR pela Ajuda do Explorador e corrige o título da pesquisa.'
 DEB_BUILD_OPTIONS='nocheck' dpkg-buildpackage -b -uc -us -j2
 cd "$WORK"
 # Publish the matching runtime/data/library packages together; exclude symbols.

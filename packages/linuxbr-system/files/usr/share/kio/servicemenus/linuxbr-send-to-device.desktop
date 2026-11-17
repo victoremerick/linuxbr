@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Service
+MimeType=application/octet-stream;
+Actions=sendToDevice;sendWithApproval;
+X-KDE-Protocols=file
+X-KDE-MinNumberOfUrls=1
+
+[Desktop Action sendToDevice]
+Name=Enviar para outro dispositivo…
+Icon=network-workgroup
+Exec=/usr/bin/kdeconnect-handler %F
+
+[Desktop Action sendWithApproval]
+Name=Enviar para outro computador com aceite…
+Icon=document-send
+Exec=linuxbr-file-offer --offer %F

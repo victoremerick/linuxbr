@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Digitalizar e enviar
+Comment=Digitalize uma página em PDF e envie a um dispositivo pareado
+Exec=linuxbr-scan-share
+Icon=scanner
+Categories=Graphics;Scanning;
+Terminal=false
+TryExec=linuxbr-scan-share

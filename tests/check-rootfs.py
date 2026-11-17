@@ -14,6 +14,7 @@ from credential_policy import reject_seeded_credentials
 parser = argparse.ArgumentParser()
 parser.add_argument('root', type=Path)
 parser.add_argument('--mode', choices=['live', 'installed'], default='live')
+parser.add_argument('--edition', choices=['desktop', 'vm-server'], default='desktop')
 args = parser.parse_args()
 root = args.root
 version = (Path(__file__).resolve().parents[1] / 'VERSION').read_text().strip()
@@ -32,6 +33,32 @@ require(release.get('ID_LIKE') == 'debian', 'compatibilidade declarada Debian')
 require(release.get('VERSION_ID') == version, 'versao')
 require('trixie' == release.get('VERSION_CODENAME'), 'codename Debian')
 require('Linux BR' in read('etc/issue'), 'banner')
+if args.edition == 'vm-server':
+    status = read('var/lib/dpkg/status')
+    installed = {stanza.splitlines()[0].removeprefix('Package: ') for stanza in status.split('\n\n')
+                 if stanza.startswith('Package: ') and '\nStatus: install ok installed\n' in stanza}
+    required = {'linuxbr-release', 'linuxbr-server', 'linuxbr-boot-tools', 'libvirt-daemon-system',
+                'qemu-system-x86', 'qemu-utils', 'virtinst', 'ovmf', 'swtpm'}
+    if args.mode == 'live':
+        required.update(('calamares', 'linuxbr-calamares-settings'))
+        installer = 'etc/calamares/modules/linuxbr_edition/media-edition'
+        require((root / installer).is_file() and read(installer).strip() == 'virtualization',
+                'instalador dedicado ao VM Server')
+        settings = yaml.safe_load(read('etc/calamares/settings.conf'))
+        require(not any('packagechooser' in stage.get('show', []) for stage in settings['sequence']),
+                'instalador sem escolha de edição')
+        require('Instalar Linux BR VM Server' in read('usr/share/applications/calamares-install-linuxbr.desktop'),
+                'identidade do instalador VM Server')
+    require(required <= installed, 'pacotes VM Server ausentes: ' + ', '.join(sorted(required - installed)))
+    desktop = {'linuxbr-system', 'linuxbr-desktop', 'linuxbr-desktop-edition', 'plasma-desktop',
+               'plasma-workspace', 'task-kde-desktop', 'chromium', 'wine', 'libreoffice-writer'}
+    require(not desktop.intersection(installed), 'pacotes Desktop presentes na mídia VM Server')
+    require(read('etc/linuxbr/edition').strip() == 'virtualization', 'perfil VM Server')
+    for path in ('usr/bin/linuxbr-minimal-session', 'usr/bin/linuxbr-server-terminal', 'usr/bin/terminal',
+                 'usr/lib/linuxbr-server/virtualization_backend.py'):
+        require((root / path).is_file(), 'componente VM Server: ' + path)
+    print(f'PASS: composição do Linux BR VM Server {version}; o boot exige ensaio da ISO.')
+    sys.exit(0)
 about_config = configparser.ConfigParser(interpolation=None)
 about_config.read_string(read('etc/xdg/kcm-about-distrorc'))
 require(about_config.get('General', 'LogoPath') == '/usr/share/linuxbr/identity/symbol-color.svg', 'logo das propriedades do sistema')
@@ -155,6 +182,12 @@ if args.mode == 'live':
     require(yaml.safe_load(read('etc/calamares/modules/plymouthcfg.conf'))['plymouth_theme'] == 'linuxbr', 'tema Plymouth no destino Calamares')
     settings = yaml.safe_load(read('etc/calamares/settings.conf'))
     require(settings['branding'] == 'linuxbr', 'branding Calamares')
+    require(read('etc/calamares/modules/linuxbr_edition/media-edition').strip() == 'desktop',
+            'instalador dedicado ao Desktop')
+    require(not any('packagechooser' in stage.get('show', []) for stage in settings['sequence']),
+            'instalador Desktop sem escolha de edição')
+    require(not any('Package: linuxbr-server\n' in stanza and 'Status: install ok installed' in stanza
+                    for stanza in status.split('\n\n')), 'mídia Desktop sem pacote de servidor')
     for module in ['partition', 'unpackfs', 'users', 'bootloader', 'umount']:
         require(module in settings['sequence'][1]['exec'], 'modulo Calamares: ' + module)
     require('Instalar Linux BR' in read('usr/share/applications/calamares-install-linuxbr.desktop'), 'atalho')

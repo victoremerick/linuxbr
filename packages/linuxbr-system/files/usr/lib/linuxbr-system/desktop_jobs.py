@@ -30,7 +30,14 @@ class Command(QDialog):
         self.process=QProcess(self);self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels);self.process.readyReadStandardOutput.connect(self.read)
         self.process.finished.connect(self.finished_command);self.process.errorOccurred.connect(self.error)
         if input_data is not None:
-            self.process.started.connect(lambda:(self.process.write(input_data),self.process.closeWriteChannel()))
+            pending_input = input_data
+            def send_input():
+                nonlocal pending_input
+                if pending_input is not None:
+                    self.process.write(pending_input)
+                pending_input = None
+                self.process.closeWriteChannel()
+            self.process.started.connect(send_input)
         self.process.start(argv[0],argv[1:]);self.show()
 
     def read(self):

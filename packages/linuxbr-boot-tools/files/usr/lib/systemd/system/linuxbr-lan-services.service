@@ -1,0 +1,16 @@
+[Unit]
+Description=DNS e DHCP da rede local do Linux BR
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/linuxbr/lan-services.json
+ConditionPathIsExecutable=/usr/sbin/dnsmasq
+
+[Service]
+Type=exec
+StateDirectory=linuxbr-lan
+RuntimeDirectory=linuxbr-lan
+ExecStartPre=/usr/bin/python3 -I /usr/lib/linuxbr-boot/lan_services.py --prepare-runtime
+ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --conf-file=/run/linuxbr-lan/dnsmasq.conf --dhcp-leasefile=/var/lib/linuxbr-lan/leases
+
+[Install]
+WantedBy=multi-user.target

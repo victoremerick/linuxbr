@@ -40,6 +40,7 @@ class BootTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary)
             self.assertTrue(policy.server_edition('linuxbr.edition=server',root/'missing'))
+            self.assertTrue(policy.server_edition('linuxbr.edition=virtualization',root/'missing'))
             self.assertFalse(policy.server_edition('linuxbr.edition=desktop',root/'missing'))
             config=root/'edition';config.write_text('server\n')
             self.assertTrue(policy.server_edition('',config))

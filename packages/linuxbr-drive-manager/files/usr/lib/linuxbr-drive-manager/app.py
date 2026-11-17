@@ -7,7 +7,7 @@ from PyQt6.QtCore import QProcess, QTimer, QUrl, Qt
 from PyQt6.QtGui import QDesktopServices, QIcon, QAction
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
-    QMessageBox, QInputDialog, QToolBar, QMenu, QFrame, QSplitter, QProgressBar)
+    QMessageBox, QInputDialog, QToolBar, QToolButton, QMenu, QFrame, QSplitter, QProgressBar)
 from diskmap import DiskMap
 from partition_dialog import PartitionDialog, TITLES
 from core import LETTERS
@@ -20,7 +20,7 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Gerenciamento de discos — Linux BR')
-        self.setWindowIcon(QIcon.fromTheme('linuxbr-files'))
+        self.setWindowIcon(QIcon.fromTheme('drive-harddisk'))
         self.resize(1040, 620)
         self.setMinimumSize(640, 480)
         self.store = ServiceStore()
@@ -62,16 +62,20 @@ class Window(QMainWindow):
             if name in ('Atualizar', 'Abrir', 'Propriedades'): toolbar.addAction(action)
             elif name in ('Reconectar', 'Senhas de rede', 'Adicionar rede', 'Remover rede'): network_menu.addAction(action)
             else: unit_menu.addAction(action)
-        toolbar.addSeparator(); toolbar.addAction(unit_menu.menuAction()); toolbar.addAction(network_menu.menuAction())
+        toolbar.addSeparator()
         partition_menu = QMenu('Partições', toolbar)
         self.partition_actions = {}
         for operation, title in TITLES.items():
             action = QAction(title + '…', self)
             action.triggered.connect(lambda checked=False, op=operation: self.edit_partition(op))
             partition_menu.addAction(action); self.partition_actions[operation] = action
-        toolbar.addAction(partition_menu.menuAction())
+        for menu in (unit_menu, network_menu, partition_menu):
+            toolbar.addAction(menu.menuAction())
+            control = toolbar.widgetForAction(menu.menuAction())
+            control.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         layout.addWidget(toolbar)
         self.table = QTableWidget(0, 7)
+        self.table.setAccessibleName('Volumes e unidades de rede')
         self.table.setHorizontalHeaderLabels(['Unidade', 'Nome', 'Tipo', 'Capacidade', 'Formato', 'Local / estado', 'Espaço usado / livre'])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
@@ -104,15 +108,17 @@ class Window(QMainWindow):
         self.refresh()
 
     def error(self, text):
-        QMessageBox.warning(self, 'Drive Manager', text)
+        QMessageBox.warning(self, 'Gerenciamento de discos', text)
 
     def selected(self):
         i = self.table.currentRow()
-        return self.rows[i] if 0 <= i < len(self.rows) else None
+        if 0 <= i < len(self.rows) and not self.table.isRowHidden(i) and self.table.selectedItems():
+            return self.rows[i]
+        return None
 
     def selection_changed(self):
         row = self.selected() or {}
-        self.diskmap.select(self.table.currentRow())
+        self.diskmap.select(self.table.currentRow() if row else -1)
         idle = self.process is None and not self.network.busy
         for button in self.buttons.values(): button.setEnabled(idle)
         self.buttons['Propriedades'].setEnabled(idle and bool(row) and not row.get('unallocated'))
@@ -192,6 +198,8 @@ class Window(QMainWindow):
         self.rows = rows
         self.diskmap.populate(rows, self.data['letters'])
         self.table.blockSignals(True)
+        self.table.clearSelection()
+        self.table.setCurrentItem(None)
         self.table.clearContents()
         self.table.setRowCount(len(rows))
         for i, row in enumerate(rows):
@@ -208,9 +216,12 @@ class Window(QMainWindow):
             self.table.setRowHidden(i, hidden)
             icon = 'folder-network' if row.get('url') else 'drive-removable-media' if row['kind'] == 'Removível' else 'drive-harddisk'
             self.table.item(i, 0).setIcon(QIcon.fromTheme(icon))
-            if selected_id == (row.get('key'), row.get('path')): self.table.selectRow(i)
+            if not hidden and selected_id == (row.get('key'), row.get('path')):
+                self.table.selectRow(i)
         self.table.blockSignals(False)
-        self.statusBar().showMessage(service_error or f'{len(rows)} itens · serviço de unidades ativo · integração com o Explorador de arquivos')
+        visible = sum(not self.table.isRowHidden(index) for index in range(self.table.rowCount()))
+        summary = f'Itens exibidos: {visible}' if visible else 'Nenhum volume ou unidade de rede encontrado.'
+        self.statusBar().showMessage(service_error or summary)
         self.selection_changed()
 
     def volume_menu(self, position):
@@ -338,6 +349,7 @@ class Window(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setDesktopFileName('linuxbr-drive-manager')
     app.setApplicationName('Linux BR Drive Manager')
     window = Window()
     window.show()

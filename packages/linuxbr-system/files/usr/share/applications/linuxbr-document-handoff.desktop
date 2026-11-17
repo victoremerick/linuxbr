@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Continuar documento em outro computador
+Exec=linuxbr-document-handoff %f
+MimeType=application/x-linuxbr-document;
+Icon=document-open-recent
+Terminal=false
+Categories=Network;
