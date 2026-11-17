@@ -28,6 +28,31 @@ def require(condition, message):
         raise SystemExit('FAIL: ' + message)
 
 
+def check_initial_setup_sddm():
+    display = yaml.safe_load(read('etc/calamares/modules/displaymanager.conf'))
+    require(display.get('sddm', {}).get('configuration_file') == '/etc/sddm.conf.d/95-linuxbr-calamares.conf',
+            'configuração SDDM do instalador com prioridade menor que a configuração inicial')
+    config_dir = root / 'etc/sddm.conf.d'
+    higher_priority = [config_dir / name.name for name in config_dir.glob('*.conf')
+                       if name.name >= '99-linuxbr-initial-setup.conf']
+    for path in [root / 'etc/sddm.conf', *higher_priority]:
+        if not path.exists():
+            continue
+        config = configparser.ConfigParser(interpolation=None, strict=False)
+        config.optionxform = str
+        try:
+            config.read_string(path.read_text())
+        except (OSError, ValueError, configparser.Error):
+            require(False, 'configuração SDDM inválida: ' + path.name)
+        for section, options in (
+                ('Autologin', ('User', 'Session', 'Relogin')),
+                ('General', ('DisplayServer',)),
+                ('Users', ('RememberLastUser', 'RememberLastSession')),
+                ('X11', ('SessionDir',))):
+            require(not any(config.has_option(section, option) for option in options),
+                    'configuração SDDM pode substituir a sessão inicial: ' + path.name)
+
+
 def desktop_installer():
     settings = yaml.safe_load(read('etc/calamares/settings.conf'))
     require(settings['branding'] == 'linuxbr', 'branding Calamares')
@@ -42,6 +67,7 @@ def desktop_installer():
             'ordem das operações de instalação no disco')
     require(jobs.index('linuxbr_initial_setup') + 1 == jobs.index('umount'),
             'marcador de primeiro boot gravado antes de desmontar o disco')
+    check_initial_setup_sddm()
     require(not {'users', 'locale', 'localecfg', 'keyboard', 'networkcfg'}.intersection(jobs),
             'conta, idioma, teclado e rede reservados para o primeiro boot')
     require(all(settings.get(option) is True for option in (

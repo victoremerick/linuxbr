@@ -493,12 +493,16 @@ case "$1" in remove|deconfigure) python3 /usr/lib/linuxbr-desktop/plasma-layout.
         if 'remove' in op:
             op['remove'] = list(dict.fromkeys('linuxbr-calamares-settings' if p == 'calamares-settings-debian' else p for p in op['remove']))
     dump(packages, data)
-    if media == 'vm-server':
-        displaymanager = cala / 'etc/calamares/modules/displaymanager.conf'
-        data = load(displaymanager)
+    displaymanager = cala / 'etc/calamares/modules/displaymanager.conf'
+    data = load(displaymanager)
+    if media == 'desktop':
+        # The primary SDDM file takes precedence over every drop-in.
+        data.setdefault('sddm', {})['configuration_file'] = '/etc/sddm.conf.d/95-linuxbr-calamares.conf'
+    else:
         data['defaultDesktopEnvironment'] = dict(executable='/usr/bin/linuxbr-minimal-session',
                                                  desktopFile='linuxbr-safe')
-        dump(displaymanager, data)
+    dump(displaymanager, data)
+    if media == 'vm-server':
         users = cala / 'etc/calamares/modules/users.conf'
         data = load(users)
         data['defaultGroups'] = ['cdrom', 'sudo', 'audio', 'video', 'plugdev', 'netdev']

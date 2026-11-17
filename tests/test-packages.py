@@ -140,6 +140,9 @@ for name in ('branding','desktop','sddm-theme','boot-theme','drive-manager','sys
 assert 'linuxbr-calamares-settings' not in release_control
 server_list = (Path(__file__).resolve().parents[1] / 'config/editions/vm-server.list.chroot').read_text().splitlines()
 assert 'python3-libvirt' in server_list, 'A ISO VM Server precisa do binding Python com Recommends desativado'
+shared_bootloader_list = (Path(__file__).resolve().parents[1] / 'config/package-lists/linuxbr-bootloader.list.chroot')
+assert {'grub2-common', 'grub-efi-amd64-bin', 'grub-pc-bin', 'grub-efi-amd64-signed',
+        'shim-signed', 'efibootmgr'} <= set(shared_bootloader_list.read_text().splitlines())
 assert f'linuxbr-file-properties (= {version})' in (work/'work/linuxbr-system/DEBIAN/control').read_text()
 for name in ('kio6','libkf6kiocore6','libkf6kiogui6','libkf6kiowidgets6','libkf6kiofilewidgets6'):
     assert name+' (>= 6.13.0-6+linuxbr0.9.1)' in (work/'work/linuxbr-file-properties/DEBIAN/control').read_text()

@@ -105,6 +105,7 @@ main() {
     iso=live-image-amd64.hybrid.iso
     [[ -s "$iso" ]] || { echo 'ERRO: ISO nao encontrada' >&2; exit 1; }
     echo "LINUXBR_STAGE 4"
+    python3 "$WORK/source/tests/check-bootloader-payload.py" binary/live/filesystem.squashfs
     python3 "$WORK/source/tests/check-rootfs.py" chroot --mode live --edition "$LINUXBR_BUILD_EDITION"
     echo "LINUXBR_STAGE 5"
     install -m 0644 "$iso" "/src/dist/${ISO_STEM}-amd64.iso"

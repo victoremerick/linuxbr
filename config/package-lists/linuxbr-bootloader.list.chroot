@@ -1,0 +1,8 @@
+# Calamares copia o squashfs e chama grub-install antes do job de pacotes.
+# Os módulos das duas plataformas precisam estar no sistema copiável da ISO.
+grub2-common
+grub-efi-amd64-bin
+grub-pc-bin
+grub-efi-amd64-signed
+shim-signed
+efibootmgr

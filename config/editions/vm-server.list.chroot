@@ -17,11 +17,6 @@ libvirt-daemon-driver-qemu
 qemu-block-extra
 qml6-module-qtquick-window
 btrfs-progs
-efibootmgr
-grub-efi-amd64-bin
-grub-pc-bin
-grub-efi-amd64-signed
-shim-signed
 firmware-linux
 firmware-iwlwifi
 firmware-realtek
