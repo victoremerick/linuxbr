@@ -1,0 +1,151 @@
+name: Publicar Linux BR 1.1.1 Alpha 1
+
+on:
+  push:
+    branches:
+      - release/1.1.1-alpha1-publicacao
+
+permissions: {}
+
+concurrency:
+  group: linuxbr-1.1.1-alpha1
+  cancel-in-progress: false
+
+env:
+  RELEASE_VERSION: '1.1.1~alpha1'
+  RELEASE_NAME: linuxbr-1.1.1-alpha1
+  RELEASE_TAG: v1.1.1-alpha1
+  SOURCE_RUN: '44083511042'
+  SOURCE_COMMIT: 4b745afdfd992b8a03bcf1bbc00a4712a6b842a2
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  publish:
+    if: github.repository == 'victoremerick/linuxbr' && github.ref == 'refs/heads/release/1.1.1-alpha1-publicacao'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ env.SOURCE_COMMIT }}
+          persist-credentials: false
+
+      - name: Recuperar a imagem e validar a origem
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ $(git rev-parse HEAD) == "$SOURCE_COMMIT" ]]
+          [[ $(cat VERSION) == "$RELEASE_VERSION" ]]
+          mkdir -p dist "$RUNNER_TEMP/original-qa"
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name "linuxbr-111-alpha1-build-$SOURCE_RUN-1" --dir dist
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name "linuxbr-111-alpha1-diagnostics-$SOURCE_RUN-1" --dir "$RUNNER_TEMP/original-qa"
+          (
+            cd dist
+            sha256sum --check --strict "linuxbr-$RELEASE_VERSION-amd64.iso.sha256"
+          )
+          python3 -B - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          version = os.environ['RELEASE_VERSION']
+          name = os.environ['RELEASE_NAME']
+          source = os.environ['SOURCE_COMMIT']
+          repo = os.environ['GITHUB_REPOSITORY']
+          run = os.environ['SOURCE_RUN']
+          dist = Path('dist')
+          image = dist / f'linuxbr-{version}-amd64.iso'
+          with image.open('rb') as stream:
+              digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+          metadata = json.loads((dist / f'{name}-build.json').read_text())
+          expected_iso = {'file': image.name, 'bytes': image.stat().st_size, 'sha256': digest}
+          if (metadata['iso'], metadata['source_commit'], metadata['version'],
+                  metadata['repository'], metadata['run_id']) != (expected_iso, source, version, repo, run):
+              raise SystemExit('A imagem não corresponde às fontes e à execução esperadas.')
+          evidence = Path(os.environ['RUNNER_TEMP']) / 'original-qa'
+          for firmware in ('uefi', 'bios'):
+              candidates = list(evidence.rglob(f'{firmware}-result.json'))
+              if len(candidates) != 1:
+                  raise SystemExit(f'Resultado de {firmware} ausente ou ambíguo.')
+              result = json.loads(candidates[0].read_text())
+              fields = ('status', 'id', 'version', 'iso_sha256')
+              if tuple(result[field] for field in fields) != ('PASS', f'live-{firmware}', version, digest):
+                  raise SystemExit(f'A validação de {firmware} não pertence à imagem recuperada.')
+          (dist / f'{name}-amd64.iso').hardlink_to(image)
+          print(f'ISO validada: {digest}')
+          PY
+
+      - name: Compilar os pacotes da edição Desktop
+        run: |
+          set -euo pipefail
+          mkdir -p build .cache
+          docker build -t linuxbr-release-packages -f scripts/Containerfile.build scripts
+          docker run --rm -i --network host -v "$PWD:/src" -w /src \
+            -e "RELEASE_NAME=$RELEASE_NAME" linuxbr-release-packages bash -se <<'SH'
+          set -euo pipefail
+          work=$(mktemp -d /tmp/linuxbr-pacotes.XXXXXX)
+          mkdir "$work/upstream"
+          apt-get update
+          (
+            cd "$work/upstream"
+            apt-get download calamares-settings-debian=13.0.13-1 sddm-theme-breeze
+          )
+          python3 scripts/build-packages.py --output "$work/debs" --work "$work/build" \
+            --calamares-deb "$work"/upstream/calamares-settings-debian_*.deb \
+            --breeze-deb "$work"/upstream/sddm-theme-breeze_*.deb
+          rm -- "$work"/debs/linuxbr-server_*.deb
+          bash scripts/build-dolphin.sh "$work/debs"
+          python3 scripts/check-package-ownership.py "$work/debs"
+          (
+            cd "$work/debs"
+            sha256sum ./*.deb > SHA256SUMS
+            tar -czf "/src/dist/$RELEASE_NAME-pacotes-desktop-amd64.tar.gz" SHA256SUMS ./*.deb
+          )
+          SH
+
+      - name: Preparar e publicar os arquivos verificados
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin "$GITHUB_REF" | cut -f1)
+          [[ $current == "$GITHUB_SHA" && $(git rev-parse HEAD) == "$SOURCE_COMMIT" ]]
+          [[ -z $(git status --porcelain) ]]
+          git archive --format=tar.gz --prefix="$RELEASE_NAME/" \
+            --output="dist/$RELEASE_NAME-fontes.tar.gz" "$SOURCE_COMMIT"
+          cp -- "dist/linuxbr-$RELEASE_VERSION-upstream.sha256" "dist/$RELEASE_NAME-debian.sha256"
+          tar --exclude='*.qcow2' --exclude='*.iso' --exclude='*.fd' \
+            -C "$RUNNER_TEMP/original-qa" -czf "dist/$RELEASE_NAME-validacoes.tar.gz" .
+          notes="$RUNNER_TEMP/linuxbr-release-notes.md"
+          cp docs/RELEASE-1.1.1-ALPHA1.md "$notes"
+          iso_hash=$(cut -d ' ' -f 1 "dist/linuxbr-$RELEASE_VERSION-amd64.iso.sha256")
+          {
+            printf '\n## Validação da imagem\n\n'
+            printf 'Fontes compiladas em `%s`. O SHA-256 da ISO completa é `%s`.\n\n' "$SOURCE_COMMIT" "$iso_hash"
+            printf 'A integridade da imagem e os boots Live em UEFI e BIOS passaram. '
+            printf 'Consulte as evidências em `%s-validacoes.tar.gz` e a [execução da validação](https://github.com/%s/actions/runs/%s).\n' \
+              "$RELEASE_NAME" "$GITHUB_REPOSITORY" "$SOURCE_RUN"
+          } >> "$notes"
+          mkdir -m 0700 dist/.release
+          export TMPDIR="$PWD/dist/.release"
+          artifacts=(
+            --artifact "dist/$RELEASE_NAME-amd64.iso"
+            --artifact "dist/$RELEASE_NAME-fontes.tar.gz"
+            --artifact "dist/$RELEASE_NAME-pacotes-desktop-amd64.tar.gz"
+            --artifact "dist/$RELEASE_NAME-debian.sha256"
+            --artifact "dist/$RELEASE_NAME-validacoes.tar.gz"
+            --notes "$notes" --verify-remote
+          )
+          python3 scripts/publish-github-release.py "${artifacts[@]}" --publish
+          [[ $(git ls-remote --tags origin "refs/tags/$RELEASE_TAG" | cut -f1) == "$SOURCE_COMMIT" ]]
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,url
